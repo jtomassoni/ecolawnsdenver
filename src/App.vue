@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const showQuoteDialog = ref(false)
 const quoteForm = ref({
@@ -7,6 +7,18 @@ const quoteForm = ref({
   address: '',
   email: '',
   phone: ''
+})
+
+const isFormValid = computed(() => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  const phoneRegex = /^\+?[\d\s-]{10,}$/
+  
+  return (
+    quoteForm.value.name.length >= 4 &&
+    quoteForm.value.address.length >= 5 &&
+    emailRegex.test(quoteForm.value.email) &&
+    phoneRegex.test(quoteForm.value.phone)
+  )
 })
 
 const services = [
@@ -142,21 +154,31 @@ const submitQuote = () => {
         <div class="form-field">
           <label>Name</label>
           <InputText v-model="quoteForm.name" placeholder="Your name" />
+          <small v-if="quoteForm.name.length > 0 && quoteForm.name.length < 4" class="error-text">Name must be at least 4 characters</small>
         </div>
         <div class="form-field">
           <label>Address</label>
           <InputText v-model="quoteForm.address" placeholder="Service address" />
+          <small v-if="quoteForm.address.length > 0 && quoteForm.address.length < 5" class="error-text">Address must be at least 5 characters</small>
         </div>
         <div class="form-field">
           <label>Email</label>
           <InputText v-model="quoteForm.email" placeholder="Your email" />
+          <small v-if="quoteForm.email.length > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(quoteForm.email)" class="error-text">Please enter a valid email address</small>
         </div>
         <div class="form-field">
           <label>Phone</label>
           <InputText v-model="quoteForm.phone" placeholder="Your phone" />
+          <small v-if="quoteForm.phone.length > 0 && !/^\+?[\d\s-]{10,}$/.test(quoteForm.phone)" class="error-text">Please enter a valid phone number (at least 10 digits)</small>
         </div>
-        <Button label="Get My Free Quote" severity="success" raised @click="submitQuote" />
-        <p class="form-note">No credit card required • Cancel anytime</p>
+        <Button 
+          label="Get My Free Quote" 
+          severity="success" 
+          raised 
+          @click="submitQuote" 
+          :disabled="!isFormValid"
+        />
+        <p class="form-note">No credit card required.</p>
       </div>
     </Dialog>
   </div>
@@ -304,6 +326,12 @@ const submitQuote = () => {
   text-align: center;
   margin-top: 1rem;
   color: var(--text-color-secondary);
+}
+
+.error-text {
+  color: var(--red-500);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
 }
 
 @media (max-width: 768px) {
