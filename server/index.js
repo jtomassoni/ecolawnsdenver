@@ -24,22 +24,84 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// Verify transporter configuration
+transporter.verify(function(error, success) {
+  if (error) {
+    console.error('Nodemailer configuration error:', error);
+  } else {
+    console.log('Nodemailer is ready to send emails');
+  }
+});
+
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? 'https://ecolawnsdenver.com' 
+    : true, // Allow all origins in development
+  methods: ['GET', 'POST', 'OPTIONS'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+}));
+
+// Add request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  console.log('Request headers:', req.headers);
+  console.log('Request body:', req.body);
+  next();
+});
+
+// Add OPTIONS handler for preflight requests
+app.options('*', cors());
+
 app.use(express.json());
+
+// Add error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  console.error('Error stack:', err.stack);
+  res.status(500).json({ 
+    success: false, 
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+  });
+});
 
 // Basic health check endpoint
 app.get('/api/health', (req, res) => {
+  console.log('Health check requested');
   res.json({ status: 'ok', message: 'Server is running' });
 });
 
 // Email submission endpoint
 app.post('/api/send-email', async (req, res) => {
+  console.log('Received email request:', req.body);
   try {
     const { name, email, zipcode, phone, lawnSize, subscriptionOption, type } = req.body;
     if (!email || !zipcode) {
+      console.log('Missing required fields:', { email: !!email, zipcode: !!zipcode });
       return res.status(400).json({ success: false, message: 'Email and zipcode are required' });
     }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      console.log('Invalid email format:', email);
+      return res.status(400).json({ success: false, message: 'Invalid email format' });
+    }
+
+    // Check if email configuration is set up
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASSWORD) {
+      console.error('Email configuration missing:', {
+        hasEmailUser: !!process.env.EMAIL_USER,
+        hasAppPassword: !!process.env.EMAIL_APP_PASSWORD
+      });
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Email service not configured properly'
+      });
+    }
+
     console.log('Attempting to send email with config:', {
       user: process.env.EMAIL_USER,
       hasPassword: !!process.env.EMAIL_APP_PASSWORD
@@ -68,7 +130,8 @@ app.post('/api/send-email', async (req, res) => {
     console.error('Detailed error sending email:', {
       message: error.message,
       stack: error.stack,
-      code: error.code
+      code: error.code,
+      command: error.command
     });
     res.status(500).json({ 
       success: false, 
@@ -90,6 +153,7 @@ app.post('/api/quotes', (req, res) => {
   });
 });
 
+// Start the server
 app.listen(port, () => {
   console.log(`Backend server running on http://localhost:${port}`);
 }); 

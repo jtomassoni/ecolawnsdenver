@@ -113,6 +113,7 @@
 
 <script setup>
 import { ref, inject, provide, onMounted, onBeforeUnmount, computed } from 'vue'
+import { API_ENDPOINTS } from '../config'
 
 const lawnSize = ref('')
 const price = ref(null)
@@ -175,9 +176,16 @@ const submitBooking = async () => {
   }
   try {
     submitError.value = ''
-    const response = await fetch('/api/send-email', {
+    isSubmitting.value = true
+    
+    console.log('Attempting to send request to:', API_ENDPOINTS.SEND_EMAIL)
+    
+    const response = await fetch(API_ENDPOINTS.SEND_EMAIL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
       body: JSON.stringify({
         name: bookingForm.value.name,
         email: bookingForm.value.email,
@@ -188,7 +196,17 @@ const submitBooking = async () => {
         type: 'Lawn Service Booking'
       })
     })
+
+    console.log('Response status:', response.status)
+    console.log('Response headers:', Object.fromEntries(response.headers.entries()))
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
     const data = await response.json()
+    console.log('Response data:', data)
+
     if (data.success) {
       submitSuccess.value = true
       bookingForm.value = { name: '', email: '', zipcode: '', phone: '' }
@@ -196,7 +214,10 @@ const submitBooking = async () => {
       submitError.value = data.message || 'Failed to send request.'
     }
   } catch (e) {
-    submitError.value = e.message || 'Failed to send request.'
+    console.error('Error details:', e)
+    submitError.value = e.message || 'Failed to send request. Please try again.'
+  } finally {
+    isSubmitting.value = false
   }
 }
 
