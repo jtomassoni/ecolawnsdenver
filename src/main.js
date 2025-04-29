@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import './style.css'
 import App from './App.vue'
+import router from './router'
 
 // PrimeVue imports
 import PrimeVue from 'primevue/config'
@@ -30,6 +31,9 @@ import 'primevue/resources/primevue.min.css'
 import 'primeicons/primeicons.css'
 
 const app = createApp(App)
+
+// Use router
+app.use(router)
 
 // Register PrimeVue and its components
 app.use(PrimeVue, { ripple: true })

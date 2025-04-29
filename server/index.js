@@ -36,7 +36,10 @@ app.get('/api/health', (req, res) => {
 // Email submission endpoint
 app.post('/api/send-email', async (req, res) => {
   try {
-    const { name, email, phone, address, message, type } = req.body;
+    const { name, email, zipcode, phone, lawnSize, subscriptionOption, type } = req.body;
+    if (!email || !zipcode) {
+      return res.status(400).json({ success: false, message: 'Email and zipcode are required' });
+    }
     console.log('Attempting to send email with config:', {
       user: process.env.EMAIL_USER,
       hasPassword: !!process.env.EMAIL_APP_PASSWORD
@@ -45,14 +48,15 @@ app.post('/api/send-email', async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: process.env.EMAIL_USER, // Sending to yourself
-      subject: `New ${type} Request from ${name}`,
+      subject: `New ${type || 'Lawn Service Booking'} from ${name || 'No Name'}`,
       html: `
-        <h2>New ${type} Request</h2>
-        <p><strong>Name:</strong> ${name}</p>
+        <h2>New ${type || 'Lawn Service Booking'} Submission</h2>
+        <p><strong>Name:</strong> ${name || 'Not provided'}</p>
         <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Phone:</strong> ${phone}</p>
-        <p><strong>Address:</strong> ${address}</p>
-        <p><strong>Message:</strong> ${message || 'No message provided'}</p>
+        <p><strong>Zipcode:</strong> ${zipcode}</p>
+        <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
+        <p><strong>Lawn Size:</strong> ${lawnSize ? lawnSize + ' sq ft' : 'Not provided'}</p>
+        <p><strong>Package:</strong> ${subscriptionOption || 'Not provided'}</p>
       `
     };
 
