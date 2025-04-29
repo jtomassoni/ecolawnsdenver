@@ -8,6 +8,9 @@ const quoteForm = ref({
   email: '',
   phone: ''
 })
+const isSubmitting = ref(false)
+const submitError = ref('')
+const submitSuccess = ref(false)
 
 const isFormValid = computed(() => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -69,16 +72,48 @@ const testimonials = [
   }
 ]
 
-const submitQuote = () => {
-  // Handle quote submission
-  console.log('Quote submitted:', quoteForm.value)
-  showQuoteDialog.value = false
-  // Reset form
-  quoteForm.value = {
-    name: '',
-    address: '',
-    email: '',
-    phone: ''
+const submitQuote = async () => {
+  try {
+    isSubmitting.value = true
+    submitError.value = ''
+    submitSuccess.value = false
+
+    const response = await fetch('http://localhost:3000/api/send-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ...quoteForm.value,
+        type: 'Quote',
+        message: 'New quote request from website'
+      })
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to send quote request')
+    }
+
+    submitSuccess.value = true
+    // Reset form
+    quoteForm.value = {
+      name: '',
+      address: '',
+      email: '',
+      phone: ''
+    }
+    // Close dialog after 2 seconds
+    setTimeout(() => {
+      showQuoteDialog.value = false
+      submitSuccess.value = false
+    }, 2000)
+  } catch (error) {
+    console.error('Error submitting quote:', error)
+    submitError.value = error.message || 'Failed to send quote request. Please try again.'
+  } finally {
+    isSubmitting.value = false
   }
 }
 </script>
@@ -176,8 +211,11 @@ const submitQuote = () => {
           severity="success" 
           raised 
           @click="submitQuote" 
-          :disabled="!isFormValid"
+          :disabled="!isFormValid || isSubmitting"
+          :loading="isSubmitting"
         />
+        <p v-if="submitError" class="error-text">{{ submitError }}</p>
+        <p v-if="submitSuccess" class="success-text">Quote request sent successfully!</p>
         <p class="form-note">No credit card required.</p>
       </div>
     </Dialog>
@@ -330,6 +368,12 @@ const submitQuote = () => {
 
 .error-text {
   color: var(--red-500);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.success-text {
+  color: var(--green-500);
   font-size: 0.875rem;
   margin-top: 0.25rem;
 }

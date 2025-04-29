@@ -37,6 +37,10 @@ app.get('/api/health', (req, res) => {
 app.post('/api/send-email', async (req, res) => {
   try {
     const { name, email, phone, address, message, type } = req.body;
+    console.log('Attempting to send email with config:', {
+      user: process.env.EMAIL_USER,
+      hasPassword: !!process.env.EMAIL_APP_PASSWORD
+    });
     
     const mailOptions = {
       from: process.env.EMAIL_USER,
@@ -52,11 +56,21 @@ app.post('/api/send-email', async (req, res) => {
       `
     };
 
+    console.log('Sending email with options:', mailOptions);
     await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully');
     res.json({ success: true, message: 'Email sent successfully' });
   } catch (error) {
-    console.error('Error sending email:', error);
-    res.status(500).json({ success: false, message: 'Failed to send email' });
+    console.error('Detailed error sending email:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code
+    });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to send email',
+      error: error.message 
+    });
   }
 });
 
