@@ -98,7 +98,6 @@
               <span>{{ lawnSize }} sq ft</span>
             </div>
             <div class="summary-row">
-              <!-- <div class="summary-row"></div> -->
               <span>Package:</span>
               <span>{{ selectedOption === 'seasonal' ? 'Seasonal (2 payments)' : 'Bi-Weekly' }}</span>
             </div>
