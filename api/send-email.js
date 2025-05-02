@@ -3,6 +3,10 @@ import sendgrid from '@sendgrid/mail';
 sendgrid.setApiKey(process.env.SENDGRID_API_KEY);
 
 export default async function handler(req, res) {
+  // Debug logs for env variable troubleshooting
+  console.log('SENDGRID_API_KEY present:', !!process.env.SENDGRID_API_KEY);
+  console.log('SENDGRID_API_KEY starts with:', process.env.SENDGRID_API_KEY?.slice(0, 8));
+
   // Set CORS headers for both www and non-www
   const allowedOrigins = [
     'https://ecolawnsdenver.com',
