@@ -49,6 +49,7 @@ export default async function handler(req, res) {
     });
     res.status(200).json({ success: true, message: 'Email sent successfully' });
   } catch (error) {
+    console.error('SEND EMAIL ERROR:', error); // Log full error for Vercel logs
     res.status(500).json({ success: false, message: 'Failed to send email', error: error.message });
   }
 } 
