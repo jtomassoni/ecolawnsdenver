@@ -1,11 +1,9 @@
-import sendgrid from '@sendgrid/mail';
-
-sendgrid.setApiKey(process.env.SENDGRID_API_KEY);
+import nodemailer from 'nodemailer';
 
 export default async function handler(req, res) {
   // Debug logs for env variable troubleshooting
-  console.log('SENDGRID_API_KEY present:', !!process.env.SENDGRID_API_KEY);
-  console.log('SENDGRID_API_KEY starts with:', process.env.SENDGRID_API_KEY?.slice(0, 8));
+  console.log('EMAIL_USER present:', !!process.env.EMAIL_USER);
+  console.log('EMAIL_APP_PASSWORD present:', !!process.env.EMAIL_APP_PASSWORD);
 
   // Set CORS headers for both www and non-www
   const allowedOrigins = [
@@ -37,9 +35,19 @@ export default async function handler(req, res) {
   }
 
   try {
-    await sendgrid.send({
-      to: process.env.EMAIL_USER,
+    // Create Nodemailer transporter with Gmail
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_APP_PASSWORD
+      }
+    });
+
+    // Send the email
+    await transporter.sendMail({
       from: process.env.EMAIL_USER,
+      to: process.env.EMAIL_USER, // Send to yourself
       subject: `New ${type || 'Lawn Service Booking'} from ${name || 'No Name'}`,
       html: `
         <h2>New ${type || 'Lawn Service Booking'} Submission</h2>
@@ -51,9 +59,10 @@ export default async function handler(req, res) {
         <p><strong>Package:</strong> ${subscriptionOption || 'Not provided'}</p>
       `
     });
+
     res.status(200).json({ success: true, message: 'Email sent successfully' });
   } catch (error) {
-    console.error('SEND EMAIL ERROR:', error); // Log full error for Vercel logs
+    console.error('SEND EMAIL ERROR:', error);
     res.status(500).json({ success: false, message: 'Failed to send email', error: error.message });
   }
 } 
