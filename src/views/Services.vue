@@ -49,14 +49,14 @@ const services = [
 
 <style scoped>
 .services-page {
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 100%;
   background: black;
   position: relative;
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: 2vh;
+  padding-top: 1vh;
   overflow: hidden;
 }
 
@@ -82,26 +82,29 @@ const services = [
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
   align-items: center;
   background: rgba(255, 255, 255, 0.95);
-  padding: 2rem;
+  padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  height: calc(100% - 40px);
+  overflow: hidden;
 }
 
 h1 {
-  font-size: 2.25rem;
+  font-size: 2rem;
   color: #1B5E20;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   text-align: center;
 }
 
 .service-cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
+  gap: 1rem;
   width: 100%;
+  overflow: hidden;
 }
 
 .service-card {
@@ -111,34 +114,32 @@ h1 {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  height: 100%;
 }
 
 .service-image {
   width: 100%;
-  height: 200px;
+  height: 160px;
   object-fit: cover;
 }
 
 .service-card h2 {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   color: #2E7D32;
   margin-bottom: 0.5rem;
-  padding: 1rem 1rem 0;
+  padding: 0.75rem 0.75rem 0;
 }
 
 .service-card p {
-  color: #666;
-  margin-bottom: 1rem;
   font-size: 0.9rem;
-  line-height: 1.4;
+  color: #666;
+  padding: 0 0.75rem;
+  margin-bottom: 0.75rem;
   flex: 1;
-  padding: 0 1rem;
+  overflow: hidden;
 }
 
 .service-card button {
-  width: calc(100% - 2rem);
-  padding: 0.75rem;
-  font-size: 0.9rem;
-  margin: 0 1rem 1rem;
+  margin: 0 0.75rem 0.75rem;
 }
 </style> 

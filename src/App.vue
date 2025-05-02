@@ -5,7 +5,6 @@ import { useRouter, useRoute } from 'vue-router'
 const router = useRouter()
 const route = useRoute()
 const showMeasureGuide = ref(false)
-const showHeroHeadings = inject('showHeroHeadings', ref(true))
 
 // Provide both refs to child components
 provide('showMeasureGuide', showMeasureGuide)
@@ -103,9 +102,7 @@ function goToQuoteForm() {
     <!-- Top Navigation -->
     <nav class="top-nav">
       <div class="nav-content">
-        <transition name="slide-fade">
-          <router-link v-if="showHeroHeadings" to="/" class="logo">EcoLawns Denver</router-link>
-        </transition>
+        <router-link to="/" class="logo">EcoLawns Denver</router-link>
         <div class="nav-links">
           <router-link to="/" class="nav-link" active-class="active">Home</router-link>
           <router-link to="/services" class="nav-link" active-class="active">Services</router-link>
@@ -165,15 +162,17 @@ function goToQuoteForm() {
 
 <style>
 .app-container {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .top-nav {
   background: white;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  padding: 1rem 0;
+  padding: 0.75rem 0;
+  flex-shrink: 0;
 }
 
 .nav-content {
@@ -220,6 +219,7 @@ function goToQuoteForm() {
   flex: 1;
   position: relative;
   overflow: hidden;
+  height: calc(100vh - 60px); /* Account for nav height */
 }
 
 .fade-enter-active,

@@ -15,6 +15,8 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
+app.use(express.json());
+
 // Create nodemailer transporter
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -136,7 +138,7 @@ app.post('/api/send-email', async (req, res) => {
     res.status(500).json({ 
       success: false, 
       message: 'Failed to send email',
-      error: error.message 
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
     });
   }
 });
