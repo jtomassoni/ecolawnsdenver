@@ -38,7 +38,10 @@ transporter.verify(function(error, success) {
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? 'https://ecolawnsdenver.com' 
+    ? [
+        'https://ecolawnsdenver.com',
+        'https://www.ecolawnsdenver.com'
+      ]
     : true, // Allow all origins in development
   methods: ['GET', 'POST', 'OPTIONS'],
   credentials: true,
