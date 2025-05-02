@@ -152,10 +152,30 @@
             </form>
             <div v-if="submitSuccess" class="success-text">
               Request sent! We'll contact you soon.
-              <div class="what-next-confirm">
-                <strong>What will happen next:</strong> After you book, our team will review your info and reach out to confirm your service details and schedule your first visit. You'll get a welcome email and a reminder before each mowing. We handle everything—just sit back and enjoy your weekends!
-              </div>
             </div>
+            <Dialog v-model:visible="showNextStepsModal" modal :closable="false" :style="{ width: '95%', maxWidth: '480px', borderRadius: '18px', padding: '0' }" class="next-steps-modal">
+              <template #header>
+                <div class="next-steps-header">
+                  What will happen next
+                </div>
+              </template>
+              <div class="what-next-confirm next-steps-content">
+                <div class="gratitude-message">
+                  <strong>Thank you for trusting EcoLawns Denver with your lawn care!</strong>
+                </div>
+                <div style="margin-top: 0.7rem;">
+                  After you book, our team will review your info and reach out to confirm your service details and schedule your first visit. You'll get a welcome email and a reminder before each mowing. We handle everything—just sit back and enjoy your weekends!
+                </div>
+                <div class="auto-close-message">
+                  <em>This window will close automatically in {{ autoCloseCountdown }} seconds.</em>
+                </div>
+              </div>
+              <template #footer>
+                <div class="next-steps-footer">
+                  <Button label="Close" severity="success" @click="showNextStepsModal = false" class="next-steps-close-btn" />
+                </div>
+              </template>
+            </Dialog>
             <div v-if="submitError" class="error-text">{{ submitError }}</div>
           </div>
         </div>
@@ -165,8 +185,9 @@
 </template>
 
 <script setup>
-import { ref, inject, provide, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, inject, provide, onMounted, onBeforeUnmount, computed, watch } from 'vue'
 import { API_ENDPOINTS } from '../config'
+import Dialog from 'primevue/dialog'
 
 const lawnSize = ref('')
 const price = ref(null)
@@ -181,6 +202,9 @@ const submitSuccess = ref(false)
 const submitError = ref('')
 const bookingForm = ref({ name: '', email: '', zipcode: '', phone: '' })
 const step = ref(1)
+const showNextStepsModal = ref(false)
+const autoCloseCountdown = ref(10)
+let autoCloseTimer = null
 
 // Add validation computed properties
 const isValidEmail = computed(() => {
@@ -298,6 +322,7 @@ const submitBooking = async (event) => {
     if (data.success) {
       submitSuccess.value = true
       bookingForm.value = { name: '', email: '', zipcode: '', phone: '' }
+      showNextStepsModal.value = true
     } else {
       submitError.value = data.message || 'Failed to send request.'
     }
@@ -338,6 +363,21 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('emphasize-quote-form', onEmphasizeEvent)
   window.removeEventListener('keypress', handleKeyPress)
+})
+
+watch(showNextStepsModal, (visible) => {
+  if (visible) {
+    autoCloseCountdown.value = 10
+    autoCloseTimer = setInterval(() => {
+      autoCloseCountdown.value--
+      if (autoCloseCountdown.value <= 0) {
+        showNextStepsModal.value = false
+        clearInterval(autoCloseTimer)
+      }
+    }, 1000)
+  } else {
+    clearInterval(autoCloseTimer)
+  }
 })
 </script>
 
@@ -759,7 +799,7 @@ onBeforeUnmount(() => {
   text-align: left;
   width: 100%;
   box-sizing: border-box;
-  margin-top: 1.5rem;
+  margin-top: 0.5rem;
   position: relative;
   box-shadow: 0 4px 12px rgba(46,125,50,0.08);
 }
@@ -870,5 +910,52 @@ onBeforeUnmount(() => {
   color: #d32f2f;
   font-size: 1.1em;
   margin-left: 0.15em;
+}
+
+.next-steps-modal .next-steps-header {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #1B5E20;
+  text-align: center;
+  padding: 1.2rem 1.2rem 0.5rem 1.2rem;
+  letter-spacing: 0.01em;
+}
+.next-steps-modal .next-steps-content {
+  background: #E8F5E9;
+  border-radius: 12px;
+  border: 2px solid #2E7D32;
+  color: #1B5E20;
+  padding: 1.3rem 1.5rem 1.3rem 1.5rem;
+  font-size: 1.08rem;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0.5rem 0 0.5rem 0;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(46,125,50,0.08);
+}
+.next-steps-modal .next-steps-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 1.2rem 1.2rem 1.2rem;
+}
+.next-steps-modal .next-steps-close-btn {
+  min-width: 100px;
+  font-size: 1.08rem;
+  font-weight: 600;
+  border-radius: 8px;
+}
+.next-steps-modal .gratitude-message {
+  color: #256029;
+  font-size: 1.13rem;
+  text-align: center;
+  margin-bottom: 0.3rem;
+  font-weight: 700;
+}
+.next-steps-modal .auto-close-message {
+  color: #2E7D32;
+  font-size: 0.98rem;
+  text-align: center;
+  margin-top: 1.1rem;
 }
 </style> 
