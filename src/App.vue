@@ -100,13 +100,15 @@ function goToQuoteForm() {
 <template>
   <div class="app-container">
     <!-- Top Navigation -->
-    <nav class="top-nav">
+    <nav class="top-nav" role="navigation" aria-label="Main navigation">
       <div class="nav-content">
-        <router-link to="/" class="logo">EcoLawns Denver</router-link>
+        <router-link to="/" class="logo" aria-label="EcoLawns Denver Home">EcoLawns Denver</router-link>
         <div class="nav-links">
-          <router-link to="/" class="nav-link" active-class="active">Home</router-link>
-          <router-link to="/services" class="nav-link" active-class="active">Services</router-link>
-          <Button label="Get Free Quote" severity="success" rounded raised @click="goToQuoteForm" />
+          <router-link to="/" class="nav-link" active-class="active" aria-label="Home page">Home</router-link>
+          <router-link to="/services" class="nav-link" active-class="active" aria-label="Services page">Services</router-link>
+          <router-link to="/about" class="nav-link" active-class="active" aria-label="About page">About</router-link>
+          <router-link to="/testimonials" class="nav-link" active-class="active" aria-label="Testimonials page">Testimonials</router-link>
+          <Button label="Get Free Quote" severity="success" rounded raised @click="goToQuoteForm" aria-label="Get a free quote for lawn care services" />
         </div>
       </div>
     </nav>
@@ -218,7 +220,8 @@ function goToQuoteForm() {
 .main-content {
   flex: 1;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   height: calc(100vh - 60px); /* Account for nav height */
 }
 

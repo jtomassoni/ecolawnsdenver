@@ -14,13 +14,14 @@ import Dialog from 'primevue/dialog'
 // Font Awesome imports
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faLeaf, faSeedling, faTree, faSun, faCloudSun, faDroplet, faCut, faSprayCanSparkles } from '@fortawesome/free-solid-svg-icons'
+import { faLeaf, faSeedling, faTree, faSun, faCloudSun, faDroplet, faCut, faSprayCanSparkles, faSnowflake, faDollarSign, faCheckCircle, faShieldAlt, faClock, faUsers, faAward, faPhone, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons'
 import { faEnvelope } from '@fortawesome/free-regular-svg-icons'
 import { faFacebook, faInstagram, faYelp } from '@fortawesome/free-brands-svg-icons'
 
 // Add icons to library
 library.add(
   faLeaf, faSeedling, faTree, faSun, faCloudSun, faDroplet, faCut, faSprayCanSparkles,
+  faSnowflake, faDollarSign, faCheckCircle, faShieldAlt, faClock, faUsers, faAward, faPhone, faMapMarkerAlt,
   faEnvelope,
   faFacebook, faInstagram, faYelp
 )
