@@ -18,16 +18,27 @@
 
 html, body {
   height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
   min-width: 320px;
+  position: relative;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #app {
   min-height: 100vh;
+  min-height: -webkit-fill-available;
   width: 100%;
+  position: relative;
 }
 
 a {
@@ -55,6 +66,10 @@ button {
   color: #fff;
   cursor: pointer;
   transition: border-color 0.25s, background-color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  min-height: 44px;
+  min-width: 44px;
 }
 button:hover {
   border-color: #1B5E20;
@@ -64,9 +79,44 @@ button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
+button:active {
+  transform: scale(0.98);
+}
 
 .card {
   padding: 2em;
+}
+
+/* Mobile optimizations */
+input, textarea, select {
+  font-size: 16px; /* Prevents zoom on iOS */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+}
+
+a {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Prevent text selection on buttons and interactive elements */
+button, .nav-link, .link-button {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 @media (prefers-color-scheme: light) {
@@ -79,5 +129,12 @@ button:focus-visible {
   }
   button {
     background-color: #f9f9f9;
+  }
+}
+
+/* Mobile viewport fixes */
+@supports (-webkit-touch-callout: none) {
+  #app {
+    min-height: -webkit-fill-available;
   }
 }

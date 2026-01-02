@@ -2,7 +2,6 @@
   <div class="services-page">
     <div class="services-content">
       <h1>Our Services</h1>
-      <p class="services-intro">Professional lawn care and property maintenance services for Denver homeowners. From spring preparation to winter snow removal, we're here year-round.</p>
       <div class="service-cards">
         <div v-for="service in services" :key="service.title" class="service-card">
           <img :src="service.image" :alt="service.title" class="service-image">
@@ -325,23 +324,23 @@ const submitFallCleanup = () => {
 const services = [
   {
     title: 'Weekly & Bi-Weekly Lawn Mowing',
-    description: `Enjoy a lush, healthy lawn all season long with our professional mowing service. Our experienced crew uses quiet, battery-powered mowers to deliver a precise, even cut every visit. We trim edges, blow away clippings, and ensure your sidewalks and driveways are spotless. Our mowing schedule is tailored to Denver's unique climate, and we adjust our techniques to promote strong root growth and drought resistance. You'll love the crisp stripes and the time you get back every weekend! Perfect for the upcoming spring season starting in April.`,
+    description: `Professional mowing service with battery-powered mowers. We trim edges, blow clippings, and keep your property spotless.`,
     image: '/images/lawn-being-cut.png'
   },
   {
     title: 'Spring Cleanup & Aeration',
-    description: `Kickstart your lawn's health each spring with our thorough cleanup and aeration package. We remove leaves, branches, and winter debris, then dethatch to clear out old grass and allow new growth. Our core aeration process relieves soil compaction, improves water absorption, and encourages deep root development. We finish with overseeding to fill in bare spots, giving you a thicker, greener lawn that's ready to thrive as temperatures rise. Book now for early spring service!`,
+    description: `Thorough cleanup, dethatching, core aeration, and overseeding to get your lawn ready for the growing season.`,
     image: '/images/lawn-cut-shot.png'
   },
   {
     title: 'Snow Removal Service',
-    description: `Available now! Don't let winter weather slow you down. Our professional snow removal service keeps your property safe and accessible all season long. We clear driveways, walkways, and sidewalks with reliable, prompt service. Our team uses professional equipment and responds quickly to snowfall. Perfect for maintaining your property while you wait for lawn care season to begin in April. Contact us today to schedule your winter service!`,
+    description: `Professional snow removal for driveways, walkways, and sidewalks. Available now for winter service.`,
     image: '/images/snowblow-being-pushed.png',
     isSnowRemoval: true
   },
   {
     title: 'Fall Cleanup & Winter Prep',
-    description: `Prepare your yard for the cold months ahead with our fall cleanup and winterization service. We clear away fallen leaves and debris to prevent mold and pests, then apply a slow-release fertilizer to nourish your grass through winter. Our team trims perennials, cuts back ornamental grasses, and ensures your lawn is tidy and protected. With our expert winter prep, your lawn will bounce back healthier and greener when spring arrives.`,
+    description: `Clear leaves and debris, apply winter fertilizer, and prepare your lawn for the cold months ahead.`,
     image: '/images/hero.jpg'
   }
 ]
@@ -352,43 +351,33 @@ const services = [
   width: 100%;
   min-height: 100%;
   background: #f5f5f5;
-  padding: 2rem 1rem;
-  overflow-y: auto;
+  padding: 1rem;
 }
 
 .services-content {
   max-width: 1200px;
   margin: 0 auto;
   background: white;
-  padding: 3rem 2rem;
+  padding: 1.5rem 1.5rem;
   border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.08);
 }
 
 h1 {
-  font-size: 2.5rem;
+  font-size: 2rem;
   color: #1B5E20;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   text-align: center;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
-.services-intro {
-  font-size: 1.1rem;
-  color: #666;
-  text-align: center;
-  max-width: 700px;
-  margin: 0 auto 1rem;
-  line-height: 1.6;
-}
-
 .service-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.25rem;
   width: 100%;
-  margin-top: 3rem;
+  margin-top: 0;
 }
 
 .service-card {
@@ -411,37 +400,38 @@ h1 {
 
 .service-image {
   width: 100%;
-  height: 220px;
+  height: 160px;
   object-fit: cover;
   display: block;
 }
 
 .service-card h2 {
-  font-size: 1.3rem;
+  font-size: 1.15rem;
   color: #1B5E20;
   margin: 0;
-  padding: 1.5rem 1.5rem 0.75rem;
+  padding: 1rem 1rem 0.5rem;
   font-weight: 600;
   line-height: 1.3;
 }
 
 .service-card p {
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   color: #555;
-  padding: 0 1.5rem;
-  margin: 0 0 1.5rem;
+  padding: 0 1rem;
+  margin: 0 0 1rem;
   flex: 1;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 .service-card button {
-  margin: 0 1.5rem 1.5rem;
-  width: calc(100% - 3rem);
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
+  margin: 0 1rem 1rem;
+  width: calc(100% - 2rem);
+  padding: 0.75rem 1.25rem;
+  font-size: 0.9rem;
   font-weight: 600;
   border-radius: 8px;
   transition: all 0.2s ease;
+  min-height: 44px;
 }
 
 .service-card button:hover {
@@ -458,57 +448,58 @@ h1 {
 
 @media (max-width: 768px) {
   .services-page {
-    padding: 1rem 0.5rem;
+    padding: 0.75rem 0.5rem;
   }
 
   .services-content {
-    padding: 2rem 1.5rem;
+    padding: 1.25rem 1rem;
     border-radius: 12px;
   }
 
   h1 {
-    font-size: 2rem;
+    font-size: 1.75rem;
     margin-bottom: 1rem;
   }
 
   .service-cards {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
-    margin-top: 2rem;
+    gap: 1rem;
+    margin-top: 0;
   }
 
   .service-image {
-    height: 200px;
+    height: 150px;
   }
 
   .service-card h2 {
-    font-size: 1.2rem;
-    padding: 1.25rem 1.25rem 0.75rem;
+    font-size: 1.1rem;
+    padding: 0.875rem 0.875rem 0.5rem;
   }
 
   .service-card p {
-    font-size: 0.9rem;
-    padding: 0 1.25rem;
-    margin-bottom: 1.25rem;
+    font-size: 0.85rem;
+    padding: 0 0.875rem;
+    margin-bottom: 0.875rem;
   }
 
   .service-card button {
-    margin: 0 1.25rem 1.25rem;
-    width: calc(100% - 2.5rem);
+    margin: 0 0.875rem 0.875rem;
+    width: calc(100% - 1.75rem);
   }
 }
 
 @media (max-width: 480px) {
   .services-content {
-    padding: 1.5rem 1rem;
+    padding: 1rem 0.75rem;
   }
 
   h1 {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
   }
 
   .service-image {
-    height: 180px;
+    height: 140px;
   }
 }
 

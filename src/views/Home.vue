@@ -38,6 +38,19 @@
       </div>
     </div>
 
+    <!-- Testimonials Section -->
+    <div class="content-section testimonials-section">
+      <div class="content-container">
+        <h2 class="testimonials-heading">What Our Customers Say</h2>
+        <div class="testimonials-grid">
+          <div v-for="testimonial in testimonials" :key="testimonial.author" class="testimonial-card">
+            <p class="testimonial-quote">"{{ testimonial.quote }}"</p>
+            <span class="testimonial-author">— {{ testimonial.author }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Lawn Care Quote Form Section - Primary CTA -->
     <div ref="quoteFormSection" class="quote-form-section" id="quote-form">
       <div class="form-section-header">
@@ -350,6 +363,29 @@ const submitErrorSnow = ref('')
 
 const modalStyle = computed(() => ({ width: '95%', maxWidth: '600px' }))
 
+const testimonials = [
+  {
+    quote: "EcoLawns transformed my yard into the envy of the neighborhood! Their knowledge of Denver's climate and water restrictions is impressive.",
+    author: "Mark R. in Cherry Creek"
+  },
+  {
+    quote: "Finally, a lawn service that understands Colorado's unique challenges. My grass has never looked better, even during water restrictions.",
+    author: "Sarah M. in Washington Park"
+  },
+  {
+    quote: "Their eco-friendly approach and attention to detail is outstanding. My lawn is thriving, and I'm using less water than ever before.",
+    author: "John D. in Highland"
+  },
+  {
+    quote: "The team is professional, reliable, and truly cares about sustainable lawn care. Worth every penny!",
+    author: "Emily T. in LoHi"
+  },
+  {
+    quote: "Best investment for my home. They've helped me maintain a beautiful lawn while following Denver's water conservation guidelines.",
+    author: "Michael P. in Congress Park"
+  }
+]
+
 const scrollToQuote = () => {
   if (quoteFormSection.value) {
     quoteFormSection.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -652,13 +688,13 @@ watch(showNextStepsModal, (visible) => {
 <style scoped>
 .home-page {
   width: 100%;
+  min-height: 100%;
   background: #f5f5f5;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  overflow-y: auto;
   overflow-x: hidden;
 }
 
@@ -727,6 +763,8 @@ watch(showNextStepsModal, (visible) => {
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  min-height: 48px;
+  min-width: 200px;
 }
 
 .hero-cta-btn.primary {
@@ -756,6 +794,59 @@ watch(showNextStepsModal, (visible) => {
 .trust-signals {
   background: white;
   padding: 2rem 1rem;
+}
+
+/* Testimonials Section */
+.testimonials-section {
+  background: #f5f5f5;
+  padding: 3rem 1rem;
+}
+
+.testimonials-heading {
+  text-align: center;
+  font-size: 2rem;
+  color: #1B5E20;
+  margin-bottom: 2rem;
+  font-weight: 700;
+}
+
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.testimonial-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border: 1px solid #e8e8e8;
+  transition: all 0.3s ease;
+}
+
+.testimonial-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  border-color: #C8E6C9;
+}
+
+.testimonial-quote {
+  font-size: 1rem;
+  color: #333;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  font-style: italic;
+}
+
+.testimonial-author {
+  color: #2E7D32;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: block;
+  text-align: right;
 }
 
 .trust-badges {
@@ -1119,6 +1210,8 @@ watch(showNextStepsModal, (visible) => {
   border-radius: 12px;
   transition: all 0.2s ease;
   text-align: center;
+  min-height: 48px;
+  box-sizing: border-box;
 }
 
 /* Remove number input spinners */
@@ -1223,6 +1316,7 @@ watch(showNextStepsModal, (visible) => {
   cursor: pointer;
   transition: all 0.2s ease;
   margin-top: 1rem;
+  min-height: 48px;
 }
 
 .calculator-button:hover {
@@ -1437,11 +1531,13 @@ watch(showNextStepsModal, (visible) => {
 
 .form-row input {
   width: 100%;
-  padding: 0.5rem;
-  font-size: 0.9rem;
+  padding: 0.75rem;
+  font-size: 1rem;
   border: 1.5px solid #C8E6C9;
   border-radius: 8px;
   transition: all 0.2s ease;
+  min-height: 44px;
+  box-sizing: border-box;
 }
 
 .field-hint {
@@ -1454,7 +1550,7 @@ watch(showNextStepsModal, (visible) => {
 
 .submit-btn {
   width: 100%;
-  padding: 0.6rem;
+  padding: 0.75rem;
   font-size: 1rem;
   font-weight: 600;
   background: #2E7D32;
@@ -1464,6 +1560,7 @@ watch(showNextStepsModal, (visible) => {
   cursor: pointer;
   transition: all 0.2s ease;
   margin-top: 0.75rem;
+  min-height: 48px;
 }
 
 .submit-btn:disabled {
@@ -1592,6 +1689,7 @@ watch(showNextStepsModal, (visible) => {
   .hero-section {
     min-height: 300px;
     padding: 1.5rem 1rem;
+    padding-top: max(1.5rem, env(safe-area-inset-top));
   }
 
   .hero-headings h1 {
@@ -1617,10 +1715,13 @@ watch(showNextStepsModal, (visible) => {
     max-width: 280px;
     padding: 0.9rem 1.5rem;
     font-size: 1rem;
+    min-height: 48px;
   }
 
   .content-section {
     padding: 2rem 1rem;
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
   }
 
   .content-section h2 {
@@ -1649,8 +1750,34 @@ watch(showNextStepsModal, (visible) => {
     font-size: 0.9rem;
   }
 
+  .testimonials-section {
+    padding: 2rem 1rem;
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+
+  .testimonials-heading {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .testimonials-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .testimonial-card {
+    padding: 1.25rem;
+  }
+
+  .testimonial-quote {
+    font-size: 0.95rem;
+  }
+
   .quote-form-section {
     padding: 2rem 1rem;
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
   }
 
   .form-section-header h2 {
@@ -1675,6 +1802,15 @@ watch(showNextStepsModal, (visible) => {
 
   .tier-price {
     font-size: 1rem;
+  }
+
+  .booking-layout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .calculator-input {
+    font-size: 1.1rem;
   }
 }
 

@@ -1,13 +1,42 @@
 <script setup>
-import { ref, computed, provide, inject } from 'vue'
+import { ref, computed, provide, inject, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
 const route = useRoute()
 const showMeasureGuide = ref(false)
+const mobileMenuOpen = ref(false)
 
 // Provide both refs to child components
 provide('showMeasureGuide', showMeasureGuide)
+
+const toggleMobileMenu = () => {
+  mobileMenuOpen.value = !mobileMenuOpen.value
+}
+
+const closeMobileMenu = () => {
+  mobileMenuOpen.value = false
+}
+
+// Close mobile menu when route changes
+router.afterEach(() => {
+  mobileMenuOpen.value = false
+})
+
+// Close mobile menu when clicking outside
+const handleClickOutside = (event) => {
+  if (mobileMenuOpen.value && !event.target.closest('.nav-content')) {
+    mobileMenuOpen.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 
 const services = [
   {
@@ -102,13 +131,17 @@ function goToQuoteForm() {
     <!-- Top Navigation -->
     <nav class="top-nav" role="navigation" aria-label="Main navigation">
       <div class="nav-content">
-        <router-link to="/" class="logo" aria-label="EcoLawns Denver Home">EcoLawns Denver</router-link>
-        <div class="nav-links">
-          <router-link to="/" class="nav-link" active-class="active" aria-label="Home page">Home</router-link>
-          <router-link to="/services" class="nav-link" active-class="active" aria-label="Services page">Services</router-link>
-          <router-link to="/about" class="nav-link" active-class="active" aria-label="About page">About</router-link>
-          <router-link to="/testimonials" class="nav-link" active-class="active" aria-label="Testimonials page">Testimonials</router-link>
-          <Button label="Get Free Quote" severity="success" rounded raised @click="goToQuoteForm" aria-label="Get a free quote for lawn care services" />
+        <router-link to="/" class="logo" aria-label="EcoLawns Denver Home" @click="closeMobileMenu">EcoLawns Denver</router-link>
+        <button class="mobile-menu-toggle" @click="toggleMobileMenu" aria-label="Toggle navigation menu" aria-expanded="false">
+          <span class="hamburger-line" :class="{ active: mobileMenuOpen }"></span>
+          <span class="hamburger-line" :class="{ active: mobileMenuOpen }"></span>
+          <span class="hamburger-line" :class="{ active: mobileMenuOpen }"></span>
+        </button>
+        <div class="nav-links" :class="{ 'mobile-open': mobileMenuOpen }">
+          <router-link to="/" class="nav-link" active-class="active" aria-label="Home page" @click="closeMobileMenu">Home</router-link>
+          <router-link to="/services" class="nav-link" active-class="active" aria-label="Services page" @click="closeMobileMenu">Services</router-link>
+          <router-link to="/about" class="nav-link" active-class="active" aria-label="About page" @click="closeMobileMenu">About</router-link>
+          <Button label="Get Free Quote" severity="success" rounded raised @click="goToQuoteForm(); closeMobileMenu()" aria-label="Get a free quote for lawn care services" class="quote-button" />
         </div>
       </div>
     </nav>
@@ -175,6 +208,9 @@ function goToQuoteForm() {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   padding: 0.75rem 0;
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 .nav-content {
@@ -184,6 +220,50 @@ function goToQuoteForm() {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
+}
+
+.logo {
+  text-decoration: none;
+  color: #2E7D32;
+  font-weight: bold;
+  font-size: 1.5rem;
+  z-index: 1001;
+}
+
+.mobile-menu-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  z-index: 1001;
+  min-width: 44px;
+  min-height: 44px;
+  justify-content: center;
+  align-items: center;
+}
+
+.hamburger-line {
+  width: 24px;
+  height: 3px;
+  background: #2E7D32;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.hamburger-line.active:nth-child(1) {
+  transform: rotate(45deg) translate(7px, 7px);
+}
+
+.hamburger-line.active:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-line.active:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -7px);
 }
 
 .nav-links {
@@ -198,6 +278,9 @@ function goToQuoteForm() {
   padding: 0.5rem 1rem;
   border-radius: 4px;
   transition: all 0.3s ease;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
 }
 
 .nav-link:hover {
@@ -210,11 +293,77 @@ function goToQuoteForm() {
   background-color: rgba(46, 125, 50, 0.1);
 }
 
-.logo {
-  text-decoration: none;
-  color: #2E7D32;
-  font-weight: bold;
-  font-size: 1.5rem;
+.quote-button {
+  min-height: 44px;
+}
+
+@media (max-width: 768px) {
+  .nav-content {
+    padding: 0 0.75rem;
+  }
+
+  .logo {
+    font-size: 1.25rem;
+  }
+
+  .mobile-menu-toggle {
+    display: flex;
+  }
+
+  .nav-links {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: white;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transform: translateY(-100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    gap: 0;
+    z-index: 999;
+    max-height: calc(100vh - 60px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav-links.mobile-open {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .nav-link {
+    padding: 1rem;
+    width: 100%;
+    justify-content: center;
+    border-bottom: 1px solid #e8e8e8;
+    font-size: 1rem;
+  }
+
+  .nav-link:last-of-type {
+    border-bottom: none;
+  }
+
+  .quote-button {
+    width: 100%;
+    margin-top: 0.5rem;
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-content {
+    padding: 0 0.5rem;
+  }
+
+  .logo {
+    font-size: 1.1rem;
+  }
 }
 
 .main-content {
@@ -222,7 +371,10 @@ function goToQuoteForm() {
   position: relative;
   overflow-y: auto;
   overflow-x: hidden;
-  height: calc(100vh - 60px); /* Account for nav height */
+  min-height: calc(100vh - 60px);
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .fade-enter-active,
