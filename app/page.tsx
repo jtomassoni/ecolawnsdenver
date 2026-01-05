@@ -325,8 +325,14 @@ export default function Home() {
       <div className="w-full min-h-full bg-gray-100">
         {/* Hero Section */}
         <header 
-          className="w-full min-h-screen relative flex items-center justify-center bg-cover bg-center bg-no-repeat px-4 py-8"
-          style={{ backgroundImage: "linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('/images/hero.jpg')" }}
+          className="w-full min-h-screen relative flex items-center justify-center bg-cover bg-center bg-no-repeat px-4 py-8 sm:px-6"
+          style={{ 
+            backgroundImage: "linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('/images/hero.jpg')",
+            paddingTop: "max(2rem, env(safe-area-inset-top))",
+            paddingBottom: "max(2rem, env(safe-area-inset-bottom))",
+            paddingLeft: "max(1rem, env(safe-area-inset-left))",
+            paddingRight: "max(1rem, env(safe-area-inset-right))"
+          }}
         >
           <Image
             src="/images/hero.jpg"
@@ -336,49 +342,49 @@ export default function Home() {
             priority
             sizes="100vw"
           />
-          <div className="relative z-10 text-center max-w-5xl mx-auto">
-            <div className="mb-8">
-              <h1 className="text-white text-4xl md:text-6xl lg:text-7xl font-bold mb-4 drop-shadow-lg leading-tight">
+          <div className="relative z-10 text-center max-w-5xl mx-auto w-full">
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-white text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-3 sm:mb-4 drop-shadow-lg leading-tight px-2">
                 Professional Lawn Care in Denver
               </h1>
-              <p className="text-white text-2xl md:text-3xl font-medium mb-6 drop-shadow-md">
+              <p className="text-white text-xl sm:text-2xl md:text-3xl font-medium mb-4 sm:mb-6 drop-shadow-md">
                 Starting at $40/visit
               </p>
-              <p className="text-white text-xl md:text-2xl mb-8 drop-shadow-md max-w-3xl mx-auto leading-relaxed">
+              <p className="text-white text-base sm:text-lg md:text-xl lg:text-2xl mb-6 sm:mb-8 drop-shadow-md max-w-3xl mx-auto leading-relaxed px-2">
                 Get your weekends back with reliable, eco-friendly lawn care. <strong>All our equipment is electric by design</strong> - half of our mission is reducing noise and neighborhood emissions. <strong>Book your spring service now</strong>, or get snow removal for the rest of winter!
               </p>
             </div>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-8 sm:mb-12 px-2">
             <button
               onClick={openQuoteModal}
-              className="bg-primary text-white px-10 py-5 rounded-xl font-bold text-xl shadow-2xl hover:bg-primary-dark transform hover:-translate-y-1 transition-all min-h-[56px] w-full sm:w-auto"
+              className="bg-primary text-white px-8 sm:px-10 py-4 sm:py-5 rounded-xl font-bold text-lg sm:text-xl shadow-2xl hover:bg-primary-dark transform hover:-translate-y-1 transition-all min-h-[56px] w-full sm:w-auto"
             >
               Get Free Lawn Quote
             </button>
             <button
               onClick={() => setShowSnowRemovalModal(true)}
-              className="bg-white/10 backdrop-blur-sm text-white/90 border border-white/40 px-6 py-3 rounded-lg font-medium text-base hover:bg-white/20 hover:text-white transition-all min-h-[44px] w-full sm:w-auto flex items-center gap-2"
+              className="bg-white/10 backdrop-blur-sm text-white/90 border border-white/40 px-5 sm:px-6 py-3 rounded-lg font-medium text-sm sm:text-base hover:bg-white/20 hover:text-white transition-all min-h-[48px] w-full sm:w-auto flex items-center justify-center gap-2"
             >
               <FaSnowflake className="text-white" />
               <span>Snow Removal</span>
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mt-12">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <h3 className="text-white text-xl font-semibold mb-2 flex items-center gap-2">
-                <FaSnowflake className="text-white" /> Winter Services
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto mt-8 sm:mt-12 px-2">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20">
+              <h3 className="text-white text-lg sm:text-xl font-semibold mb-2 flex items-center gap-2">
+                <FaSnowflake className="text-white flex-shrink-0" /> <span>Winter Services</span>
               </h3>
-              <p className="text-white/90 text-base">
+              <p className="text-white/90 text-sm sm:text-base leading-relaxed">
                 Professional snow removal for driveways, walkways, and sidewalks. Available now through the end of winter season.
               </p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <h3 className="text-white text-xl font-semibold mb-2 flex items-center gap-2">
-                <FaSeedling className="text-white" /> Spring Services
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20">
+              <h3 className="text-white text-lg sm:text-xl font-semibold mb-2 flex items-center gap-2">
+                <FaSeedling className="text-white flex-shrink-0" /> <span>Spring Services</span>
               </h3>
-              <p className="text-white/90 text-base">
+              <p className="text-white/90 text-sm sm:text-base leading-relaxed">
                 Book your lawn care now for April start. Weekly or bi-weekly mowing, spring cleanup, and aeration included. All services use quiet electric equipment.
               </p>
             </div>
@@ -387,14 +393,14 @@ export default function Home() {
         </header>
 
       {/* Testimonials */}
-      <section className="bg-gradient-to-br from-green-50 via-primary-light/20 to-green-100 py-12 px-4" aria-label="Customer testimonials">
+      <section className="bg-gradient-to-br from-green-50 via-primary-light/20 to-green-100 py-8 sm:py-12 px-4 sm:px-6" aria-label="Customer testimonials" style={{ paddingLeft: "max(1rem, env(safe-area-inset-left))", paddingRight: "max(1rem, env(safe-area-inset-right))" }}>
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-primary text-center mb-8">What Our Customers Say</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <h2 className="text-2xl sm:text-3xl font-bold text-primary text-center mb-6 sm:mb-8">What Our Customers Say</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {testimonials.map((testimonial, idx) => (
-              <div key={idx} className="bg-gradient-to-br from-white to-primary-light/30 p-6 rounded-xl shadow-md border border-primary/20">
-                <p className="text-gray-700 italic mb-4">"{testimonial.quote}"</p>
-                <span className="text-primary font-semibold text-sm block text-right">- {testimonial.author}</span>
+              <div key={idx} className="bg-gradient-to-br from-white to-primary-light/30 p-4 sm:p-6 rounded-xl shadow-md border border-primary/20">
+                <p className="text-gray-700 italic mb-3 sm:mb-4 text-sm sm:text-base leading-relaxed">"{testimonial.quote}"</p>
+                <span className="text-primary font-semibold text-xs sm:text-sm block text-right">- {testimonial.author}</span>
               </div>
             ))}
           </div>
@@ -402,31 +408,31 @@ export default function Home() {
       </section>
 
       {/* Why Battery-Powered Lawn Care Matters */}
-      <section className="bg-white py-12 px-4" aria-label="Benefits of battery-powered lawn care">
+      <section className="bg-white py-8 sm:py-12 px-4 sm:px-6" aria-label="Benefits of battery-powered lawn care" style={{ paddingLeft: "max(1rem, env(safe-area-inset-left))", paddingRight: "max(1rem, env(safe-area-inset-right))" }}>
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-primary mb-8 text-center">Why Battery-Powered Lawn Care Matters</h2>
-          <div className="space-y-6">
-            <div className="bg-gradient-to-r from-primary-light/20 to-white p-6 rounded-lg border-l-4 border-primary shadow-sm">
-              <h3 className="text-xl font-semibold text-primary mb-3">Zero Emissions for Cleaner Air</h3>
-              <p className="text-base text-gray-700 leading-relaxed">
+          <h2 className="text-2xl sm:text-3xl font-bold text-primary mb-6 sm:mb-8 text-center">Why Battery-Powered Lawn Care Matters</h2>
+          <div className="space-y-4 sm:space-y-6">
+            <div className="bg-gradient-to-r from-primary-light/20 to-white p-4 sm:p-6 rounded-lg border-l-4 border-primary shadow-sm">
+              <h3 className="text-lg sm:text-xl font-semibold text-primary mb-2 sm:mb-3">Zero Emissions for Cleaner Air</h3>
+              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
                 Traditional gas-powered lawn mowers emit significant pollutants, including carbon monoxide, nitrogen oxides, and volatile organic compounds. In Denver, where air quality is a concern, our battery-powered electric mowers produce zero direct emissions. This means cleaner air for your family, your neighbors, and the entire Denver metro area.
               </p>
             </div>
-            <div className="bg-gradient-to-r from-primary-light/20 to-white p-6 rounded-lg border-l-4 border-primary shadow-sm">
-              <h3 className="text-xl font-semibold text-primary mb-3">Quiet Operation for Peaceful Neighborhoods</h3>
-              <p className="text-base text-gray-700 leading-relaxed">
+            <div className="bg-gradient-to-r from-primary-light/20 to-white p-4 sm:p-6 rounded-lg border-l-4 border-primary shadow-sm">
+              <h3 className="text-lg sm:text-xl font-semibold text-primary mb-2 sm:mb-3">Quiet Operation for Peaceful Neighborhoods</h3>
+              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
                 Battery-powered lawn equipment operates at a fraction of the noise level of gas engines. Our electric mowers are so quiet that you can work from home, have conversations in your yard, or let your children nap - all while we maintain your lawn. No more early morning noise complaints or weekend disruptions.
               </p>
             </div>
-            <div className="bg-gradient-to-r from-primary-light/20 to-white p-6 rounded-lg border-l-4 border-primary shadow-sm">
-              <h3 className="text-xl font-semibold text-primary mb-3">Superior Performance & Reliability</h3>
-              <p className="text-base text-gray-700 leading-relaxed">
+            <div className="bg-gradient-to-r from-primary-light/20 to-white p-4 sm:p-6 rounded-lg border-l-4 border-primary shadow-sm">
+              <h3 className="text-lg sm:text-xl font-semibold text-primary mb-2 sm:mb-3">Superior Performance & Reliability</h3>
+              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
                 Modern battery-powered equipment matches or exceeds gas-powered performance while being more reliable and easier to maintain. Our electric mowers provide consistent cutting power, instant start-up (no pull cords!), and require less maintenance. You get professional results without the hassles of gas engines.
               </p>
             </div>
-            <div className="bg-gradient-to-r from-primary-light/20 to-white p-6 rounded-lg border-l-4 border-primary shadow-sm">
-              <h3 className="text-xl font-semibold text-primary mb-3">Supporting Denver's Sustainability Goals</h3>
-              <p className="text-base text-gray-700 leading-relaxed">
+            <div className="bg-gradient-to-r from-primary-light/20 to-white p-4 sm:p-6 rounded-lg border-l-4 border-primary shadow-sm">
+              <h3 className="text-lg sm:text-xl font-semibold text-primary mb-2 sm:mb-3">Supporting Denver's Sustainability Goals</h3>
+              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
                 Denver has ambitious climate and sustainability goals, and every choice matters. By choosing EcoLawns Denver's electric lawn care services, you're directly contributing to reduced emissions, improved air quality, and a more sustainable city. Together, we're making Denver a cleaner, quieter, and more environmentally responsible place to live.
               </p>
             </div>
@@ -435,14 +441,14 @@ export default function Home() {
       </section>
 
       {/* Why Choose Electric Lawn Care in Denver */}
-      <section className="bg-gradient-to-br from-green-50 via-primary-light/20 to-green-100 py-12 px-4" aria-label="Why choose electric lawn care in Denver">
+      <section className="bg-gradient-to-br from-green-50 via-primary-light/20 to-green-100 py-8 sm:py-12 px-4 sm:px-6" aria-label="Why choose electric lawn care in Denver" style={{ paddingLeft: "max(1rem, env(safe-area-inset-left))", paddingRight: "max(1rem, env(safe-area-inset-right))" }}>
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-primary mb-6 text-center">Why Choose Electric Lawn Care in Denver?</h2>
-          <div className="bg-gradient-to-r from-primary-light/30 to-primary-light/10 p-6 rounded-lg border border-primary/20 shadow-sm">
-            <p className="text-base text-gray-700 leading-relaxed mb-6">
+          <h2 className="text-2xl sm:text-3xl font-bold text-primary mb-4 sm:mb-6 text-center">Why Choose Electric Lawn Care in Denver?</h2>
+          <div className="bg-gradient-to-r from-primary-light/30 to-primary-light/10 p-4 sm:p-6 rounded-lg border border-primary/20 shadow-sm">
+            <p className="text-sm sm:text-base text-gray-700 leading-relaxed mb-4 sm:mb-6">
               Denver homeowners are increasingly choosing electric lawn care services for good reasons. As Colorado's capital city works toward ambitious climate goals, battery-powered lawn maintenance has become the smart choice for environmentally conscious property owners.
             </p>
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
+            <div className="grid md:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
               <div>
                 <h4 className="font-semibold text-primary mb-3 text-lg">Environmental Benefits</h4>
                 <ul className="text-sm text-gray-700 space-y-2 list-disc list-inside">
@@ -481,19 +487,25 @@ export default function Home() {
       {/* Snow Removal Modal */}
       {showSnowRemovalModal && (
         <div 
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-0 sm:p-4"
+          style={{
+            paddingTop: "max(0px, env(safe-area-inset-top))",
+            paddingBottom: "max(0px, env(safe-area-inset-bottom))",
+            paddingLeft: "max(0px, env(safe-area-inset-left))",
+            paddingRight: "max(0px, env(safe-area-inset-right))"
+          }}
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowSnowRemovalModal(false);
             }
           }}
         >
-          <div className="bg-white rounded-xl max-w-3xl w-full p-5" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-xl font-semibold text-primary">Request Ad-Hoc Snow Removal</h3>
-              <button onClick={() => setShowSnowRemovalModal(false)} className="text-gray-500 hover:text-gray-700 text-2xl leading-none">×</button>
+          <div className="bg-white rounded-none sm:rounded-xl max-w-3xl w-full h-full sm:h-auto max-h-full sm:max-h-[95vh] overflow-y-auto p-4 sm:p-5 sm:p-6 flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-3 sm:mb-4 flex-shrink-0">
+              <h3 className="text-lg sm:text-xl font-semibold text-primary pr-2">Request Ad-Hoc Snow Removal</h3>
+              <button onClick={() => setShowSnowRemovalModal(false)} className="text-gray-500 hover:text-gray-700 text-3xl sm:text-2xl leading-none min-w-[44px] min-h-[44px] flex items-center justify-center">×</button>
             </div>
-            <p className="text-gray-600 mb-3 text-sm">Need snow removal right now? Request a one-time service. We'll contact you to confirm details and pricing.</p>
+            <p className="text-gray-600 mb-4 sm:mb-5 text-sm sm:text-base">Need snow removal right now? Request a one-time service. We'll contact you to confirm details and pricing.</p>
             <form onSubmit={async (e) => {
               e.preventDefault();
               setIsSubmittingSnow(true);
@@ -653,12 +665,12 @@ export default function Home() {
             }
           }}
         >
-          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
-            <div className="flex-shrink-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-primary">Get Free Lawn Quote</h2>
-              <button onClick={() => { setShowQuoteModal(false); setStep(1); setLawnSize(''); setPrice(null); setFrequency('biweekly'); }} className="text-gray-500 hover:text-gray-700 text-3xl leading-none">×</button>
+          <div className="bg-white rounded-none sm:rounded-xl max-w-4xl w-full h-full sm:h-auto max-h-full sm:max-h-[95vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex-shrink-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
+              <h2 className="text-xl sm:text-2xl font-bold text-primary pr-2">Get Free Lawn Quote</h2>
+              <button onClick={() => { setShowQuoteModal(false); setStep(1); setLawnSize(''); setPrice(null); setFrequency('biweekly'); }} className="text-gray-500 hover:text-gray-700 text-3xl sm:text-3xl leading-none min-w-[44px] min-h-[44px] flex items-center justify-center">×</button>
             </div>
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
               {/* Breadcrumbs */}
               <div className="flex items-center justify-center gap-2 mb-8 flex-wrap">
                 <div

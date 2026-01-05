@@ -258,13 +258,17 @@ function Services() {
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "w-full min-h-full bg-gradient-to-br from-green-50 via-primary-light/30 to-green-100 py-8 px-4",
+                className: "w-full min-h-full bg-gradient-to-br from-green-50 via-primary-light/30 to-green-100 py-6 sm:py-8 px-4 sm:px-6",
+                style: {
+                    paddingLeft: "max(1rem, env(safe-area-inset-left))",
+                    paddingRight: "max(1rem, env(safe-area-inset-right))"
+                },
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "max-w-6xl mx-auto",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
-                                className: "text-4xl md:text-5xl font-bold text-primary text-center mb-4",
+                                className: "text-3xl sm:text-4xl md:text-5xl font-bold text-primary text-center mb-3 sm:mb-4",
                                 children: "Services & Pricing"
                             }, void 0, false, {
                                 fileName: "[project]/app/services/page.tsx",
@@ -272,7 +276,7 @@ function Services() {
                                 columnNumber: 9
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                className: "text-center text-gray-600 mb-8 max-w-2xl mx-auto",
+                                className: "text-center text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto px-2",
                                 children: "Professional, eco-friendly lawn care services in Denver. All equipment is electric by design - quiet, emission-free, and reliable."
                             }, void 0, false, {
                                 fileName: "[project]/app/services/page.tsx",
@@ -280,10 +284,10 @@ function Services() {
                                 columnNumber: 9
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-8 border border-primary-light/50",
+                                className: "bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-primary-light/50",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
-                                        className: "text-2xl md:text-3xl font-bold text-primary mb-6 text-center",
+                                        className: "text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-4 sm:mb-6 text-center",
                                         children: "Lawn Mowing Pricing"
                                     }, void 0, false, {
                                         fileName: "[project]/app/services/page.tsx",
@@ -291,7 +295,7 @@ function Services() {
                                         columnNumber: 11
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "grid md:grid-cols-2 gap-8 mb-8",
+                                        className: "grid md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mb-6 sm:mb-8",
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "bg-gradient-to-br from-primary-light/20 to-primary-light/10 rounded-xl p-6 border-2 border-primary",
@@ -634,10 +638,10 @@ function Services() {
                                 columnNumber: 9
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-primary-light/50 mb-8",
+                                className: "bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 border border-primary-light/50 mb-6 sm:mb-8",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
-                                        className: "text-2xl md:text-3xl font-bold text-primary mb-6 text-center",
+                                        className: "text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-4 sm:mb-6 text-center",
                                         children: "Our Services"
                                     }, void 0, false, {
                                         fileName: "[project]/app/services/page.tsx",
@@ -645,12 +649,12 @@ function Services() {
                                         columnNumber: 11
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "grid grid-cols-1 md:grid-cols-2 gap-6",
+                                        className: "grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6",
                                         children: services.map((service, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "bg-white rounded-xl shadow-md border border-primary/20 overflow-hidden flex flex-col",
                                                 children: [
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "relative w-full h-48",
+                                                        className: "relative w-full h-40 sm:h-48",
                                                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
                                                             src: service.image,
                                                             alt: service.title,
@@ -667,10 +671,10 @@ function Services() {
                                                         columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "p-5 flex-1 flex flex-col",
+                                                        className: "p-4 sm:p-5 flex-1 flex flex-col",
                                                         children: [
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
-                                                                className: "text-xl font-semibold text-primary mb-3",
+                                                                className: "text-lg sm:text-xl font-semibold text-primary mb-2 sm:mb-3",
                                                                 children: service.title
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/services/page.tsx",
@@ -678,7 +682,7 @@ function Services() {
                                                                 columnNumber: 19
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                                className: "text-sm text-gray-700 mb-4 flex-1 leading-relaxed",
+                                                                className: "text-xs sm:text-sm text-gray-700 mb-3 sm:mb-4 flex-1 leading-relaxed",
                                                                 children: service.description
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/services/page.tsx",
@@ -686,7 +690,7 @@ function Services() {
                                                                 columnNumber: 19
                                                             }, this),
                                                             service.isSnowRemoval && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                                className: "text-xs text-gray-600 mb-3 italic",
+                                                                className: "text-xs text-gray-600 mb-2 sm:mb-3 italic",
                                                                 children: "Pricing based on driveway length and property size"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/services/page.tsx",
@@ -695,7 +699,7 @@ function Services() {
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                                 onClick: ()=>handleQuoteClick(service),
-                                                                className: "w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-all min-h-[44px] shadow-md hover:shadow-lg",
+                                                                className: "w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-all min-h-[48px] shadow-md hover:shadow-lg text-sm sm:text-base",
                                                                 children: "Get Quote"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/services/page.tsx",
@@ -890,15 +894,21 @@ function Services() {
                         columnNumber: 7
                     }, this),
                     showModal && selectedService?.includes('Lawn') && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4",
+                        className: "fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-0 sm:p-4",
+                        style: {
+                            paddingTop: "max(0px, env(safe-area-inset-top))",
+                            paddingBottom: "max(0px, env(safe-area-inset-bottom))",
+                            paddingLeft: "max(0px, env(safe-area-inset-left))",
+                            paddingRight: "max(0px, env(safe-area-inset-right))"
+                        },
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "bg-white rounded-xl max-w-2xl w-full p-6 md:p-8 max-h-[90vh] overflow-y-auto",
+                            className: "bg-white rounded-none sm:rounded-xl max-w-2xl w-full h-full sm:h-auto max-h-full sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6 md:p-8 flex flex-col",
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "flex justify-between items-center mb-6",
+                                    className: "flex justify-between items-center mb-4 sm:mb-6 flex-shrink-0",
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                            className: "text-2xl md:text-3xl font-bold text-primary",
+                                            className: "text-xl sm:text-2xl md:text-3xl font-bold text-primary pr-2",
                                             children: "Get Free Lawn Quote"
                                         }, void 0, false, {
                                             fileName: "[project]/app/services/page.tsx",
@@ -907,7 +917,7 @@ function Services() {
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                             onClick: ()=>setShowModal(false),
-                                            className: "text-gray-500 hover:text-gray-700 text-3xl leading-none",
+                                            className: "text-gray-500 hover:text-gray-700 text-3xl leading-none min-w-[44px] min-h-[44px] flex items-center justify-center",
                                             children: "×"
                                         }, void 0, false, {
                                             fileName: "[project]/app/services/page.tsx",
@@ -1641,15 +1651,21 @@ function Services() {
                         columnNumber: 9
                     }, this),
                     showModal && !selectedService?.includes('Lawn') && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4",
+                        className: "fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-0 sm:p-4",
+                        style: {
+                            paddingTop: "max(0px, env(safe-area-inset-top))",
+                            paddingBottom: "max(0px, env(safe-area-inset-bottom))",
+                            paddingLeft: "max(0px, env(safe-area-inset-left))",
+                            paddingRight: "max(0px, env(safe-area-inset-right))"
+                        },
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "bg-white rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto",
+                            className: "bg-white rounded-none sm:rounded-xl max-w-lg w-full h-full sm:h-auto max-h-full sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6 flex flex-col",
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "flex justify-between items-center mb-4",
+                                    className: "flex justify-between items-center mb-4 flex-shrink-0",
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                            className: "text-xl font-semibold text-primary",
+                                            className: "text-lg sm:text-xl font-semibold text-primary pr-2",
                                             children: [
                                                 "Get Your ",
                                                 selectedService,
@@ -1662,7 +1678,7 @@ function Services() {
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                             onClick: ()=>setShowModal(false),
-                                            className: "text-gray-500 hover:text-gray-700 text-2xl",
+                                            className: "text-gray-500 hover:text-gray-700 text-3xl sm:text-2xl leading-none min-w-[44px] min-h-[44px] flex items-center justify-center",
                                             children: "×"
                                         }, void 0, false, {
                                             fileName: "[project]/app/services/page.tsx",

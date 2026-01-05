@@ -4,7 +4,7 @@
 type AppRoutes = "/" | "/about" | "/services"
 type AppRouteHandlerRoutes = "/api/health" | "/api/send-email"
 type PageRoutes = never
-type LayoutRoutes = "/"
+type LayoutRoutes = "/" | "/about" | "/services"
 type RedirectRoutes = never
 type RewriteRoutes = never
 type Routes = AppRoutes | PageRoutes | LayoutRoutes | RedirectRoutes | RewriteRoutes | AppRouteHandlerRoutes
@@ -23,6 +23,8 @@ export type ParamsOf<Route extends Routes> = ParamMap[Route]
 
 interface LayoutSlotMap {
   "/": never
+  "/about": never
+  "/services": never
 }
 
 

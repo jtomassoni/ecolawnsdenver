@@ -96,10 +96,28 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
 
 
 
+// Validate ../../app/about/layout.tsx
+{
+  type __IsExpected<Specific extends LayoutConfig<"/about">> = Specific
+  const handler = {} as typeof import("../../app/about/layout.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../app/layout.tsx
 {
   type __IsExpected<Specific extends LayoutConfig<"/">> = Specific
   const handler = {} as typeof import("../../app/layout.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../app/services/layout.tsx
+{
+  type __IsExpected<Specific extends LayoutConfig<"/services">> = Specific
+  const handler = {} as typeof import("../../app/services/layout.js")
   type __Check = __IsExpected<typeof handler>
   // @ts-ignore
   type __Unused = __Check

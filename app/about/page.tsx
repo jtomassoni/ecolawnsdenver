@@ -82,16 +82,16 @@ export default function About() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <div className="w-full min-h-full bg-gradient-to-br from-green-50 via-primary-light/30 to-green-100 py-2 px-3 md:px-4">
-      <div className="max-w-6xl mx-auto bg-gradient-to-br from-white to-green-50/50 rounded-xl shadow-lg p-4 md:p-6 border border-primary-light/50">
-        <div className="text-center mb-3 pb-2 border-b-2 border-primary/20">
-          <h1 className="text-2xl md:text-3xl font-bold text-primary mb-2">About EcoLawns Denver</h1>
-          <p className="text-sm md:text-base text-gray-700 max-w-2xl mx-auto">
+      <div className="w-full min-h-full bg-gradient-to-br from-green-50 via-primary-light/30 to-green-100 py-4 sm:py-6 px-3 sm:px-4 md:px-6" style={{ paddingLeft: "max(0.75rem, env(safe-area-inset-left))", paddingRight: "max(0.75rem, env(safe-area-inset-right))" }}>
+      <div className="max-w-6xl mx-auto bg-gradient-to-br from-white to-green-50/50 rounded-xl shadow-lg p-4 sm:p-5 md:p-6 border border-primary-light/50">
+        <div className="text-center mb-4 sm:mb-5 pb-3 sm:pb-4 border-b-2 border-primary/20">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-2 sm:mb-3">About EcoLawns Denver</h1>
+          <p className="text-xs sm:text-sm md:text-base text-gray-700 max-w-2xl mx-auto px-2 leading-relaxed">
             We're a local lawn care service serving Denver homeowners. We mow lawns, handle seasonal cleanups, and clear snow in the winter. <strong>All our equipment is electric by design</strong> - half of our mission is reducing noise and neighborhood emissions while keeping your property beautiful.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-4 md:gap-6 mb-3">
+        <div className="grid md:grid-cols-2 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-5">
           {/* What We Do */}
           <div>
             <h2 className="text-xl font-semibold text-primary mb-2">What We Do</h2>

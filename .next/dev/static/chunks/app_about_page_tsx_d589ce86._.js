@@ -98,15 +98,19 @@ function About() {
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "w-full min-h-full bg-gradient-to-br from-green-50 via-primary-light/30 to-green-100 py-2 px-3 md:px-4",
+                className: "w-full min-h-full bg-gradient-to-br from-green-50 via-primary-light/30 to-green-100 py-4 sm:py-6 px-3 sm:px-4 md:px-6",
+                style: {
+                    paddingLeft: "max(0.75rem, env(safe-area-inset-left))",
+                    paddingRight: "max(0.75rem, env(safe-area-inset-right))"
+                },
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "max-w-6xl mx-auto bg-gradient-to-br from-white to-green-50/50 rounded-xl shadow-lg p-4 md:p-6 border border-primary-light/50",
+                    className: "max-w-6xl mx-auto bg-gradient-to-br from-white to-green-50/50 rounded-xl shadow-lg p-4 sm:p-5 md:p-6 border border-primary-light/50",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "text-center mb-3 pb-2 border-b-2 border-primary/20",
+                            className: "text-center mb-4 sm:mb-5 pb-3 sm:pb-4 border-b-2 border-primary/20",
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
-                                    className: "text-2xl md:text-3xl font-bold text-primary mb-2",
+                                    className: "text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-2 sm:mb-3",
                                     children: "About EcoLawns Denver"
                                 }, void 0, false, {
                                     fileName: "[project]/app/about/page.tsx",
@@ -114,7 +118,7 @@ function About() {
                                     columnNumber: 11
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                    className: "text-sm md:text-base text-gray-700 max-w-2xl mx-auto",
+                                    className: "text-xs sm:text-sm md:text-base text-gray-700 max-w-2xl mx-auto px-2 leading-relaxed",
                                     children: [
                                         "We're a local lawn care service serving Denver homeowners. We mow lawns, handle seasonal cleanups, and clear snow in the winter. ",
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
@@ -138,7 +142,7 @@ function About() {
                             columnNumber: 9
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "grid md:grid-cols-2 gap-4 md:gap-6 mb-3",
+                            className: "grid md:grid-cols-2 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-5",
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     children: [

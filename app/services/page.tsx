@@ -182,18 +182,18 @@ export default function Services() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <div className="w-full min-h-full bg-gradient-to-br from-green-50 via-primary-light/30 to-green-100 py-8 px-4">
+      <div className="w-full min-h-full bg-gradient-to-br from-green-50 via-primary-light/30 to-green-100 py-6 sm:py-8 px-4 sm:px-6" style={{ paddingLeft: "max(1rem, env(safe-area-inset-left))", paddingRight: "max(1rem, env(safe-area-inset-right))" }}>
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl md:text-5xl font-bold text-primary text-center mb-4">Services & Pricing</h1>
-        <p className="text-center text-gray-600 mb-8 max-w-2xl mx-auto">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary text-center mb-3 sm:mb-4">Services & Pricing</h1>
+        <p className="text-center text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
           Professional, eco-friendly lawn care services in Denver. All equipment is electric by design - quiet, emission-free, and reliable.
         </p>
 
         {/* Pricing Section */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-8 border border-primary-light/50">
-          <h2 className="text-2xl md:text-3xl font-bold text-primary mb-6 text-center">Lawn Mowing Pricing</h2>
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-primary-light/50">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-4 sm:mb-6 text-center">Lawn Mowing Pricing</h2>
           
-          <div className="grid md:grid-cols-2 gap-8 mb-8">
+          <div className="grid md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mb-6 sm:mb-8">
             {/* Season Pass */}
             <div className="bg-gradient-to-br from-primary-light/20 to-primary-light/10 rounded-xl p-6 border-2 border-primary">
               <div className="flex items-center justify-between mb-4">
@@ -268,24 +268,24 @@ export default function Services() {
         </div>
 
         {/* Services Section */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-primary-light/50 mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-primary mb-6 text-center">Our Services</h2>
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 border border-primary-light/50 mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-4 sm:mb-6 text-center">Our Services</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {services.map((service, idx) => (
               <div key={idx} className="bg-white rounded-xl shadow-md border border-primary/20 overflow-hidden flex flex-col">
-                <div className="relative w-full h-48">
+                <div className="relative w-full h-40 sm:h-48">
                   <Image src={service.image} alt={service.title} fill className="object-cover" />
                 </div>
-                <div className="p-5 flex-1 flex flex-col">
-                  <h2 className="text-xl font-semibold text-primary mb-3">{service.title}</h2>
-                  <p className="text-sm text-gray-700 mb-4 flex-1 leading-relaxed">{service.description}</p>
+                <div className="p-4 sm:p-5 flex-1 flex flex-col">
+                  <h2 className="text-lg sm:text-xl font-semibold text-primary mb-2 sm:mb-3">{service.title}</h2>
+                  <p className="text-xs sm:text-sm text-gray-700 mb-3 sm:mb-4 flex-1 leading-relaxed">{service.description}</p>
                   {service.isSnowRemoval && (
-                    <p className="text-xs text-gray-600 mb-3 italic">Pricing based on driveway length and property size</p>
+                    <p className="text-xs text-gray-600 mb-2 sm:mb-3 italic">Pricing based on driveway length and property size</p>
                   )}
                   <button
                     onClick={() => handleQuoteClick(service)}
-                    className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-all min-h-[44px] shadow-md hover:shadow-lg"
+                    className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-all min-h-[48px] shadow-md hover:shadow-lg text-sm sm:text-base"
                   >
                     Get Quote
                   </button>
@@ -333,11 +333,11 @@ export default function Services() {
 
       {/* Service Modal */}
       {showModal && selectedService?.includes('Lawn') && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full p-6 md:p-8 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl md:text-3xl font-bold text-primary">Get Free Lawn Quote</h3>
-              <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-gray-700 text-3xl leading-none">×</button>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-0 sm:p-4" style={{ paddingTop: "max(0px, env(safe-area-inset-top))", paddingBottom: "max(0px, env(safe-area-inset-bottom))", paddingLeft: "max(0px, env(safe-area-inset-left))", paddingRight: "max(0px, env(safe-area-inset-right))" }}>
+          <div className="bg-white rounded-none sm:rounded-xl max-w-2xl w-full h-full sm:h-auto max-h-full sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6 md:p-8 flex flex-col">
+            <div className="flex justify-between items-center mb-4 sm:mb-6 flex-shrink-0">
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary pr-2">Get Free Lawn Quote</h3>
+              <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-gray-700 text-3xl leading-none min-w-[44px] min-h-[44px] flex items-center justify-center">×</button>
             </div>
 
             {/* Progress Indicator */}
@@ -601,11 +601,11 @@ export default function Services() {
 
       {/* Service Modal for Non-Lawn Services */}
       {showModal && !selectedService?.includes('Lawn') && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold text-primary">Get Your {selectedService} Quote</h3>
-              <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-0 sm:p-4" style={{ paddingTop: "max(0px, env(safe-area-inset-top))", paddingBottom: "max(0px, env(safe-area-inset-bottom))", paddingLeft: "max(0px, env(safe-area-inset-left))", paddingRight: "max(0px, env(safe-area-inset-right))" }}>
+          <div className="bg-white rounded-none sm:rounded-xl max-w-lg w-full h-full sm:h-auto max-h-full sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6 flex flex-col">
+            <div className="flex justify-between items-center mb-4 flex-shrink-0">
+              <h3 className="text-lg sm:text-xl font-semibold text-primary pr-2">Get Your {selectedService} Quote</h3>
+              <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-gray-700 text-3xl sm:text-2xl leading-none min-w-[44px] min-h-[44px] flex items-center justify-center">×</button>
             </div>
             <p className="text-gray-600 mb-4">Enter your information to get a quote for this service.</p>
             <form onSubmit={(e) => { e.preventDefault(); submitForm(selectedService || 'Service Request'); }} className="space-y-4">
