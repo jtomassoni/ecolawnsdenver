@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FaPhone } from 'react-icons/fa';
 import { trackEvent } from '@/components/GoogleAnalytics';
 
 export default function Navigation() {
@@ -87,16 +86,6 @@ export default function Navigation() {
           >
             About
           </Link>
-          <a
-            href="tel:+13035550123"
-            onClick={() => trackEvent('click', 'Contact', 'Phone - Navigation')}
-            aria-label="Call EcoLawns Denver"
-            className="text-primary no-underline px-4 py-2 rounded transition-all min-h-[44px] flex items-center gap-2 hover:bg-primary-light/10 font-semibold"
-          >
-            <FaPhone className="text-primary" />
-            <span className="hidden sm:inline">(303) 555-0123</span>
-            <span className="sm:hidden">Call</span>
-          </a>
           <button
             onClick={() => {
               trackEvent('click', 'CTA', 'Get Free Quote - Navigation');
