@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Script from 'next/script';
-import { FaSnowflake, FaSeedling } from 'react-icons/fa';
+import { FaSnowflake, FaSeedling, FaPhone, FaShieldAlt, FaCheckCircle } from 'react-icons/fa';
+import { trackEvent, trackConversion } from '@/components/GoogleAnalytics';
 
 const testimonials = [
   {
@@ -73,6 +74,7 @@ export default function Home() {
   const avgCutsPerSeason = frequency === 'weekly' ? 28 : 14;
 
   const openQuoteModal = () => {
+    trackEvent('click', 'Modal', 'Open Quote Modal');
     setShowQuoteModal(true);
   };
 
@@ -136,6 +138,8 @@ export default function Home() {
 
       const data = await response.json();
       if (data.success) {
+        trackConversion('form_submission', price || 0);
+        trackEvent('submit', 'Form', 'Lawn Service Booking');
         setSubmitSuccess(true);
         setBookingForm({ name: '', email: '', phone: '', address: '' });
       } else {
@@ -350,25 +354,57 @@ export default function Home() {
               <p className="text-white text-xl sm:text-2xl md:text-3xl font-medium mb-4 sm:mb-6 drop-shadow-md">
                 Starting at $40/visit
               </p>
-              <p className="text-white text-base sm:text-lg md:text-xl lg:text-2xl mb-6 sm:mb-8 drop-shadow-md max-w-3xl mx-auto leading-relaxed px-2">
+              <p className="text-white text-base sm:text-lg md:text-xl lg:text-2xl mb-4 sm:mb-6 drop-shadow-md max-w-3xl mx-auto leading-relaxed px-2">
                 Get your weekends back with reliable, eco-friendly lawn care. <strong>All our equipment is electric by design</strong> - half of our mission is reducing noise and neighborhood emissions. <strong>Book your spring service now</strong>, or get snow removal for the rest of winter!
               </p>
+              <div className="bg-yellow-400/90 text-gray-900 px-4 py-2 rounded-lg font-semibold text-sm sm:text-base mb-4 sm:mb-6 inline-block">
+                ⚡ Limited Spring Spots Available - Book Now for April Start!
+              </div>
             </div>
           
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-8 sm:mb-12 px-2">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-6 sm:mb-8 px-2">
             <button
-              onClick={openQuoteModal}
+              onClick={() => {
+                trackEvent('click', 'CTA', 'Get Free Lawn Quote - Hero');
+                openQuoteModal();
+              }}
               className="bg-primary text-white px-8 sm:px-10 py-4 sm:py-5 rounded-xl font-bold text-lg sm:text-xl shadow-2xl hover:bg-primary-dark transform hover:-translate-y-1 transition-all min-h-[56px] w-full sm:w-auto"
             >
               Get Free Lawn Quote
             </button>
             <button
-              onClick={() => setShowSnowRemovalModal(true)}
+              onClick={() => {
+                trackEvent('click', 'CTA', 'Snow Removal - Hero');
+                setShowSnowRemovalModal(true);
+              }}
               className="bg-white/10 backdrop-blur-sm text-white/90 border border-white/40 px-5 sm:px-6 py-3 rounded-lg font-medium text-sm sm:text-base hover:bg-white/20 hover:text-white transition-all min-h-[48px] w-full sm:w-auto flex items-center justify-center gap-2"
             >
               <FaSnowflake className="text-white" />
               <span>Snow Removal</span>
             </button>
+          </div>
+
+          {/* Phone Number & Trust Badges */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-8 sm:mb-12 px-2">
+            <a
+              href="tel:+13035550123"
+              onClick={() => trackEvent('click', 'Contact', 'Phone - Hero')}
+              className="flex items-center gap-2 text-white text-lg sm:text-xl font-semibold hover:text-primary-light transition-all bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/20 hover:bg-white/20"
+            >
+              <FaPhone className="text-white" />
+              <span>(303) 555-0123</span>
+            </a>
+            <div className="flex items-center gap-3 sm:gap-4 text-white/90 text-sm sm:text-base">
+              <div className="flex items-center gap-1.5">
+                <FaShieldAlt className="text-white" />
+                <span>Licensed & Insured</span>
+              </div>
+              <div className="hidden sm:block">•</div>
+              <div className="flex items-center gap-1.5">
+                <FaCheckCircle className="text-white" />
+                <span>Free Quotes</span>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto mt-8 sm:mt-12 px-2">
@@ -537,6 +573,8 @@ export default function Home() {
 
                 const data = await response.json();
                 if (data.success) {
+                  trackConversion('form_submission', 0);
+                  trackEvent('submit', 'Form', 'Snow Removal Request');
                   setSubmitSuccessSnow(true);
                   setSnowForm({ name: '', email: '', phone: '', address: '', drivewayLength: '', notes: '' });
                   setTimeout(() => {

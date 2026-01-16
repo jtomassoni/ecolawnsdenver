@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import Navigation from '@/components/Navigation';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 
 export const metadata: Metadata = {
   title: {
@@ -78,6 +79,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="h-screen flex flex-col overflow-hidden" suppressHydrationWarning>
+        <GoogleAnalytics />
         <Navigation />
         <main className="flex-1 relative overflow-y-auto overflow-x-hidden min-h-[calc(100vh-60px)] w-full">
           {children}

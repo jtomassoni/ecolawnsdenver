@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Script from 'next/script';
 import { FaSeedling, FaSnowflake, FaLeaf, FaCheck } from 'react-icons/fa';
+import { trackEvent, trackConversion } from '@/components/GoogleAnalytics';
 
 const services = [
   {
@@ -72,6 +73,7 @@ export default function Services() {
   const [paymentOption, setPaymentOption] = useState<'season-pass' | 'pay-per-visit' | null>(null);
 
   const handleQuoteClick = (service: typeof services[0]) => {
+    trackEvent('click', 'CTA', `Get Quote - ${service.title}`);
     setSelectedService(service.title);
     setShowModal(true);
     setCurrentStep(1);
@@ -122,6 +124,8 @@ export default function Services() {
 
       const data = await response.json();
       if (data.success) {
+        trackConversion('form_submission', 0);
+        trackEvent('submit', 'Form', selectedService || 'Service Request');
         setSubmitSuccess(true);
         setFormData({ name: '', email: '', phone: '', address: '', lawnSize: 'medium', drivewayLength: '', notes: '' });
         setTimeout(() => {
