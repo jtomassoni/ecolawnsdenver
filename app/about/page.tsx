@@ -12,7 +12,7 @@ export default function About() {
     "image": "https://ecolawnsdenver.com/images/hero.jpg",
     "@id": "https://ecolawnsdenver.com/about",
     "url": "https://ecolawnsdenver.com",
-    "telephone": "+1-303-555-0123",
+    "telephone": "+1-301-943-7914",
     "priceRange": "$40-$500",
     "address": {
       "@type": "PostalAddress",

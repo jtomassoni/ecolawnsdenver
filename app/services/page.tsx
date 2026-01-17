@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Script from 'next/script';
+import { useRouter } from 'next/navigation';
 import { FaSeedling, FaSnowflake, FaLeaf, FaCheck } from 'react-icons/fa';
 import { trackEvent, trackConversion } from '@/components/GoogleAnalytics';
 
@@ -31,6 +32,7 @@ const services = [
 ];
 
 export default function Services() {
+  const router = useRouter();
   const [showModal, setShowModal] = useState(false);
 
   const structuredData = {
@@ -126,12 +128,16 @@ export default function Services() {
       if (data.success) {
         trackConversion('form_submission', 0);
         trackEvent('submit', 'Form', selectedService || 'Service Request');
-        setSubmitSuccess(true);
-        setFormData({ name: '', email: '', phone: '', address: '', lawnSize: 'medium', drivewayLength: '', notes: '' });
-        setTimeout(() => {
-          setShowModal(false);
-          setSubmitSuccess(false);
-        }, 2000);
+        
+        // Determine service type for redirect
+        let serviceType = 'service';
+        if (selectedService?.includes('Lawn')) serviceType = 'lawn';
+        else if (selectedService?.includes('Snow')) serviceType = 'snow';
+        else if (selectedService?.includes('Spring')) serviceType = 'spring';
+        else if (selectedService?.includes('Fall')) serviceType = 'fall';
+        
+        // Redirect to thank you page
+        router.push(`/thank-you?type=${serviceType}`);
       } else {
         setSubmitError(data.message || 'Failed to send request. Please try again.');
       }

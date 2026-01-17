@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Script from 'next/script';
+import { useRouter } from 'next/navigation';
 import { FaSnowflake, FaSeedling, FaPhone, FaShieldAlt, FaCheckCircle } from 'react-icons/fa';
 import { trackEvent, trackConversion } from '@/components/GoogleAnalytics';
 
@@ -55,6 +56,7 @@ const getPriceForSize = (size: number): number | null => {
 };
 
 export default function Home() {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [lawnSize, setLawnSize] = useState('');
   const [price, setPrice] = useState<number | null>(null);
@@ -140,8 +142,8 @@ export default function Home() {
       if (data.success) {
         trackConversion('form_submission', price || 0);
         trackEvent('submit', 'Form', 'Lawn Service Booking');
-        setSubmitSuccess(true);
-        setBookingForm({ name: '', email: '', phone: '', address: '' });
+        // Redirect to thank you page
+        router.push('/thank-you?type=lawn');
       } else {
         setSubmitError(data.message || 'Failed to send request. Please try again.');
       }
@@ -231,7 +233,7 @@ export default function Home() {
     "image": "https://ecolawnsdenver.com/images/hero.jpg",
     "@id": "https://ecolawnsdenver.com",
     "url": "https://ecolawnsdenver.com",
-    "telephone": "+1-303-555-0123",
+    "telephone": "+1-301-943-7914",
     "priceRange": "$40-$500",
     "address": {
       "@type": "PostalAddress",
@@ -387,12 +389,12 @@ export default function Home() {
           {/* Phone Number & Trust Badges */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-8 sm:mb-12 px-2">
             <a
-              href="tel:+13035550123"
+              href="tel:+13019437914"
               onClick={() => trackEvent('click', 'Contact', 'Phone - Hero')}
               className="flex items-center gap-2 text-white text-lg sm:text-xl font-semibold hover:text-primary-light transition-all bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/20 hover:bg-white/20"
             >
               <FaPhone className="text-white" />
-              <span>(303) 555-0123</span>
+              <span>(301) 943-7914</span>
             </a>
             <div className="flex items-center gap-3 sm:gap-4 text-white/90 text-sm sm:text-base">
               <div className="flex items-center gap-1.5">
@@ -575,12 +577,8 @@ export default function Home() {
                 if (data.success) {
                   trackConversion('form_submission', 0);
                   trackEvent('submit', 'Form', 'Snow Removal Request');
-                  setSubmitSuccessSnow(true);
-                  setSnowForm({ name: '', email: '', phone: '', address: '', drivewayLength: '', notes: '' });
-                  setTimeout(() => {
-                    setShowSnowRemovalModal(false);
-                    setSubmitSuccessSnow(false);
-                  }, 2000);
+                  // Redirect to thank you page
+                  router.push('/thank-you?type=snow');
                 } else {
                   setSubmitErrorSnow(data.message || 'Failed to send request. Please try again.');
                 }
