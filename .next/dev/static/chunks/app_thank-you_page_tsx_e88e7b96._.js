@@ -21,12 +21,12 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 ;
-function ThankYou() {
+function ThankYouContent() {
     _s();
     const searchParams = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useSearchParams"])();
     const serviceType = searchParams.get('type') || 'service';
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
-        "ThankYou.useEffect": ()=>{
+        "ThankYouContent.useEffect": ()=>{
             // Track conversion in Google Analytics
             (0, __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$GoogleAnalytics$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["trackConversion"])('form_submission', 0);
             (0, __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$GoogleAnalytics$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["trackEvent"])('conversion', 'Thank You Page', serviceType);
@@ -40,7 +40,7 @@ function ThankYou() {
                 });
             }
         }
-    }["ThankYou.useEffect"], [
+    }["ThankYouContent.useEffect"], [
         serviceType
     ]);
     const getServiceName = ()=>{
@@ -59,7 +59,7 @@ function ThankYou() {
     };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-            className: "bg-gradient-to-br from-green-50 via-primary-light/30 to-green-100 flex justify-center items-center px-4 py-8 sm:py-12 min-h-[calc(100vh-60px)]",
+            className: "bg-gradient-to-br from-green-50 via-primary-light/30 to-green-100 flex justify-center items-center px-4 py-8 sm:py-12 absolute inset-0",
             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "max-w-2xl w-full bg-white rounded-2xl shadow-xl p-6 md:p-8 text-center",
                 children: [
@@ -332,14 +332,73 @@ function ThankYou() {
         }, this)
     }, void 0, false);
 }
-_s(ThankYou, "wpYCjx3Iuh0YGg4csUQIo9F8Zhk=", false, function() {
+_s(ThankYouContent, "wpYCjx3Iuh0YGg4csUQIo9F8Zhk=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useSearchParams"]
     ];
 });
-_c = ThankYou;
-var _c;
-__turbopack_context__.k.register(_c, "ThankYou");
+_c = ThankYouContent;
+function ThankYou() {
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Suspense"], {
+        fallback: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+            className: "bg-gradient-to-br from-green-50 via-primary-light/30 to-green-100 flex justify-center items-center px-4 py-8 sm:py-12 absolute inset-0",
+            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "max-w-2xl w-full bg-white rounded-2xl shadow-xl p-6 md:p-8 text-center",
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: "animate-pulse",
+                    children: [
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "h-16 bg-gray-200 rounded-full w-16 mx-auto mb-4"
+                        }, void 0, false, {
+                            fileName: "[project]/app/thank-you/page.tsx",
+                            lineNumber: 141,
+                            columnNumber: 13
+                        }, void 0),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "h-8 bg-gray-200 rounded w-48 mx-auto mb-4"
+                        }, void 0, false, {
+                            fileName: "[project]/app/thank-you/page.tsx",
+                            lineNumber: 142,
+                            columnNumber: 13
+                        }, void 0),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "h-4 bg-gray-200 rounded w-64 mx-auto"
+                        }, void 0, false, {
+                            fileName: "[project]/app/thank-you/page.tsx",
+                            lineNumber: 143,
+                            columnNumber: 13
+                        }, void 0)
+                    ]
+                }, void 0, true, {
+                    fileName: "[project]/app/thank-you/page.tsx",
+                    lineNumber: 140,
+                    columnNumber: 11
+                }, void 0)
+            }, void 0, false, {
+                fileName: "[project]/app/thank-you/page.tsx",
+                lineNumber: 139,
+                columnNumber: 9
+            }, void 0)
+        }, void 0, false, {
+            fileName: "[project]/app/thank-you/page.tsx",
+            lineNumber: 138,
+            columnNumber: 7
+        }, void 0),
+        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(ThankYouContent, {}, void 0, false, {
+            fileName: "[project]/app/thank-you/page.tsx",
+            lineNumber: 148,
+            columnNumber: 7
+        }, this)
+    }, void 0, false, {
+        fileName: "[project]/app/thank-you/page.tsx",
+        lineNumber: 137,
+        columnNumber: 5
+    }, this);
+}
+_c1 = ThankYou;
+var _c, _c1;
+__turbopack_context__.k.register(_c, "ThankYouContent");
+__turbopack_context__.k.register(_c1, "ThankYou");
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }

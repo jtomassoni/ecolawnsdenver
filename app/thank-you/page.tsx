@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Script from 'next/script';
 import { FaCheckCircle, FaPhone, FaEnvelope } from 'react-icons/fa';
 import { trackConversion, trackEvent } from '@/components/GoogleAnalytics';
 
-export default function ThankYou() {
+function ThankYouContent() {
   const searchParams = useSearchParams();
   const serviceType = searchParams.get('type') || 'service';
 
@@ -46,7 +46,7 @@ export default function ThankYou() {
     <>
       {/* Google Ads Conversion Tracking - Fires automatically via useEffect */}
 
-      <div className="bg-gradient-to-br from-green-50 via-primary-light/30 to-green-100 flex justify-center items-center px-4 py-8 sm:py-12 min-h-[calc(100vh-60px)]">
+      <div className="bg-gradient-to-br from-green-50 via-primary-light/30 to-green-100 flex justify-center items-center px-4 py-8 sm:py-12 absolute inset-0">
         <div className="max-w-2xl w-full bg-white rounded-2xl shadow-xl p-6 md:p-8 text-center">
           {/* Success Icon */}
           <div className="mb-3 flex justify-center">
@@ -129,5 +129,23 @@ export default function ThankYou() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function ThankYou() {
+  return (
+    <Suspense fallback={
+      <div className="bg-gradient-to-br from-green-50 via-primary-light/30 to-green-100 flex justify-center items-center px-4 py-8 sm:py-12 absolute inset-0">
+        <div className="max-w-2xl w-full bg-white rounded-2xl shadow-xl p-6 md:p-8 text-center">
+          <div className="animate-pulse">
+            <div className="h-16 bg-gray-200 rounded-full w-16 mx-auto mb-4"></div>
+            <div className="h-8 bg-gray-200 rounded w-48 mx-auto mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-64 mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <ThankYouContent />
+    </Suspense>
   );
 }
