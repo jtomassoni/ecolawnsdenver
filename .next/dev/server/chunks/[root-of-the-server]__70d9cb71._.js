@@ -1,0 +1,976 @@
+module.exports = [
+"[externals]/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js [external] (next/dist/compiled/next-server/app-route-turbo.runtime.dev.js, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("next/dist/compiled/next-server/app-route-turbo.runtime.dev.js", () => require("next/dist/compiled/next-server/app-route-turbo.runtime.dev.js"));
+
+module.exports = mod;
+}),
+"[externals]/next/dist/compiled/@opentelemetry/api [external] (next/dist/compiled/@opentelemetry/api, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("next/dist/compiled/@opentelemetry/api", () => require("next/dist/compiled/@opentelemetry/api"));
+
+module.exports = mod;
+}),
+"[externals]/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js [external] (next/dist/compiled/next-server/app-page-turbo.runtime.dev.js, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("next/dist/compiled/next-server/app-page-turbo.runtime.dev.js", () => require("next/dist/compiled/next-server/app-page-turbo.runtime.dev.js"));
+
+module.exports = mod;
+}),
+"[externals]/next/dist/server/app-render/work-unit-async-storage.external.js [external] (next/dist/server/app-render/work-unit-async-storage.external.js, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("next/dist/server/app-render/work-unit-async-storage.external.js", () => require("next/dist/server/app-render/work-unit-async-storage.external.js"));
+
+module.exports = mod;
+}),
+"[externals]/next/dist/server/app-render/work-async-storage.external.js [external] (next/dist/server/app-render/work-async-storage.external.js, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("next/dist/server/app-render/work-async-storage.external.js", () => require("next/dist/server/app-render/work-async-storage.external.js"));
+
+module.exports = mod;
+}),
+"[externals]/next/dist/shared/lib/no-fallback-error.external.js [external] (next/dist/shared/lib/no-fallback-error.external.js, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("next/dist/shared/lib/no-fallback-error.external.js", () => require("next/dist/shared/lib/no-fallback-error.external.js"));
+
+module.exports = mod;
+}),
+"[externals]/next/dist/server/app-render/after-task-async-storage.external.js [external] (next/dist/server/app-render/after-task-async-storage.external.js, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("next/dist/server/app-render/after-task-async-storage.external.js", () => require("next/dist/server/app-render/after-task-async-storage.external.js"));
+
+module.exports = mod;
+}),
+"[project]/lib/auth.ts [app-route] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "createSession",
+    ()=>createSession,
+    "destroySession",
+    ()=>destroySession,
+    "requireCrmSession",
+    ()=>requireCrmSession,
+    "validateCredentials",
+    ()=>validateCredentials,
+    "verifySession",
+    ()=>verifySession
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$webapi$2f$jwt$2f$sign$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/webapi/jwt/sign.js [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$webapi$2f$jwt$2f$verify$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/webapi/jwt/verify.js [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/headers.js [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/server.js [app-route] (ecmascript)");
+;
+;
+;
+const SESSION_COOKIE = 'crm_session';
+const SESSION_DURATION = 24 * 60 * 60;
+function parseUserCredentials(envVar) {
+    if (!envVar) return [];
+    try {
+        const parsed = JSON.parse(envVar);
+        if (Array.isArray(parsed)) {
+            return parsed.filter((cred)=>cred && typeof cred === 'object' && typeof cred.username === 'string' && typeof cred.password === 'string');
+        }
+        if (parsed && typeof parsed === 'object' && typeof parsed.username === 'string' && typeof parsed.password === 'string') {
+            return [
+                parsed
+            ];
+        }
+    } catch  {
+        const credentials = envVar.split(',').map((pair)=>{
+            const [username, password] = pair.split(':').map((s)=>s.trim());
+            if (username && password) return {
+                username,
+                password
+            };
+            return null;
+        }).filter((cred)=>cred !== null);
+        if (credentials.length > 0) return credentials;
+    }
+    return [];
+}
+function getAllCredentials() {
+    return [
+        ...parseUserCredentials(process.env.ADMIN_USER),
+        ...parseUserCredentials(process.env.ADMIN_USERS),
+        ...parseUserCredentials(process.env.CRM_USER),
+        ...parseUserCredentials(process.env.CRM_USERS)
+    ];
+}
+function getSecret() {
+    const secret = process.env.SESSION_SECRET || process.env.CRM_SESSION_SECRET;
+    if (!secret) throw new Error('SESSION_SECRET or CRM_SESSION_SECRET must be set');
+    return new TextEncoder().encode(secret);
+}
+async function createSession() {
+    const token = await new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$webapi$2f$jwt$2f$sign$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["SignJWT"]({
+        crm: true
+    }).setProtectedHeader({
+        alg: 'HS256'
+    }).setIssuedAt().setExpirationTime(`${SESSION_DURATION}s`).sign(getSecret());
+    const cookieStore = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["cookies"])();
+    cookieStore.set(SESSION_COOKIE, token, {
+        httpOnly: true,
+        secure: ("TURBOPACK compile-time value", "development") === 'production',
+        sameSite: 'lax',
+        maxAge: SESSION_DURATION,
+        path: '/'
+    });
+}
+async function verifySession() {
+    const cookieStore = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["cookies"])();
+    const token = cookieStore.get(SESSION_COOKIE)?.value;
+    if (!token) return false;
+    try {
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$webapi$2f$jwt$2f$verify$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["jwtVerify"])(token, getSecret());
+        return true;
+    } catch  {
+        return false;
+    }
+}
+async function destroySession() {
+    const cookieStore = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["cookies"])();
+    cookieStore.delete(SESSION_COOKIE);
+}
+function validateCredentials(username, password) {
+    const credentials = getAllCredentials();
+    if (credentials.length === 0) return false;
+    return credentials.some((c)=>c.username.trim() === username.trim() && c.password === password);
+}
+async function requireCrmSession() {
+    if (!await verifySession()) {
+        return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+            error: 'Unauthorized'
+        }, {
+            status: 401
+        });
+    }
+    return null;
+}
+}),
+"[externals]/fs/promises [external] (fs/promises, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("fs/promises", () => require("fs/promises"));
+
+module.exports = mod;
+}),
+"[externals]/path [external] (path, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("path", () => require("path"));
+
+module.exports = mod;
+}),
+"[project]/lib/crm-types.ts [app-route] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+/** `notification` is hidden on the leads list until “Show notification leads” or status filter = Notification. */ __turbopack_context__.s([
+    "LEAD_STATUSES",
+    ()=>LEAD_STATUSES,
+    "LEAD_STATUS_LABELS",
+    ()=>LEAD_STATUS_LABELS
+]);
+const LEAD_STATUSES = [
+    'new_lead',
+    'warm_lead',
+    'active_customer',
+    'delinquent',
+    'inactive',
+    'notification'
+];
+const LEAD_STATUS_LABELS = {
+    new_lead: 'New lead',
+    warm_lead: 'Warm lead',
+    active_customer: 'Active customer',
+    delinquent: 'Delinquent',
+    inactive: 'Inactive',
+    notification: 'Notification'
+};
+}),
+"[project]/lib/crm-bounce.ts [app-route] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "cleanMessageIdPart",
+    ()=>cleanMessageIdPart,
+    "extractBounceDiagnostic",
+    ()=>extractBounceDiagnostic,
+    "findOutboundForBounceAttachment",
+    ()=>findOutboundForBounceAttachment,
+    "looksLikeBounceNotification",
+    ()=>looksLikeBounceNotification,
+    "mergeLegacyBounceRowsForDisplay",
+    ()=>mergeLegacyBounceRowsForDisplay,
+    "parseBounceFailedRecipient",
+    ()=>parseBounceFailedRecipient,
+    "parseOriginalMessageIdFromBounce",
+    ()=>parseOriginalMessageIdFromBounce,
+    "summarizeBounce",
+    ()=>summarizeBounce
+]);
+function normalizeEmailLocal(email) {
+    return email.trim().toLowerCase();
+}
+function cleanMessageIdPart(id) {
+    return id.replace(/^<|>$/g, '').trim();
+}
+function parseOriginalMessageIdFromBounce(bodyText, bodyHtml) {
+    const blob = `${bodyText}\n${bodyHtml ?? ''}`;
+    const m = blob.match(/Original-Message-ID:\s*<?([^>\s\r\n]+)>?/i);
+    if (m) return cleanMessageIdPart(m[1]);
+    return null;
+}
+function findOutboundForBounceAttachment(emails, failedRecipientNorm, bounceAtIso, bounceInReplyTo, bodyText, bodyHtml) {
+    const failNorm = normalizeEmailLocal(failedRecipientNorm);
+    const bounceTime = new Date(bounceAtIso).getTime();
+    const outbounds = emails.filter((m)=>m.direction === 'outbound' && normalizeEmailLocal(m.to) === failNorm);
+    if (outbounds.length === 0) return null;
+    const originalMid = parseOriginalMessageIdFromBounce(bodyText ?? '', bodyHtml);
+    if (originalMid) {
+        const hit = outbounds.find((m)=>m.messageId && cleanMessageIdPart(m.messageId) === originalMid);
+        if (hit) return hit;
+    }
+    if (bounceInReplyTo) {
+        const cleanR = cleanMessageIdPart(bounceInReplyTo);
+        const hit = outbounds.find((m)=>m.messageId && cleanMessageIdPart(m.messageId) === cleanR);
+        if (hit) return hit;
+    }
+    const beforeBounce = outbounds.filter((m)=>new Date(m.createdAt).getTime() <= bounceTime + 120_000);
+    const pool = beforeBounce.length > 0 ? beforeBounce : outbounds;
+    pool.sort((a, b)=>new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return pool[0] ?? null;
+}
+function mergeLegacyBounceRowsForDisplay(emails) {
+    const copy = emails.map((e)=>({
+            ...e
+        }));
+    const bounceRows = copy.filter((e)=>e.kind === 'bounce' && e.bounce);
+    const rest = copy.filter((e)=>e.kind !== 'bounce');
+    const unmatched = [];
+    bounceRows.sort((a, b)=>new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    for (const b of bounceRows){
+        if (!b.bounce) continue;
+        const target = findOutboundForBounceAttachment(rest, b.bounce.failedRecipient, b.createdAt, b.inReplyTo, b.bodyText, b.bodyHtml);
+        if (!target) {
+            unmatched.push(b);
+            continue;
+        }
+        const next = {
+            failedRecipient: b.bounce.failedRecipient,
+            summary: b.bounce.summary,
+            diagnostic: b.bounce.diagnostic,
+            recordedAt: b.createdAt
+        };
+        if (!target.deliveryFailure || new Date(next.recordedAt) >= new Date(target.deliveryFailure.recordedAt)) {
+            target.deliveryFailure = next;
+        }
+    }
+    return rest.concat(unmatched);
+}
+const BOUNCE_FROM_HINTS = /mailer-daemon|mailerdaemon|postmaster|^daemon@|^noreply\+|^bounce|^return/i;
+function looksLikeBounceNotification(fromAddresses, subject) {
+    const subj = subject.toLowerCase();
+    if (/delivery status notification|undeliverable|undelivered mail|returned mail|mail delivery failed|failure notice|address not found|message not delivered|could not be delivered/i.test(subj)) {
+        return true;
+    }
+    for (const addr of fromAddresses){
+        const a = addr.toLowerCase();
+        if (BOUNCE_FROM_HINTS.test(a)) return true;
+    }
+    return false;
+}
+function stripTags(html) {
+    return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+}
+function parseBounceFailedRecipient(bodyText, bodyHtml) {
+    const htmlPlain = bodyHtml ? stripTags(bodyHtml) : '';
+    const blob = `${bodyText}\n${htmlPlain}`;
+    const tryNorm = (raw)=>{
+        if (!raw) return null;
+        const e = normalizeEmailLocal(raw.replace(/^<|>$/g, ''));
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) ? e : null;
+    };
+    const patterns = [
+        /Your message wasn't delivered to\s+([^\s<]+@[^\s>]+)/i,
+        /(?:wasn't|was not)\s+delivered to[^a-z0-9@]*([a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})/i,
+        /not delivered to[^a-z0-9@]*([a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})/i,
+        /Final-Recipient:\s*rfc822;\s*([^\s]+)/i,
+        /Original-Recipient:\s*rfc822;\s*([^\s]+)/i,
+        /X-Failed-Recipients:\s*([^\s]+)/i,
+        /RCPT TO:\s*<([^>]+)>/i
+    ];
+    for (const re of patterns){
+        const m = blob.match(re);
+        const hit = tryNorm(m?.[1]);
+        if (hit) return hit;
+    }
+    return null;
+}
+function summarizeBounce(bodyText) {
+    const t = bodyText.slice(0, 6000);
+    if (/address not found|couldn't be found|could not be found/i.test(t)) {
+        return 'Address not found';
+    }
+    if (/NXDOMAIN|domain name not found|no mx|dns type\s+['"]?mx['"]?\s+lookup/i.test(t)) {
+        return 'Domain not found (DNS)';
+    }
+    if (/mailbox.*full|quota|over quota/i.test(t)) {
+        return 'Mailbox full or quota exceeded';
+    }
+    if (/user unknown|no such user|550 5\.1\.1|recipient rejected|invalid recipient/i.test(t)) {
+        return 'Recipient rejected';
+    }
+    if (/spam|blocked|blacklist|policy rejection/i.test(t)) {
+        return 'Blocked or filtered';
+    }
+    if (/message expired|could not be delivered for.*hours/i.test(t)) {
+        return 'Delivery timed out';
+    }
+    return 'Delivery failed';
+}
+function extractBounceDiagnostic(bodyText) {
+    const lines = bodyText.split(/\r?\n/);
+    for (const line of lines){
+        const t = line.trim();
+        if (/^Diagnostic-Code:/i.test(t) || /^Status:/i.test(t) || /NXDOMAIN|550\s|554\s|5\.\d\.\d/.test(t)) {
+            return t.length > 280 ? `${t.slice(0, 277)}…` : t;
+        }
+    }
+    const dns = bodyText.match(/DNS type[^\n]{10,200}/i);
+    if (dns) {
+        const s = dns[0].trim();
+        return s.length > 280 ? `${s.slice(0, 277)}…` : s;
+    }
+    return undefined;
+}
+}),
+"[project]/lib/crm-store.ts [app-route] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "appendEmailToLead",
+    ()=>appendEmailToLead,
+    "appendLeadTimelineNote",
+    ()=>appendLeadTimelineNote,
+    "applyTemplateVars",
+    ()=>applyTemplateVars,
+    "createLead",
+    ()=>createLead,
+    "deleteLead",
+    ()=>deleteLead,
+    "extractWebsiteBookingCustomer",
+    ()=>extractWebsiteBookingCustomer,
+    "findLeadByEmail",
+    ()=>findLeadByEmail,
+    "getLeadById",
+    ()=>getLeadById,
+    "ingestInboundEmail",
+    ()=>ingestInboundEmail,
+    "listLeads",
+    ()=>listLeads,
+    "normalizeEmail",
+    ()=>normalizeEmail,
+    "parseFromHeader",
+    ()=>parseFromHeader,
+    "tryIngestBounceEmail",
+    ()=>tryIngestBounceEmail,
+    "updateLead",
+    ()=>updateLead,
+    "updateLeadTimelineNote",
+    ()=>updateLeadTimelineNote,
+    "upsertLeadFromWebsiteBooking",
+    ()=>upsertLeadFromWebsiteBooking
+]);
+var __TURBOPACK__imported__module__$5b$externals$5d2f$fs$2f$promises__$5b$external$5d$__$28$fs$2f$promises$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/fs/promises [external] (fs/promises, cjs)");
+var __TURBOPACK__imported__module__$5b$externals$5d2f$path__$5b$external$5d$__$28$path$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/path [external] (path, cjs)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$types$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/crm-types.ts [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$bounce$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/crm-bounce.ts [app-route] (ecmascript)");
+;
+;
+;
+;
+const DATA_DIR = __TURBOPACK__imported__module__$5b$externals$5d2f$path__$5b$external$5d$__$28$path$2c$__cjs$29$__["default"].join(process.cwd(), 'data');
+const STORE_PATH = __TURBOPACK__imported__module__$5b$externals$5d2f$path__$5b$external$5d$__$28$path$2c$__cjs$29$__["default"].join(DATA_DIR, 'crm-store.json');
+let mutex = Promise.resolve();
+async function withLock(fn) {
+    const run = mutex.then(()=>fn());
+    mutex = run.then(()=>undefined, ()=>undefined);
+    return run;
+}
+function emptyDb() {
+    return {
+        version: 1,
+        leads: []
+    };
+}
+function normalizeLead(lead) {
+    return {
+        ...lead,
+        timeline: Array.isArray(lead.timeline) ? lead.timeline : []
+    };
+}
+async function readDb() {
+    try {
+        const raw = await (0, __TURBOPACK__imported__module__$5b$externals$5d2f$fs$2f$promises__$5b$external$5d$__$28$fs$2f$promises$2c$__cjs$29$__["readFile"])(STORE_PATH, 'utf8');
+        const parsed = JSON.parse(raw);
+        if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.leads)) {
+            return emptyDb();
+        }
+        return {
+            ...parsed,
+            leads: parsed.leads.map((l)=>normalizeLead(l))
+        };
+    } catch (e) {
+        const err = e;
+        if (err.code === 'ENOENT') return emptyDb();
+        throw e;
+    }
+}
+async function writeDb(db) {
+    await (0, __TURBOPACK__imported__module__$5b$externals$5d2f$fs$2f$promises__$5b$external$5d$__$28$fs$2f$promises$2c$__cjs$29$__["mkdir"])(DATA_DIR, {
+        recursive: true
+    });
+    await (0, __TURBOPACK__imported__module__$5b$externals$5d2f$fs$2f$promises__$5b$external$5d$__$28$fs$2f$promises$2c$__cjs$29$__["writeFile"])(STORE_PATH, JSON.stringify(db, null, 2), 'utf8');
+}
+function isLeadStatus(s) {
+    return __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$types$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["LEAD_STATUSES"].includes(s);
+}
+function normalizeEmail(email) {
+    return email.trim().toLowerCase();
+}
+function parseFromHeader(from) {
+    const trimmed = from.trim();
+    const angle = trimmed.match(/^(.+?)\s*<([^>]+)>$/);
+    if (angle) {
+        let name = angle[1].replace(/^"|"$/g, '').trim();
+        const email = normalizeEmail(angle[2]);
+        if (!name) name = email.split('@')[0] || 'Customer';
+        return {
+            name,
+            email
+        };
+    }
+    const email = normalizeEmail(trimmed);
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return {
+            name: email.split('@')[0] || 'Customer',
+            email
+        };
+    }
+    return {
+        name: 'Unknown',
+        email: email || 'unknown@invalid'
+    };
+}
+async function listLeads(options) {
+    const db = await readDb();
+    let rows = [
+        ...db.leads
+    ];
+    if (options?.status) {
+        rows = rows.filter((l)=>l.status === options.status);
+    }
+    if (options?.q) {
+        const q = options.q.trim().toLowerCase();
+        if (q) {
+            rows = rows.filter((l)=>l.name.toLowerCase().includes(q) || l.email.includes(q) || l.phone.includes(q) || l.physicalAddress.toLowerCase().includes(q));
+        }
+    }
+    rows.sort((a, b)=>a.updatedAt < b.updatedAt ? 1 : -1);
+    return rows;
+}
+async function getLeadById(id) {
+    const db = await readDb();
+    return db.leads.find((l)=>l.id === id) ?? null;
+}
+async function findLeadByEmail(email) {
+    const norm = normalizeEmail(email);
+    const db = await readDb();
+    return db.leads.find((l)=>l.email === norm) ?? null;
+}
+async function createLead(input) {
+    return withLock(async ()=>{
+        const db = await readDb();
+        const now = new Date().toISOString();
+        const email = normalizeEmail(input.email);
+        const existing = db.leads.find((l)=>l.email === email);
+        if (existing) {
+            throw new Error('A lead with this email already exists');
+        }
+        const lead = {
+            id: crypto.randomUUID(),
+            name: input.name.trim() || 'Unknown',
+            email,
+            phone: (input.phone ?? '').trim(),
+            physicalAddress: (input.physicalAddress ?? '').trim(),
+            status: input.status && isLeadStatus(input.status) ? input.status : 'new_lead',
+            notes: (input.notes ?? '').trim(),
+            emails: [],
+            timeline: [],
+            createdAt: now,
+            updatedAt: now
+        };
+        db.leads.push(lead);
+        await writeDb(db);
+        return lead;
+    });
+}
+async function updateLead(id, patch) {
+    return withLock(async ()=>{
+        const db = await readDb();
+        const lead = db.leads.find((l)=>l.id === id);
+        if (!lead) return null;
+        const timeline = [
+            ...lead.timeline ?? []
+        ];
+        const now = new Date().toISOString();
+        const lines = [];
+        const nextName = patch.name !== undefined ? patch.name.trim() || lead.name : lead.name;
+        const nextEmail = patch.email !== undefined ? normalizeEmail(patch.email) : lead.email;
+        const nextPhone = patch.phone !== undefined ? patch.phone.trim() : lead.phone;
+        const nextAddr = patch.physicalAddress !== undefined ? patch.physicalAddress.trim() : lead.physicalAddress;
+        const nextNotes = patch.notes !== undefined ? patch.notes.trim() : lead.notes;
+        if (patch.name !== undefined && nextName !== lead.name) {
+            lines.push(`Name · ${JSON.stringify(lead.name)} → ${JSON.stringify(nextName)}`);
+        }
+        if (patch.email !== undefined && nextEmail !== lead.email) {
+            lines.push(`Email · ${lead.email} → ${nextEmail}`);
+        }
+        if (patch.phone !== undefined && nextPhone !== lead.phone) {
+            lines.push(`Phone · ${lead.phone || '—'} → ${nextPhone || '—'}`);
+        }
+        if (patch.physicalAddress !== undefined && nextAddr !== lead.physicalAddress) {
+            lines.push(`Service address · ${lead.physicalAddress || '—'} → ${nextAddr || '—'}`);
+        }
+        if (patch.status !== undefined) {
+            if (!isLeadStatus(patch.status)) throw new Error('Invalid status');
+            if (patch.status !== lead.status) {
+                lines.push(`Status · ${__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$types$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["LEAD_STATUS_LABELS"][lead.status]} → ${__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$types$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["LEAD_STATUS_LABELS"][patch.status]}`);
+            }
+        }
+        if (patch.notes !== undefined && nextNotes !== lead.notes) {
+            lines.push(`Profile notes · ${lead.notes || '—'} → ${nextNotes || '—'}`);
+        }
+        if (patch.name !== undefined) lead.name = nextName;
+        if (patch.email !== undefined) {
+            const taken = db.leads.some((l)=>l.id !== id && l.email === nextEmail);
+            if (taken) throw new Error('Another lead already uses this email');
+            lead.email = nextEmail;
+        }
+        if (patch.phone !== undefined) lead.phone = nextPhone;
+        if (patch.physicalAddress !== undefined) lead.physicalAddress = nextAddr;
+        if (patch.status !== undefined) {
+            if (!isLeadStatus(patch.status)) throw new Error('Invalid status');
+            lead.status = patch.status;
+        }
+        if (patch.notes !== undefined) lead.notes = nextNotes;
+        if (lines.length) {
+            timeline.push({
+                id: crypto.randomUUID(),
+                kind: 'profile_update',
+                createdAt: now,
+                lines
+            });
+        }
+        lead.timeline = timeline;
+        lead.updatedAt = now;
+        await writeDb(db);
+        return lead;
+    });
+}
+async function appendLeadTimelineNote(id, body) {
+    return withLock(async ()=>{
+        const db = await readDb();
+        const lead = db.leads.find((l)=>l.id === id);
+        if (!lead) return null;
+        const text = body.trim();
+        if (!text) return lead;
+        const now = new Date().toISOString();
+        const timeline = [
+            ...lead.timeline ?? []
+        ];
+        timeline.push({
+            id: crypto.randomUUID(),
+            kind: 'staff_note',
+            createdAt: now,
+            body: text
+        });
+        lead.timeline = timeline;
+        lead.updatedAt = now;
+        await writeDb(db);
+        return lead;
+    });
+}
+async function updateLeadTimelineNote(leadId, noteId, body) {
+    return withLock(async ()=>{
+        const db = await readDb();
+        const lead = db.leads.find((l)=>l.id === leadId);
+        if (!lead) return null;
+        const text = body.trim();
+        if (!text) return null;
+        const timeline = [
+            ...lead.timeline ?? []
+        ];
+        const i = timeline.findIndex((e)=>e.id === noteId && e.kind === 'staff_note');
+        if (i === -1) return null;
+        const ev = timeline[i];
+        if (ev.kind !== 'staff_note') return null;
+        const now = new Date().toISOString();
+        timeline[i] = {
+            ...ev,
+            body: text
+        };
+        lead.timeline = timeline;
+        lead.updatedAt = now;
+        await writeDb(db);
+        return lead;
+    });
+}
+async function deleteLead(id) {
+    return withLock(async ()=>{
+        const db = await readDb();
+        const i = db.leads.findIndex((l)=>l.id === id);
+        if (i === -1) return false;
+        db.leads.splice(i, 1);
+        await writeDb(db);
+        return true;
+    });
+}
+async function tryIngestBounceEmail(input) {
+    if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$bounce$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["looksLikeBounceNotification"])(input.fromAddresses, input.subject)) {
+        return {
+            handled: false
+        };
+    }
+    const failedRecipient = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$bounce$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["parseBounceFailedRecipient"])(input.bodyText, input.bodyHtml);
+    if (!failedRecipient) {
+        return {
+            handled: true,
+            imported: false,
+            skipReason: 'no_recipient'
+        };
+    }
+    const failedNorm = normalizeEmail(failedRecipient);
+    return withLock(async ()=>{
+        const db = await readDb();
+        const lead = db.leads.find((l)=>l.email === failedNorm);
+        if (!lead) {
+            return {
+                handled: true,
+                imported: false,
+                skipReason: 'no_lead'
+            };
+        }
+        const now = new Date().toISOString();
+        const summary = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$bounce$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["summarizeBounce"])(input.bodyText);
+        const diagnostic = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$bounce$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["extractBounceDiagnostic"])(input.bodyText);
+        const match = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$bounce$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["findOutboundForBounceAttachment"])(lead.emails, failedNorm, now, input.inReplyTo, input.bodyText, input.bodyHtml);
+        if (match) {
+            match.deliveryFailure = {
+                failedRecipient: failedNorm,
+                summary,
+                diagnostic,
+                recordedAt: now
+            };
+            lead.updatedAt = now;
+            await writeDb(db);
+            return {
+                handled: true,
+                imported: true
+            };
+        }
+        const row = {
+            id: crypto.randomUUID(),
+            direction: 'inbound',
+            from: input.fromHeader.trim(),
+            to: input.to.trim(),
+            subject: input.subject.trim(),
+            bodyText: input.bodyText,
+            bodyHtml: input.bodyHtml,
+            messageId: input.messageId,
+            inReplyTo: input.inReplyTo,
+            createdAt: now,
+            kind: 'bounce',
+            bounce: {
+                failedRecipient: failedNorm,
+                summary,
+                diagnostic
+            }
+        };
+        lead.emails.push(row);
+        lead.updatedAt = now;
+        await writeDb(db);
+        return {
+            handled: true,
+            imported: true
+        };
+    });
+}
+async function appendEmailToLead(leadId, msg) {
+    return withLock(async ()=>{
+        const db = await readDb();
+        const lead = db.leads.find((l)=>l.id === leadId);
+        if (!lead) return null;
+        const row = {
+            ...msg,
+            id: crypto.randomUUID(),
+            createdAt: new Date().toISOString()
+        };
+        lead.emails.push(row);
+        lead.updatedAt = row.createdAt;
+        await writeDb(db);
+        return row;
+    });
+}
+function digitsOnlyPhone(phone) {
+    return phone.replace(/\D/g, '');
+}
+function phonesLikelySame(a, b) {
+    const da = digitsOnlyPhone(a);
+    const db = digitsOnlyPhone(b);
+    if (da.length < 10 || db.length < 10) return false;
+    return da.slice(-10) === db.slice(-10);
+}
+function extractWebsiteBookingCustomer(bodyText, bodyHtml) {
+    const blob = `${bodyText}\n${bodyHtml ?? ''}`;
+    // Matches /api/send-email template: "New … Submission" (h2 + body fields)
+    if (!/New\s+.+\s+Submission/i.test(blob)) {
+        return null;
+    }
+    let email = '';
+    const mailto = bodyHtml?.match(/mailto:([^"'>\s]+)/i)?.[1];
+    if (mailto) email = normalizeEmail(mailto);
+    if (!email) {
+        const m = bodyText.match(/Email:\s*([^\s<]+@[^\s]+\.[^\s>]+)/i);
+        if (m) email = normalizeEmail(m[1]);
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return null;
+    }
+    const pick = (label)=>{
+        const re = new RegExp(`${label}:\\s*([^\\n<]+)`, 'i');
+        const m = bodyText.match(re);
+        return (m?.[1] ?? '').replace(/<[^>]*>/g, '').trim();
+    };
+    const name = pick('Name') || email.split('@')[0] || 'Customer';
+    const phone = pick('Phone');
+    const physicalAddress = pick('Property Address');
+    return {
+        name,
+        email,
+        phone,
+        physicalAddress
+    };
+}
+async function upsertLeadFromWebsiteBooking(input) {
+    const custEmail = normalizeEmail(input.email);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(custEmail)) {
+        throw new Error('Invalid customer email');
+    }
+    const phoneTrim = (input.phone ?? '').trim();
+    const addrTrim = (input.physicalAddress ?? '').trim();
+    const nameTrim = (input.name ?? '').trim() || custEmail.split('@')[0] || 'Customer';
+    return withLock(async ()=>{
+        const db = await readDb();
+        let lead = db.leads.find((l)=>l.email === custEmail);
+        if (!lead && phoneTrim && digitsOnlyPhone(phoneTrim).length >= 10) {
+            lead = db.leads.find((l)=>phonesLikelySame(l.phone, phoneTrim)) ?? undefined;
+        }
+        let created = false;
+        const now = new Date().toISOString();
+        if (!lead) {
+            created = true;
+            lead = {
+                id: crypto.randomUUID(),
+                name: nameTrim,
+                email: custEmail,
+                phone: phoneTrim,
+                physicalAddress: addrTrim,
+                status: 'new_lead',
+                notes: '',
+                emails: [],
+                timeline: [],
+                createdAt: now,
+                updatedAt: now
+            };
+            db.leads.push(lead);
+        } else {
+            if ("TURBOPACK compile-time truthy", 1) lead.name = nameTrim;
+            if (phoneTrim) lead.phone = phoneTrim;
+            if (addrTrim) lead.physicalAddress = addrTrim;
+            lead.updatedAt = now;
+        }
+        const fromDisplay = `${nameTrim} <${custEmail}>`;
+        const message = {
+            id: crypto.randomUUID(),
+            direction: 'inbound',
+            from: fromDisplay,
+            to: input.toAddress.trim(),
+            subject: input.subject.trim(),
+            bodyText: input.bodyText,
+            bodyHtml: input.bodyHtml,
+            messageId: input.messageId,
+            inReplyTo: input.inReplyTo,
+            createdAt: now
+        };
+        lead.emails.push(message);
+        lead.updatedAt = now;
+        await writeDb(db);
+        return {
+            lead,
+            created,
+            message
+        };
+    });
+}
+async function ingestInboundEmail(input) {
+    const booking = extractWebsiteBookingCustomer(input.bodyText, input.bodyHtml);
+    if (booking) {
+        return upsertLeadFromWebsiteBooking({
+            name: booking.name,
+            email: booking.email,
+            phone: booking.phone,
+            physicalAddress: booking.physicalAddress,
+            subject: input.subject,
+            bodyText: input.bodyText,
+            bodyHtml: input.bodyHtml,
+            toAddress: input.to,
+            messageId: input.messageId,
+            inReplyTo: input.inReplyTo
+        });
+    }
+    const { name, email } = parseFromHeader(input.fromHeader);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        throw new Error('Invalid sender email');
+    }
+    return withLock(async ()=>{
+        const db = await readDb();
+        let lead = db.leads.find((l)=>l.email === email);
+        let created = false;
+        const now = new Date().toISOString();
+        if (!lead) {
+            created = true;
+            lead = {
+                id: crypto.randomUUID(),
+                name,
+                email,
+                phone: '',
+                physicalAddress: '',
+                status: 'new_lead',
+                notes: '',
+                emails: [],
+                timeline: [],
+                createdAt: now,
+                updatedAt: now
+            };
+            db.leads.push(lead);
+        }
+        const message = {
+            id: crypto.randomUUID(),
+            direction: 'inbound',
+            from: input.fromHeader.trim(),
+            to: input.to.trim(),
+            subject: input.subject.trim(),
+            bodyText: input.bodyText,
+            bodyHtml: input.bodyHtml,
+            messageId: input.messageId,
+            inReplyTo: input.inReplyTo,
+            createdAt: now
+        };
+        lead.emails.push(message);
+        lead.updatedAt = now;
+        await writeDb(db);
+        return {
+            lead,
+            created,
+            message
+        };
+    });
+}
+function applyTemplateVars(template, vars) {
+    let out = template;
+    for (const [k, v] of Object.entries(vars)){
+        out = out.split(`{{${k}}}`).join(v);
+    }
+    return out;
+}
+}),
+"[project]/app/api/crm/leads/route.ts [app-route] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "GET",
+    ()=>GET,
+    "POST",
+    ()=>POST
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/server.js [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/auth.ts [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$store$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/crm-store.ts [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$types$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/crm-types.ts [app-route] (ecmascript)");
+;
+;
+;
+;
+function isLeadStatus(s) {
+    return __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$types$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["LEAD_STATUSES"].includes(s);
+}
+async function GET(request) {
+    const denied = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["requireCrmSession"])();
+    if (denied) return denied;
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get('status') || undefined;
+    const q = searchParams.get('q') || undefined;
+    const leads = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$store$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["listLeads"])({
+        status: status && isLeadStatus(status) ? status : undefined,
+        q: q ?? undefined
+    });
+    return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+        leads
+    });
+}
+async function POST(request) {
+    const denied = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["requireCrmSession"])();
+    if (denied) return denied;
+    try {
+        const body = await request.json();
+        const name = String(body.name ?? '').trim();
+        const email = String(body.email ?? '').trim();
+        if (!email) {
+            return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                error: 'Email is required'
+            }, {
+                status: 400
+            });
+        }
+        const lead = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$store$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["createLead"])({
+            name: name || email.split('@')[0],
+            email,
+            phone: body.phone,
+            physicalAddress: body.physicalAddress,
+            status: body.status && isLeadStatus(String(body.status)) ? body.status : undefined,
+            notes: body.notes
+        });
+        return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+            lead
+        });
+    } catch (e) {
+        const msg = e instanceof Error ? e.message : 'Failed to create lead';
+        if (msg.includes('already exists')) {
+            return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                error: msg
+            }, {
+                status: 409
+            });
+        }
+        return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+            error: msg
+        }, {
+            status: 500
+        });
+    }
+}
+}),
+];
+
+//# sourceMappingURL=%5Broot-of-the-server%5D__70d9cb71._.js.map

@@ -1,7 +1,8 @@
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import path from 'path';
+import { getCrmDataDir } from '@/lib/crm-data-dir';
 
-const PATH = path.join(process.cwd(), 'data', 'inbound-synced-message-ids.json');
+const PATH = path.join(getCrmDataDir(), 'inbound-synced-message-ids.json');
 const MAX_IDS = 4000;
 
 type FileShape = { ids: string[] };
