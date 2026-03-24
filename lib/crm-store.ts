@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import path from 'path';
+import { getCrmDataDir } from '@/lib/crm-data-dir';
 import type { CrmDatabase, CrmEmailMessage, LeadRecord, LeadStatus } from '@/lib/crm-types';
 import { LEAD_STATUSES, LEAD_STATUS_LABELS } from '@/lib/crm-types';
 import {
@@ -10,7 +11,7 @@ import {
   summarizeBounce,
 } from '@/lib/crm-bounce';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
+const DATA_DIR = getCrmDataDir();
 const STORE_PATH = path.join(DATA_DIR, 'crm-store.json');
 
 let mutex = Promise.resolve();
