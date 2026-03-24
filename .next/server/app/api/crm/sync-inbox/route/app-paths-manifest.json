@@ -1,0 +1,3 @@
+{
+  "/api/crm/sync-inbox/route": "app/api/crm/sync-inbox/route.js"
+}

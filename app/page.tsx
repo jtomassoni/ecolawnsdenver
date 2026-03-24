@@ -2,31 +2,40 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
-import { FaSnowflake, FaSeedling, FaPhone, FaShieldAlt, FaCheckCircle } from 'react-icons/fa';
+import {
+  SITE_URL,
+  BUSINESS_NAME,
+  TELEPHONE_E164,
+  DENVER_NEIGHBORHOODS,
+  ADDRESS_PLACEHOLDER,
+} from '@/lib/structured-data';
+import { FaSnowflake, FaSeedling, FaShieldAlt, FaCheckCircle, FaSolarPanel } from 'react-icons/fa';
 import { trackEvent, trackConversion } from '@/components/GoogleAnalytics';
+import EmailPreviewModal, { type EmailPreviewData } from '@/components/EmailPreviewModal';
 
 const testimonials = [
   {
-    quote: "I pay extra for EcoLawns because their battery-powered electric lawn mowers are completely silent - I can work from home without interruption. The zero emissions is a huge bonus for our neighborhood air quality in Cherry Creek.",
-    author: "Mark R. in Cherry Creek, Denver"
+    quote: "I pay extra for EcoLawns because their battery-powered electric lawn mowers are completely silent - I can work from home without interruption. The zero emissions is a huge bonus for our neighborhood air quality in Littleton.",
+    author: "Mark R. in Littleton, Colorado"
   },
   {
-    quote: "Finally found an electric lawn care service in Denver that uses only battery-powered equipment. No gas fumes, no noise pollution - just quiet, eco-friendly lawn mowing. Worth every dollar for the peace and clean air.",
-    author: "Sarah M. in Washington Park, Colorado"
+    quote: "Finally found an electric lawn care service in Englewood that uses only battery-powered equipment. No gas fumes, no noise pollution - just quiet, eco-friendly lawn mowing. Worth every dollar for the peace and clean air.",
+    author: "Sarah M. in Englewood, Colorado"
   },
   {
-    quote: "Their all-electric battery-powered lawn service is why I chose them. As someone who values sustainability, paying more for emission-free lawn care in Highland was an easy decision. My lawn looks amazing and I feel good about my environmental impact.",
-    author: "John D. in Highland, Denver"
+    quote: "Their all-electric battery-powered lawn service is why I chose them. As someone who values sustainability, paying more for emission-free lawn care in Harvey Park was an easy decision. My lawn looks amazing and I feel good about my environmental impact.",
+    author: "John D. in Harvey Park, Denver"
   },
   {
-    quote: "The quiet battery-powered mowers are a game-changer. My neighbors love that there's no gas engine noise, and I love supporting a truly eco-friendly lawn service in LoHi. Premium price, but premium service and values.",
-    author: "Emily T. in LoHi, Denver"
+    quote: "The quiet battery-powered mowers are a game-changer. My neighbors love that there's no gas engine noise, and I love supporting a truly eco-friendly lawn service in Bear Valley. Premium price, but premium service and values.",
+    author: "Emily T. in Bear Valley, Denver"
   },
   {
-    quote: "Best electric lawn care service in Denver. Their battery-powered equipment means zero emissions, quiet operation, and no gas smell. I'm happy to pay more for sustainable lawn mowing that aligns with my values in Congress Park.",
-    author: "Michael P. in Congress Park, Denver"
+    quote: "Best electric lawn care service in south Denver. Their battery-powered equipment means zero emissions, quiet operation, and no gas smell. I'm happy to pay more for sustainable lawn mowing that aligns with my values in Highlands Ranch.",
+    author: "Michael P. in Highlands Ranch, Colorado"
   }
 ];
 
@@ -73,6 +82,9 @@ export default function Home() {
   const [isSubmittingSnow, setIsSubmittingSnow] = useState(false);
   const [submitSuccessSnow, setSubmitSuccessSnow] = useState(false);
   const [submitErrorSnow, setSubmitErrorSnow] = useState('');
+  const [emailPreviewOpen, setEmailPreviewOpen] = useState(false);
+  const [emailPreview, setEmailPreview] = useState<EmailPreviewData | null>(null);
+  const [emailPreviewLoading, setEmailPreviewLoading] = useState(false);
   const avgCutsPerSeason = frequency === 'weekly' ? 28 : 14;
 
   const openQuoteModal = () => {
@@ -155,6 +167,90 @@ export default function Home() {
     }
   };
 
+  const previewBookingEmail = async () => {
+    setSubmitError('');
+    if (
+      !bookingForm.name.trim() ||
+      !isValidEmail(bookingForm.email) ||
+      !isValidPhone(bookingForm.phone) ||
+      !bookingForm.address.trim()
+    ) {
+      setSubmitError('Please fill in all required fields correctly.');
+      return;
+    }
+    setEmailPreviewLoading(true);
+    try {
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: bookingForm.name.trim(),
+          email: bookingForm.email.trim(),
+          phone: bookingForm.phone.trim(),
+          address: bookingForm.address.trim(),
+          lawnSize: lawnSize,
+          subscriptionOption: selectedOption,
+          frequency: frequency,
+          type: 'Lawn Service Booking',
+          previewOnly: true,
+        }),
+      });
+      const data = await response.json();
+      if (data.success && data.preview) {
+        setEmailPreview(data.preview);
+        setEmailPreviewOpen(true);
+      } else {
+        setSubmitError(data.message || 'Could not load preview.');
+      }
+    } catch {
+      setSubmitError('An error occurred. Please try again or contact us directly.');
+    } finally {
+      setEmailPreviewLoading(false);
+    }
+  };
+
+  const previewSnowRemovalEmail = async () => {
+    setSubmitErrorSnow('');
+    if (
+      !snowForm.name.trim() ||
+      !isValidEmail(snowForm.email) ||
+      !isValidPhone(snowForm.phone) ||
+      !snowForm.address.trim() ||
+      !snowForm.drivewayLength.trim()
+    ) {
+      setSubmitErrorSnow('Please fill in all required fields correctly.');
+      return;
+    }
+    setEmailPreviewLoading(true);
+    try {
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: snowForm.name.trim(),
+          email: snowForm.email.trim(),
+          phone: snowForm.phone.trim(),
+          address: snowForm.address.trim(),
+          drivewayLength: snowForm.drivewayLength.trim(),
+          notes: snowForm.notes.trim(),
+          type: 'Snow Removal Request (Ad-hoc)',
+          previewOnly: true,
+        }),
+      });
+      const data = await response.json();
+      if (data.success && data.preview) {
+        setEmailPreview(data.preview);
+        setEmailPreviewOpen(true);
+      } else {
+        setSubmitErrorSnow(data.message || 'Could not load preview.');
+      }
+    } catch {
+      setSubmitErrorSnow('An error occurred. Please try again or contact us directly.');
+    } finally {
+      setEmailPreviewLoading(false);
+    }
+  };
+
   useEffect(() => {
     const handleEmphasize = () => {
       setShowQuoteModal(true);
@@ -226,99 +322,140 @@ export default function Home() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [showQuoteModal, step, price, lawnSize]);
 
+  const businessId = `${SITE_URL}/#localbusiness`;
+  const websiteId = `${SITE_URL}/#website`;
+
   const structuredData = {
     "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    "name": "EcoLawns Denver",
-    "image": "https://ecolawnsdenver.com/images/hero.jpg",
-    "@id": "https://ecolawnsdenver.com",
-    "url": "https://ecolawnsdenver.com",
-    "telephone": "+1-301-943-7914",
-    "priceRange": "$40-$500",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "Bear Valley",
-      "addressLocality": "Denver",
-      "addressRegion": "CO",
-      "postalCode": "80223",
-      "addressCountry": "US"
-    },
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": 39.7392,
-      "longitude": -104.9903
-    },
-    "openingHoursSpecification": {
-      "@type": "OpeningHoursSpecification",
-      "dayOfWeek": [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday"
-      ],
-      "opens": "07:00",
-      "closes": "18:00"
-    },
-    "sameAs": [],
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "5",
-      "reviewCount": "5"
-    },
-    "review": testimonials.map((testimonial, idx) => ({
-      "@type": "Review",
-      "author": {
-        "@type": "Person",
-        "name": testimonial.author.split(' in ')[0]
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": websiteId,
+        "url": SITE_URL,
+        "name": BUSINESS_NAME,
+        "description":
+          "Denver lawn care with battery-powered electric equipment. Free online quotes, solar-assisted charging, mowing, cleanups, and snow removal.",
+        "publisher": { "@id": businessId },
       },
-      "reviewBody": testimonial.quote,
-      "reviewRating": {
-        "@type": "Rating",
-        "ratingValue": "5"
-      }
-    })),
-    "hasOfferCatalog": {
-      "@type": "OfferCatalog",
-      "name": "Lawn Care Services",
-      "itemListElement": [
-        {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "Weekly & Bi-Weekly Lawn Mowing",
-            "description": "Professional battery-powered electric lawn mowing service in Denver"
+      {
+        "@type": "WebPage",
+        "@id": `${SITE_URL}/#webpage`,
+        "url": SITE_URL,
+        "name": "Professional electric lawn care in Denver | EcoLawns Denver",
+        "description":
+          "Get a free quote for quiet, electric lawn mowing in Denver. Licensed & insured. From $40/visit.",
+        "isPartOf": { "@id": websiteId },
+        "about": { "@id": businessId },
+      },
+      {
+        "@type": "LocalBusiness",
+        "@id": businessId,
+        "name": BUSINESS_NAME,
+        "image": `${SITE_URL}/images/hero.jpg`,
+        "url": SITE_URL,
+        "telephone": TELEPHONE_E164,
+        "priceRange": "$40-$500",
+        "description":
+          "Electric lawn care in Denver: battery-powered mowers and blowers, batteries charged in part from home solar and portable power on job sites. Licensed and insured.",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Bear Valley",
+          "addressLocality": "Denver",
+          "addressRegion": "CO",
+          "postalCode": "80223",
+          "addressCountry": "US",
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 39.7392,
+          "longitude": -104.9903,
+        },
+        "areaServed": DENVER_NEIGHBORHOODS.map((name) => ({
+          "@type": "Place",
+          "name": `${name}, Denver, CO`,
+        })),
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "telephone": TELEPHONE_E164,
+          "contactType": "sales",
+          "areaServed": "US",
+          "availableLanguage": "English",
+        },
+        "openingHoursSpecification": {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+          ],
+          "opens": "07:00",
+          "closes": "18:00",
+        },
+        "sameAs": [],
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "5",
+          "reviewCount": "5",
+        },
+        "review": testimonials.map((testimonial) => ({
+          "@type": "Review",
+          "author": {
+            "@type": "Person",
+            "name": testimonial.author.split(" in ")[0],
           },
-          "price": "40",
-          "priceCurrency": "USD"
+          "reviewBody": testimonial.quote,
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5",
+          },
+        })),
+        "hasOfferCatalog": {
+          "@type": "OfferCatalog",
+          "name": "Lawn Care Services",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Weekly & Bi-Weekly Lawn Mowing",
+                "description":
+                  "Professional battery-powered electric lawn mowing service in Denver",
+              },
+              "price": "40",
+              "priceCurrency": "USD",
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Spring Cleanup & Aeration",
+                "description":
+                  "Comprehensive spring lawn cleanup and aeration services",
+              },
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Snow Removal Service",
+                "description": "Electric snow removal for driveways and walkways",
+              },
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Fall Cleanup & Winter Prep",
+                "description": "Fall cleanup and winter preparation services",
+              },
+            },
+          ],
         },
-        {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "Spring Cleanup & Aeration",
-            "description": "Comprehensive spring lawn cleanup and aeration services"
-          }
-        },
-        {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "Snow Removal Service",
-            "description": "Electric snow removal for driveways and walkways"
-          }
-        },
-        {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "Fall Cleanup & Winter Prep",
-            "description": "Fall cleanup and winter preparation services"
-          }
-        }
-      ]
-    }
+      },
+    ],
   };
 
   return (
@@ -386,16 +523,8 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Phone Number & Trust Badges */}
+          {/* Trust badges — quotes via the form keep your request in one place */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-8 sm:mb-12 px-2">
-            <a
-              href="tel:+13019437914"
-              onClick={() => trackEvent('click', 'Contact', 'Phone - Hero')}
-              className="flex items-center gap-2 text-white text-lg sm:text-xl font-semibold hover:text-primary-light transition-all bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/20 hover:bg-white/20"
-            >
-              <FaPhone className="text-white" />
-              <span>(301) 943-7914</span>
-            </a>
             <div className="flex items-center gap-3 sm:gap-4 text-white/90 text-sm sm:text-base">
               <div className="flex items-center gap-1.5">
                 <FaShieldAlt className="text-white" />
@@ -469,6 +598,19 @@ export default function Home() {
               </p>
             </div>
             <div className="bg-gradient-to-r from-primary-light/20 to-white p-4 sm:p-6 rounded-lg border-l-4 border-primary shadow-sm">
+              <h3 className="text-lg sm:text-xl font-semibold text-primary mb-2 sm:mb-3 flex items-center gap-2 flex-wrap">
+                <FaSolarPanel className="text-amber-600 flex-shrink-0" aria-hidden />
+                <span>Sun-to-battery charging</span>
+              </h3>
+              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+                We generate power at home with solar on our shed, store it in a portable power station, and use that to recharge our tool batteries at your property—so a big part of our workday energy starts as sunshine, not gas cans. We still drive a gas truck to get to jobs (for now); the mowing, blowing, and snow work on your lawn stays electric.{' '}
+                <a href="/about#solar-charging" className="text-primary font-semibold underline underline-offset-2 hover:text-primary-dark">
+                  Read the full story on About
+                </a>
+                .
+              </p>
+            </div>
+            <div className="bg-gradient-to-r from-primary-light/20 to-white p-4 sm:p-6 rounded-lg border-l-4 border-primary shadow-sm">
               <h3 className="text-lg sm:text-xl font-semibold text-primary mb-2 sm:mb-3">Supporting Denver's Sustainability Goals</h3>
               <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
                 Denver has ambitious climate and sustainability goals, and every choice matters. By choosing EcoLawns Denver's electric lawn care services, you're directly contributing to reduced emissions, improved air quality, and a more sustainable city. Together, we're making Denver a cleaner, quieter, and more environmentally responsible place to live.
@@ -515,9 +657,37 @@ export default function Home() {
 
       {/* Contact Section */}
       <section className="bg-primary-dark text-white py-12 px-4" aria-label="Contact information">
-        <div className="max-w-6xl mx-auto text-center">
-          <p className="text-xl md:text-2xl font-semibold">
-            Locally Owned and Operated in Bear Valley, Denver, CO
+        <div className="max-w-6xl mx-auto text-center space-y-6">
+          <h2 className="text-2xl md:text-3xl font-bold">
+            Ready for a free quote?
+          </h2>
+          <p className="text-lg text-white/90 max-w-2xl mx-auto leading-relaxed">
+            Locally owned in Bear Valley, Denver. The fastest way to reach us is the instant quote tool on this page—we reply same day when we can.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center max-w-md sm:max-w-none mx-auto">
+            <button
+              type="button"
+              onClick={() => {
+                trackEvent('click', 'CTA', 'Get Free Quote - Footer');
+                openQuoteModal();
+              }}
+              className="bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-primary-light transition-all shadow-md min-h-[48px]"
+            >
+              Get free lawn quote
+            </button>
+          </div>
+          <p className="text-sm text-white/80">
+            <Link href="/services" className="underline font-medium hover:text-white">
+              Services &amp; pricing
+            </Link>
+            <span className="mx-2">·</span>
+            <Link href="/about" className="underline font-medium hover:text-white">
+              About us
+            </Link>
+            <span className="mx-2">·</span>
+            <Link href="/about#solar-charging" className="underline font-medium hover:text-white">
+              Solar charging
+            </Link>
           </p>
         </div>
       </section>
@@ -648,7 +818,7 @@ export default function Home() {
                   type="text"
                   value={snowForm.address}
                   onChange={(e) => setSnowForm({ ...snowForm, address: e.target.value })}
-                  placeholder="123 Main St, Denver, CO 80202"
+                  placeholder={ADDRESS_PLACEHOLDER}
                   required
                   className="w-full px-3 py-2 border border-primary-light rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[40px] text-sm"
                 />
@@ -663,11 +833,19 @@ export default function Home() {
                   className="w-full px-3 py-2 border border-primary-light rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
                 />
               </div>
-              <div className="col-span-2">
+              <div className="col-span-2 flex flex-col sm:flex-row gap-2">
+                <button
+                  type="button"
+                  disabled={emailPreviewLoading || isSubmittingSnow}
+                  onClick={() => void previewSnowRemovalEmail()}
+                  className="flex-1 bg-white text-primary border-2 border-primary py-2.5 rounded-lg font-semibold hover:bg-primary-light/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] text-sm"
+                >
+                  {emailPreviewLoading ? 'Preview…' : 'Preview email'}
+                </button>
                 <button
                   type="submit"
                   disabled={isSubmittingSnow}
-                  className="w-full bg-primary text-white py-2.5 rounded-lg font-semibold hover:bg-primary-dark transition-all disabled:bg-primary-light disabled:cursor-not-allowed min-h-[44px] text-sm"
+                  className="flex-1 bg-primary text-white py-2.5 rounded-lg font-semibold hover:bg-primary-dark transition-all disabled:bg-primary-light disabled:cursor-not-allowed min-h-[44px] text-sm"
                 >
                   {isSubmittingSnow ? 'Submitting...' : 'Request Snow Removal'}
                 </button>
@@ -738,7 +916,7 @@ export default function Home() {
                     <label htmlFor="lawn-size-input-modal" className="block text-lg font-semibold text-primary mb-2 text-center">
                       What's your lawn size?
                     </label>
-                    <p className="text-sm text-gray-600 text-center mb-4">Most Denver lawns are 3,000 - 8,000 sq ft</p>
+                    <p className="text-sm text-gray-600 text-center mb-4">Most lawns we see in south Denver & nearby are 3,000 - 8,000 sq ft</p>
                     <input
                       id="lawn-size-input-modal"
                       type="number"
@@ -848,7 +1026,7 @@ export default function Home() {
                         <p className="text-2xl font-bold text-primary my-2">${price}/visit</p>
                         <p className="text-primary text-sm">
                           Pay only for each visit.<br />
-                          {frequency === 'weekly' ? 'Weekly' : 'Bi-weekly'} schedule: {avgCutsPerSeason} visits per season (April–October, ~28 weeks).
+                          {frequency === 'weekly' ? 'Weekly' : 'Bi-weekly'} service, billed per mow—no prepaid season bundle.
                         </p>
                       </div>
                     )}
@@ -923,7 +1101,7 @@ export default function Home() {
                         <p className="text-2xl font-bold text-primary my-2">${examplePrice}/visit</p>
                         <p className="text-primary text-sm">
                           Pay only for each visit.<br />
-                          {frequency === 'weekly' ? 'Weekly' : 'Bi-weekly'} schedule: {avgCutsPerSeason} visits per season (April–October, ~28 weeks).
+                          {frequency === 'weekly' ? 'Weekly' : 'Bi-weekly'} service, billed per mow—no prepaid season bundle.
                         </p>
                       </div>
                     )}
@@ -978,8 +1156,8 @@ export default function Home() {
                           <span>{selectedOption === 'seasonPass' ? 'Season Pass (2 payments)' : 'Pay Per Visit'}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Visits Included:</span>
-                          <span>{avgCutsPerSeason} visits</span>
+                          <span>{selectedOption === 'seasonPass' ? 'Visits Included:' : 'Plan:'}</span>
+                          <span>{selectedOption === 'seasonPass' ? `${avgCutsPerSeason} visits` : 'Pay per visit'}</span>
                         </div>
                         {price ? (
                           <div className="flex justify-between pt-1.5 border-t border-gray-300 font-semibold text-primary">
@@ -1089,18 +1267,28 @@ export default function Home() {
                             type="text"
                             value={bookingForm.address}
                             onChange={(e) => setBookingForm({ ...bookingForm, address: e.target.value })}
-                            placeholder="e.g., 123 Main St, Denver, CO 80202"
+                            placeholder={ADDRESS_PLACEHOLDER}
                             required
                             className="w-full px-3 py-2 text-sm border border-primary-light rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[40px]"
                           />
                         </div>
-                        <button
-                          type="submit"
-                          disabled={isSubmitting}
-                          className="w-full bg-primary text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-primary-dark transition-all disabled:bg-primary-light disabled:cursor-not-allowed min-h-[44px]"
-                        >
-                          {isSubmitting ? 'Submitting...' : 'Book My Service'}
-                        </button>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <button
+                            type="button"
+                            disabled={emailPreviewLoading || isSubmitting}
+                            onClick={() => void previewBookingEmail()}
+                            className="flex-1 bg-white text-primary border-2 border-primary py-2.5 rounded-lg font-semibold text-sm hover:bg-primary-light/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
+                          >
+                            {emailPreviewLoading ? 'Preview…' : 'Preview email'}
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="flex-1 bg-primary text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-primary-dark transition-all disabled:bg-primary-light disabled:cursor-not-allowed min-h-[44px]"
+                          >
+                            {isSubmitting ? 'Submitting...' : 'Book My Service'}
+                          </button>
+                        </div>
                       </form>
                       {submitSuccess && (
                         <div className="mt-3 p-2 bg-primary-light/20 text-primary rounded-lg text-center text-xs">
@@ -1159,7 +1347,7 @@ export default function Home() {
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                 <p className="text-sm text-gray-700">
                   <strong>Don't worry about being exact!</strong> We'll confirm the size when we visit. 
-                  Most Denver lawns are between 3,000 - 8,000 sq ft.
+                  Most lawns we see in south Denver and nearby are between 3,000 - 8,000 sq ft.
                 </p>
               </div>
             </div>
@@ -1169,6 +1357,18 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      <EmailPreviewModal
+        open={emailPreviewOpen}
+        onClose={() => {
+          setEmailPreviewOpen(false);
+          setEmailPreview(null);
+        }}
+        preview={emailPreview}
+        loading={emailPreviewLoading}
+        title="Notification email preview"
+      />
+
       </div>
     </>
   );

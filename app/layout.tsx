@@ -1,14 +1,15 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import Navigation from '@/components/Navigation';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
+import SiteShell from '@/components/SiteShell';
 
 export const metadata: Metadata = {
   title: {
     default: 'EcoLawns Denver | Professional Electric Lawn Care Services | Starting at $40/visit',
     template: '%s | EcoLawns Denver',
   },
-  description: 'Professional eco-friendly lawn care in Denver, Colorado. Battery-powered electric mowers for quiet, emission-free lawn mowing. Weekly & bi-weekly service, spring cleanup, snow removal. Licensed & insured. Starting at $40/visit.',
+  description:
+    'Free quotes. Electric lawn mowing in Denver—quiet, battery-powered equipment, with charging supported by home solar and portable power on job sites. Weekly & bi-weekly mowing, spring/fall cleanup, snow removal. Licensed & insured. From $40/visit.',
   keywords: [
     'lawn care Denver',
     'electric lawn mowing Denver',
@@ -32,13 +33,17 @@ export const metadata: Metadata = {
     telephone: false,
   },
   metadataBase: new URL('https://ecolawnsdenver.com'),
+  alternates: {
+    canonical: 'https://ecolawnsdenver.com',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
     url: 'https://ecolawnsdenver.com',
     siteName: 'EcoLawns Denver',
     title: 'EcoLawns Denver | Professional Electric Lawn Care Services',
-    description: 'Professional eco-friendly lawn care in Denver with battery-powered electric equipment. Quiet, emission-free lawn mowing starting at $40/visit.',
+    description:
+      'Free quotes for Denver lawn care. Quiet electric mowing, solar-backed battery charging, spring/fall cleanup & snow removal. From $40/visit.',
     images: [
       {
         url: '/images/hero.jpg',
@@ -51,7 +56,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'EcoLawns Denver | Professional Electric Lawn Care',
-    description: 'Professional eco-friendly lawn care in Denver with battery-powered electric equipment. Quiet, emission-free service.',
+    description:
+      'Denver electric lawn care—free quotes, quiet battery equipment, solar-assisted charging. Mowing, cleanups & snow removal.',
     images: ['/images/hero.jpg'],
   },
   robots: {
@@ -80,10 +86,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="h-screen flex flex-col overflow-hidden" suppressHydrationWarning>
         <GoogleAnalytics />
-        <Navigation />
-        <main className="flex-1 relative overflow-y-auto overflow-x-hidden min-h-[calc(100vh-60px)] w-full">
-          {children}
-        </main>
+        <SiteShell>{children}</SiteShell>
       </body>
     </html>
   );

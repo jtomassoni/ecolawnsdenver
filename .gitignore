@@ -25,7 +25,10 @@ coverage
 *.sln
 *.sw?
 
-# Environment variables
+# Environment: use `.env` only (see `.env.example`). Do not add `.env.local`.
 .env
 .env.*
 !.env.example
+
+# Local CRM data (leads + email threads)
+/data

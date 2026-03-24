@@ -112,7 +112,7 @@ const metadata = {
         default: 'EcoLawns Denver | Professional Electric Lawn Care Services | Starting at $40/visit',
         template: '%s | EcoLawns Denver'
     },
-    description: 'Professional eco-friendly lawn care in Denver, Colorado. Battery-powered electric mowers for quiet, emission-free lawn mowing. Weekly & bi-weekly service, spring cleanup, snow removal. Licensed & insured. Starting at $40/visit.',
+    description: 'Free quotes. Electric lawn mowing in Denver—quiet, battery-powered equipment, with charging supported by home solar and portable power on job sites. Weekly & bi-weekly mowing, spring/fall cleanup, snow removal. Licensed & insured. From $40/visit.',
     keywords: [
         'lawn care Denver',
         'electric lawn mowing Denver',
@@ -140,13 +140,16 @@ const metadata = {
         telephone: false
     },
     metadataBase: new URL('https://ecolawnsdenver.com'),
+    alternates: {
+        canonical: 'https://ecolawnsdenver.com'
+    },
     openGraph: {
         type: 'website',
         locale: 'en_US',
         url: 'https://ecolawnsdenver.com',
         siteName: 'EcoLawns Denver',
         title: 'EcoLawns Denver | Professional Electric Lawn Care Services',
-        description: 'Professional eco-friendly lawn care in Denver with battery-powered electric equipment. Quiet, emission-free lawn mowing starting at $40/visit.',
+        description: 'Free quotes for Denver lawn care. Quiet electric mowing, solar-backed battery charging, spring/fall cleanup & snow removal. From $40/visit.',
         images: [
             {
                 url: '/images/hero.jpg',
@@ -159,7 +162,7 @@ const metadata = {
     twitter: {
         card: 'summary_large_image',
         title: 'EcoLawns Denver | Professional Electric Lawn Care',
-        description: 'Professional eco-friendly lawn care in Denver with battery-powered electric equipment. Quiet, emission-free service.',
+        description: 'Denver electric lawn care—free quotes, quiet battery equipment, solar-assisted charging. Mowing, cleanups & snow removal.',
         images: [
             '/images/hero.jpg'
         ]
@@ -187,12 +190,12 @@ function RootLayout({ children }) {
             children: [
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$GoogleAnalytics$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                     fileName: "[project]/app/layout.tsx",
-                    lineNumber: 82,
+                    lineNumber: 89,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$Navigation$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                     fileName: "[project]/app/layout.tsx",
-                    lineNumber: 83,
+                    lineNumber: 90,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -200,18 +203,18 @@ function RootLayout({ children }) {
                     children: children
                 }, void 0, false, {
                     fileName: "[project]/app/layout.tsx",
-                    lineNumber: 84,
+                    lineNumber: 91,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/layout.tsx",
-            lineNumber: 81,
+            lineNumber: 88,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/app/layout.tsx",
-        lineNumber: 80,
+        lineNumber: 87,
         columnNumber: 5
     }, this);
 }
