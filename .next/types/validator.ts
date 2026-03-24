@@ -56,6 +56,42 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../app/crm/leads/[id]/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/crm/leads/[id]">> = Specific
+  const handler = {} as typeof import("../../app/crm/leads/[id]/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../app/crm/leads/new/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/crm/leads/new">> = Specific
+  const handler = {} as typeof import("../../app/crm/leads/new/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../app/crm/login/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/crm/login">> = Specific
+  const handler = {} as typeof import("../../app/crm/login/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../app/crm/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/crm">> = Specific
+  const handler = {} as typeof import("../../app/crm/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../app/page.tsx
 {
   type __IsExpected<Specific extends AppPageConfig<"/">> = Specific
@@ -78,6 +114,87 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
 {
   type __IsExpected<Specific extends AppPageConfig<"/thank-you">> = Specific
   const handler = {} as typeof import("../../app/thank-you/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../app/api/crm/leads/[id]/macros/send-invoice/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/crm/leads/[id]/macros/send-invoice">> = Specific
+  const handler = {} as typeof import("../../app/api/crm/leads/[id]/macros/send-invoice/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../app/api/crm/leads/[id]/notes/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/crm/leads/[id]/notes">> = Specific
+  const handler = {} as typeof import("../../app/api/crm/leads/[id]/notes/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../app/api/crm/leads/[id]/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/crm/leads/[id]">> = Specific
+  const handler = {} as typeof import("../../app/api/crm/leads/[id]/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../app/api/crm/leads/[id]/send-email/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/crm/leads/[id]/send-email">> = Specific
+  const handler = {} as typeof import("../../app/api/crm/leads/[id]/send-email/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../app/api/crm/leads/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/crm/leads">> = Specific
+  const handler = {} as typeof import("../../app/api/crm/leads/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../app/api/crm/login/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/crm/login">> = Specific
+  const handler = {} as typeof import("../../app/api/crm/login/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../app/api/crm/logout/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/crm/logout">> = Specific
+  const handler = {} as typeof import("../../app/api/crm/logout/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../app/api/crm/sync-inbox/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/crm/sync-inbox">> = Specific
+  const handler = {} as typeof import("../../app/api/crm/sync-inbox/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../app/api/crm/webhooks/inbound-email/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/crm/webhooks/inbound-email">> = Specific
+  const handler = {} as typeof import("../../app/api/crm/webhooks/inbound-email/route.js")
   type __Check = __IsExpected<typeof handler>
   // @ts-ignore
   type __Unused = __Check
@@ -109,6 +226,15 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
 {
   type __IsExpected<Specific extends LayoutConfig<"/about">> = Specific
   const handler = {} as typeof import("../../app/about/layout.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../app/crm/layout.tsx
+{
+  type __IsExpected<Specific extends LayoutConfig<"/crm">> = Specific
+  const handler = {} as typeof import("../../app/crm/layout.js")
   type __Check = __IsExpected<typeof handler>
   // @ts-ignore
   type __Unused = __Check

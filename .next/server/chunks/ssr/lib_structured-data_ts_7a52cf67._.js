@@ -1,0 +1,3 @@
+module.exports=[43433,a=>{"use strict";a.s(["ADDRESS_PLACEHOLDER",0,"e.g. 4521 S Lowell Blvd, Denver, CO 80236","BUSINESS_NAME",0,"EcoLawns Denver","DENVER_NEIGHBORHOODS",0,["Littleton","Englewood","Harvey Park","Bear Valley","Marston","Ruby Hill","Sheridan","Southmoor Park","Fort Logan","University Hills","Hampden South","Ken Caryl","Highlands Ranch","Denver"],"SITE_URL",0,"https://ecolawnsdenver.com","TELEPHONE_E164",0,"+1-301-943-7914"])}];
+
+//# sourceMappingURL=lib_structured-data_ts_7a52cf67._.js.map

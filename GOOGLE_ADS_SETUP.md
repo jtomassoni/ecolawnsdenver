@@ -35,7 +35,7 @@ After creating the conversion action, Google Ads will show you:
 
 ### Step 3: Add Conversion Tracking to Your Site
 
-1. **Add to your `.env.local` file**:
+1. **Add to your `.env` file**:
    ```bash
    NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_ID=AW-XXXXXXXXXX/AbCdEfGhIjKlMnOpQrSt
    ```
@@ -134,5 +134,5 @@ If you want to track different conversion types separately:
 **Next Steps**:
 1. Create conversion action in Google Ads
 2. Get your Conversion ID and Label
-3. Add to `.env.local` as `NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_ID`
+3. Add to `.env` as `NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_ID`
 4. Deploy and test!

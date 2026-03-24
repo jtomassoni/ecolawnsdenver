@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'About EcoLawns Denver | Local Electric Lawn Care Service in Denver, CO',
-  description: 'Learn about EcoLawns Denver - a local lawn care service serving Denver homeowners with 100% battery-powered electric equipment. Licensed, insured, and committed to reducing noise and emissions.',
+  description: 'Learn about EcoLawns Denver - electric lawn care in Denver with batteries charged in part from home solar and portable power on job sites. Licensed, insured, quiet equipment and fewer neighborhood emissions.',
   keywords: [
     'about EcoLawns Denver',
     'Denver lawn care company',
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'About EcoLawns Denver | Local Electric Lawn Care Service',
-    description: 'Learn about EcoLawns Denver - serving Denver with 100% battery-powered electric lawn care equipment.',
+    description: 'Electric lawn care in Denver—battery equipment, with charging supported by solar at home and portable power on site.',
     url: 'https://ecolawnsdenver.com/about',
     siteName: 'EcoLawns Denver',
     images: [
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'About EcoLawns Denver | Local Electric Lawn Care',
-    description: 'Learn about EcoLawns Denver - serving Denver with 100% battery-powered electric equipment.',
+    description: 'Electric lawn care in Denver—battery equipment, with charging supported by solar at home and portable power on site.',
     images: ['https://ecolawnsdenver.com/images/hero.jpg'],
   },
   alternates: {

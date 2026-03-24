@@ -1,0 +1,919 @@
+module.exports = [
+"[externals]/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js [external] (next/dist/compiled/next-server/app-route-turbo.runtime.dev.js, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("next/dist/compiled/next-server/app-route-turbo.runtime.dev.js", () => require("next/dist/compiled/next-server/app-route-turbo.runtime.dev.js"));
+
+module.exports = mod;
+}),
+"[externals]/next/dist/compiled/@opentelemetry/api [external] (next/dist/compiled/@opentelemetry/api, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("next/dist/compiled/@opentelemetry/api", () => require("next/dist/compiled/@opentelemetry/api"));
+
+module.exports = mod;
+}),
+"[externals]/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js [external] (next/dist/compiled/next-server/app-page-turbo.runtime.dev.js, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("next/dist/compiled/next-server/app-page-turbo.runtime.dev.js", () => require("next/dist/compiled/next-server/app-page-turbo.runtime.dev.js"));
+
+module.exports = mod;
+}),
+"[externals]/next/dist/server/app-render/work-unit-async-storage.external.js [external] (next/dist/server/app-render/work-unit-async-storage.external.js, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("next/dist/server/app-render/work-unit-async-storage.external.js", () => require("next/dist/server/app-render/work-unit-async-storage.external.js"));
+
+module.exports = mod;
+}),
+"[externals]/next/dist/server/app-render/work-async-storage.external.js [external] (next/dist/server/app-render/work-async-storage.external.js, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("next/dist/server/app-render/work-async-storage.external.js", () => require("next/dist/server/app-render/work-async-storage.external.js"));
+
+module.exports = mod;
+}),
+"[externals]/next/dist/shared/lib/no-fallback-error.external.js [external] (next/dist/shared/lib/no-fallback-error.external.js, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("next/dist/shared/lib/no-fallback-error.external.js", () => require("next/dist/shared/lib/no-fallback-error.external.js"));
+
+module.exports = mod;
+}),
+"[externals]/next/dist/server/app-render/after-task-async-storage.external.js [external] (next/dist/server/app-render/after-task-async-storage.external.js, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("next/dist/server/app-render/after-task-async-storage.external.js", () => require("next/dist/server/app-render/after-task-async-storage.external.js"));
+
+module.exports = mod;
+}),
+"[project]/lib/auth.ts [app-route] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "createSession",
+    ()=>createSession,
+    "destroySession",
+    ()=>destroySession,
+    "requireCrmSession",
+    ()=>requireCrmSession,
+    "validateCredentials",
+    ()=>validateCredentials,
+    "verifySession",
+    ()=>verifySession
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$webapi$2f$jwt$2f$sign$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/webapi/jwt/sign.js [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$webapi$2f$jwt$2f$verify$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/webapi/jwt/verify.js [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/headers.js [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/server.js [app-route] (ecmascript)");
+;
+;
+;
+const SESSION_COOKIE = 'crm_session';
+const SESSION_DURATION = 24 * 60 * 60;
+function parseUserCredentials(envVar) {
+    if (!envVar) return [];
+    try {
+        const parsed = JSON.parse(envVar);
+        if (Array.isArray(parsed)) {
+            return parsed.filter((cred)=>cred && typeof cred === 'object' && typeof cred.username === 'string' && typeof cred.password === 'string');
+        }
+        if (parsed && typeof parsed === 'object' && typeof parsed.username === 'string' && typeof parsed.password === 'string') {
+            return [
+                parsed
+            ];
+        }
+    } catch  {
+        const credentials = envVar.split(',').map((pair)=>{
+            const [username, password] = pair.split(':').map((s)=>s.trim());
+            if (username && password) return {
+                username,
+                password
+            };
+            return null;
+        }).filter((cred)=>cred !== null);
+        if (credentials.length > 0) return credentials;
+    }
+    return [];
+}
+function getAllCredentials() {
+    return [
+        ...parseUserCredentials(process.env.ADMIN_USER),
+        ...parseUserCredentials(process.env.ADMIN_USERS),
+        ...parseUserCredentials(process.env.CRM_USER),
+        ...parseUserCredentials(process.env.CRM_USERS)
+    ];
+}
+function getSecret() {
+    const secret = process.env.SESSION_SECRET || process.env.CRM_SESSION_SECRET;
+    if (!secret) throw new Error('SESSION_SECRET or CRM_SESSION_SECRET must be set');
+    return new TextEncoder().encode(secret);
+}
+async function createSession() {
+    const token = await new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$webapi$2f$jwt$2f$sign$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["SignJWT"]({
+        crm: true
+    }).setProtectedHeader({
+        alg: 'HS256'
+    }).setIssuedAt().setExpirationTime(`${SESSION_DURATION}s`).sign(getSecret());
+    const cookieStore = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["cookies"])();
+    cookieStore.set(SESSION_COOKIE, token, {
+        httpOnly: true,
+        secure: ("TURBOPACK compile-time value", "development") === 'production',
+        sameSite: 'lax',
+        maxAge: SESSION_DURATION,
+        path: '/'
+    });
+}
+async function verifySession() {
+    const cookieStore = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["cookies"])();
+    const token = cookieStore.get(SESSION_COOKIE)?.value;
+    if (!token) return false;
+    try {
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$webapi$2f$jwt$2f$verify$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["jwtVerify"])(token, getSecret());
+        return true;
+    } catch  {
+        return false;
+    }
+}
+async function destroySession() {
+    const cookieStore = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["cookies"])();
+    cookieStore.delete(SESSION_COOKIE);
+}
+function validateCredentials(username, password) {
+    const credentials = getAllCredentials();
+    if (credentials.length === 0) return false;
+    return credentials.some((c)=>c.username.trim() === username.trim() && c.password === password);
+}
+async function requireCrmSession() {
+    if (!await verifySession()) {
+        return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+            error: 'Unauthorized'
+        }, {
+            status: 401
+        });
+    }
+    return null;
+}
+}),
+"[externals]/imapflow [external] (imapflow, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("imapflow", () => require("imapflow"));
+
+module.exports = mod;
+}),
+"[externals]/mailparser [external] (mailparser, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("mailparser", () => require("mailparser"));
+
+module.exports = mod;
+}),
+"[externals]/fs/promises [external] (fs/promises, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("fs/promises", () => require("fs/promises"));
+
+module.exports = mod;
+}),
+"[externals]/path [external] (path, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("path", () => require("path"));
+
+module.exports = mod;
+}),
+"[project]/lib/crm-types.ts [app-route] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+/** `notification` is hidden on the leads list until “Show notification leads” or status filter = Notification. */ __turbopack_context__.s([
+    "LEAD_STATUSES",
+    ()=>LEAD_STATUSES,
+    "LEAD_STATUS_LABELS",
+    ()=>LEAD_STATUS_LABELS
+]);
+const LEAD_STATUSES = [
+    'new_lead',
+    'warm_lead',
+    'active_customer',
+    'delinquent',
+    'inactive',
+    'notification'
+];
+const LEAD_STATUS_LABELS = {
+    new_lead: 'New lead',
+    warm_lead: 'Warm lead',
+    active_customer: 'Active customer',
+    delinquent: 'Delinquent',
+    inactive: 'Inactive',
+    notification: 'Notification'
+};
+}),
+"[project]/lib/crm-store.ts [app-route] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "appendEmailToLead",
+    ()=>appendEmailToLead,
+    "appendLeadTimelineNote",
+    ()=>appendLeadTimelineNote,
+    "applyTemplateVars",
+    ()=>applyTemplateVars,
+    "createLead",
+    ()=>createLead,
+    "deleteLead",
+    ()=>deleteLead,
+    "extractWebsiteBookingCustomer",
+    ()=>extractWebsiteBookingCustomer,
+    "findLeadByEmail",
+    ()=>findLeadByEmail,
+    "getLeadById",
+    ()=>getLeadById,
+    "ingestInboundEmail",
+    ()=>ingestInboundEmail,
+    "listLeads",
+    ()=>listLeads,
+    "normalizeEmail",
+    ()=>normalizeEmail,
+    "parseFromHeader",
+    ()=>parseFromHeader,
+    "updateLead",
+    ()=>updateLead,
+    "upsertLeadFromWebsiteBooking",
+    ()=>upsertLeadFromWebsiteBooking
+]);
+var __TURBOPACK__imported__module__$5b$externals$5d2f$fs$2f$promises__$5b$external$5d$__$28$fs$2f$promises$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/fs/promises [external] (fs/promises, cjs)");
+var __TURBOPACK__imported__module__$5b$externals$5d2f$path__$5b$external$5d$__$28$path$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/path [external] (path, cjs)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$types$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/crm-types.ts [app-route] (ecmascript)");
+;
+;
+;
+const DATA_DIR = __TURBOPACK__imported__module__$5b$externals$5d2f$path__$5b$external$5d$__$28$path$2c$__cjs$29$__["default"].join(process.cwd(), 'data');
+const STORE_PATH = __TURBOPACK__imported__module__$5b$externals$5d2f$path__$5b$external$5d$__$28$path$2c$__cjs$29$__["default"].join(DATA_DIR, 'crm-store.json');
+let mutex = Promise.resolve();
+async function withLock(fn) {
+    const run = mutex.then(()=>fn());
+    mutex = run.then(()=>undefined, ()=>undefined);
+    return run;
+}
+function emptyDb() {
+    return {
+        version: 1,
+        leads: []
+    };
+}
+function normalizeLead(lead) {
+    return {
+        ...lead,
+        timeline: Array.isArray(lead.timeline) ? lead.timeline : []
+    };
+}
+async function readDb() {
+    try {
+        const raw = await (0, __TURBOPACK__imported__module__$5b$externals$5d2f$fs$2f$promises__$5b$external$5d$__$28$fs$2f$promises$2c$__cjs$29$__["readFile"])(STORE_PATH, 'utf8');
+        const parsed = JSON.parse(raw);
+        if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.leads)) {
+            return emptyDb();
+        }
+        return {
+            ...parsed,
+            leads: parsed.leads.map((l)=>normalizeLead(l))
+        };
+    } catch (e) {
+        const err = e;
+        if (err.code === 'ENOENT') return emptyDb();
+        throw e;
+    }
+}
+async function writeDb(db) {
+    await (0, __TURBOPACK__imported__module__$5b$externals$5d2f$fs$2f$promises__$5b$external$5d$__$28$fs$2f$promises$2c$__cjs$29$__["mkdir"])(DATA_DIR, {
+        recursive: true
+    });
+    await (0, __TURBOPACK__imported__module__$5b$externals$5d2f$fs$2f$promises__$5b$external$5d$__$28$fs$2f$promises$2c$__cjs$29$__["writeFile"])(STORE_PATH, JSON.stringify(db, null, 2), 'utf8');
+}
+function isLeadStatus(s) {
+    return __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$types$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["LEAD_STATUSES"].includes(s);
+}
+function normalizeEmail(email) {
+    return email.trim().toLowerCase();
+}
+function parseFromHeader(from) {
+    const trimmed = from.trim();
+    const angle = trimmed.match(/^(.+?)\s*<([^>]+)>$/);
+    if (angle) {
+        let name = angle[1].replace(/^"|"$/g, '').trim();
+        const email = normalizeEmail(angle[2]);
+        if (!name) name = email.split('@')[0] || 'Customer';
+        return {
+            name,
+            email
+        };
+    }
+    const email = normalizeEmail(trimmed);
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return {
+            name: email.split('@')[0] || 'Customer',
+            email
+        };
+    }
+    return {
+        name: 'Unknown',
+        email: email || 'unknown@invalid'
+    };
+}
+async function listLeads(options) {
+    const db = await readDb();
+    let rows = [
+        ...db.leads
+    ];
+    if (options?.status) {
+        rows = rows.filter((l)=>l.status === options.status);
+    }
+    if (options?.q) {
+        const q = options.q.trim().toLowerCase();
+        if (q) {
+            rows = rows.filter((l)=>l.name.toLowerCase().includes(q) || l.email.includes(q) || l.phone.includes(q) || l.physicalAddress.toLowerCase().includes(q));
+        }
+    }
+    rows.sort((a, b)=>a.updatedAt < b.updatedAt ? 1 : -1);
+    return rows;
+}
+async function getLeadById(id) {
+    const db = await readDb();
+    return db.leads.find((l)=>l.id === id) ?? null;
+}
+async function findLeadByEmail(email) {
+    const norm = normalizeEmail(email);
+    const db = await readDb();
+    return db.leads.find((l)=>l.email === norm) ?? null;
+}
+async function createLead(input) {
+    return withLock(async ()=>{
+        const db = await readDb();
+        const now = new Date().toISOString();
+        const email = normalizeEmail(input.email);
+        const existing = db.leads.find((l)=>l.email === email);
+        if (existing) {
+            throw new Error('A lead with this email already exists');
+        }
+        const lead = {
+            id: crypto.randomUUID(),
+            name: input.name.trim() || 'Unknown',
+            email,
+            phone: (input.phone ?? '').trim(),
+            physicalAddress: (input.physicalAddress ?? '').trim(),
+            status: input.status && isLeadStatus(input.status) ? input.status : 'new_lead',
+            notes: (input.notes ?? '').trim(),
+            emails: [],
+            timeline: [],
+            createdAt: now,
+            updatedAt: now
+        };
+        db.leads.push(lead);
+        await writeDb(db);
+        return lead;
+    });
+}
+async function updateLead(id, patch) {
+    return withLock(async ()=>{
+        const db = await readDb();
+        const lead = db.leads.find((l)=>l.id === id);
+        if (!lead) return null;
+        const timeline = [
+            ...lead.timeline ?? []
+        ];
+        const now = new Date().toISOString();
+        const lines = [];
+        const nextName = patch.name !== undefined ? patch.name.trim() || lead.name : lead.name;
+        const nextEmail = patch.email !== undefined ? normalizeEmail(patch.email) : lead.email;
+        const nextPhone = patch.phone !== undefined ? patch.phone.trim() : lead.phone;
+        const nextAddr = patch.physicalAddress !== undefined ? patch.physicalAddress.trim() : lead.physicalAddress;
+        const nextNotes = patch.notes !== undefined ? patch.notes.trim() : lead.notes;
+        if (patch.name !== undefined && nextName !== lead.name) {
+            lines.push(`Name · ${JSON.stringify(lead.name)} → ${JSON.stringify(nextName)}`);
+        }
+        if (patch.email !== undefined && nextEmail !== lead.email) {
+            lines.push(`Email · ${lead.email} → ${nextEmail}`);
+        }
+        if (patch.phone !== undefined && nextPhone !== lead.phone) {
+            lines.push(`Phone · ${lead.phone || '—'} → ${nextPhone || '—'}`);
+        }
+        if (patch.physicalAddress !== undefined && nextAddr !== lead.physicalAddress) {
+            lines.push(`Service address · ${lead.physicalAddress || '—'} → ${nextAddr || '—'}`);
+        }
+        if (patch.status !== undefined) {
+            if (!isLeadStatus(patch.status)) throw new Error('Invalid status');
+            if (patch.status !== lead.status) {
+                lines.push(`Status · ${__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$types$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["LEAD_STATUS_LABELS"][lead.status]} → ${__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$types$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["LEAD_STATUS_LABELS"][patch.status]}`);
+            }
+        }
+        if (patch.notes !== undefined && nextNotes !== lead.notes) {
+            lines.push(`Profile notes · ${lead.notes || '—'} → ${nextNotes || '—'}`);
+        }
+        if (patch.name !== undefined) lead.name = nextName;
+        if (patch.email !== undefined) {
+            const taken = db.leads.some((l)=>l.id !== id && l.email === nextEmail);
+            if (taken) throw new Error('Another lead already uses this email');
+            lead.email = nextEmail;
+        }
+        if (patch.phone !== undefined) lead.phone = nextPhone;
+        if (patch.physicalAddress !== undefined) lead.physicalAddress = nextAddr;
+        if (patch.status !== undefined) {
+            if (!isLeadStatus(patch.status)) throw new Error('Invalid status');
+            lead.status = patch.status;
+        }
+        if (patch.notes !== undefined) lead.notes = nextNotes;
+        if (lines.length) {
+            timeline.push({
+                id: crypto.randomUUID(),
+                kind: 'profile_update',
+                createdAt: now,
+                lines
+            });
+        }
+        lead.timeline = timeline;
+        lead.updatedAt = now;
+        await writeDb(db);
+        return lead;
+    });
+}
+async function appendLeadTimelineNote(id, body) {
+    return withLock(async ()=>{
+        const db = await readDb();
+        const lead = db.leads.find((l)=>l.id === id);
+        if (!lead) return null;
+        const text = body.trim();
+        if (!text) return lead;
+        const now = new Date().toISOString();
+        const timeline = [
+            ...lead.timeline ?? []
+        ];
+        timeline.push({
+            id: crypto.randomUUID(),
+            kind: 'staff_note',
+            createdAt: now,
+            body: text
+        });
+        lead.timeline = timeline;
+        lead.updatedAt = now;
+        await writeDb(db);
+        return lead;
+    });
+}
+async function deleteLead(id) {
+    return withLock(async ()=>{
+        const db = await readDb();
+        const i = db.leads.findIndex((l)=>l.id === id);
+        if (i === -1) return false;
+        db.leads.splice(i, 1);
+        await writeDb(db);
+        return true;
+    });
+}
+async function appendEmailToLead(leadId, msg) {
+    return withLock(async ()=>{
+        const db = await readDb();
+        const lead = db.leads.find((l)=>l.id === leadId);
+        if (!lead) return null;
+        const row = {
+            ...msg,
+            id: crypto.randomUUID(),
+            createdAt: new Date().toISOString()
+        };
+        lead.emails.push(row);
+        lead.updatedAt = row.createdAt;
+        await writeDb(db);
+        return row;
+    });
+}
+function digitsOnlyPhone(phone) {
+    return phone.replace(/\D/g, '');
+}
+function phonesLikelySame(a, b) {
+    const da = digitsOnlyPhone(a);
+    const db = digitsOnlyPhone(b);
+    if (da.length < 10 || db.length < 10) return false;
+    return da.slice(-10) === db.slice(-10);
+}
+function extractWebsiteBookingCustomer(bodyText, bodyHtml) {
+    const blob = `${bodyText}\n${bodyHtml ?? ''}`;
+    // Matches /api/send-email template: "New … Submission" (h2 + body fields)
+    if (!/New\s+.+\s+Submission/i.test(blob)) {
+        return null;
+    }
+    let email = '';
+    const mailto = bodyHtml?.match(/mailto:([^"'>\s]+)/i)?.[1];
+    if (mailto) email = normalizeEmail(mailto);
+    if (!email) {
+        const m = bodyText.match(/Email:\s*([^\s<]+@[^\s]+\.[^\s>]+)/i);
+        if (m) email = normalizeEmail(m[1]);
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return null;
+    }
+    const pick = (label)=>{
+        const re = new RegExp(`${label}:\\s*([^\\n<]+)`, 'i');
+        const m = bodyText.match(re);
+        return (m?.[1] ?? '').replace(/<[^>]*>/g, '').trim();
+    };
+    const name = pick('Name') || email.split('@')[0] || 'Customer';
+    const phone = pick('Phone');
+    const physicalAddress = pick('Property Address');
+    return {
+        name,
+        email,
+        phone,
+        physicalAddress
+    };
+}
+async function upsertLeadFromWebsiteBooking(input) {
+    const custEmail = normalizeEmail(input.email);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(custEmail)) {
+        throw new Error('Invalid customer email');
+    }
+    const phoneTrim = (input.phone ?? '').trim();
+    const addrTrim = (input.physicalAddress ?? '').trim();
+    const nameTrim = (input.name ?? '').trim() || custEmail.split('@')[0] || 'Customer';
+    return withLock(async ()=>{
+        const db = await readDb();
+        let lead = db.leads.find((l)=>l.email === custEmail);
+        if (!lead && phoneTrim && digitsOnlyPhone(phoneTrim).length >= 10) {
+            lead = db.leads.find((l)=>phonesLikelySame(l.phone, phoneTrim)) ?? undefined;
+        }
+        let created = false;
+        const now = new Date().toISOString();
+        if (!lead) {
+            created = true;
+            lead = {
+                id: crypto.randomUUID(),
+                name: nameTrim,
+                email: custEmail,
+                phone: phoneTrim,
+                physicalAddress: addrTrim,
+                status: 'new_lead',
+                notes: '',
+                emails: [],
+                timeline: [],
+                createdAt: now,
+                updatedAt: now
+            };
+            db.leads.push(lead);
+        } else {
+            if ("TURBOPACK compile-time truthy", 1) lead.name = nameTrim;
+            if (phoneTrim) lead.phone = phoneTrim;
+            if (addrTrim) lead.physicalAddress = addrTrim;
+            lead.updatedAt = now;
+        }
+        const fromDisplay = `${nameTrim} <${custEmail}>`;
+        const message = {
+            id: crypto.randomUUID(),
+            direction: 'inbound',
+            from: fromDisplay,
+            to: input.toAddress.trim(),
+            subject: input.subject.trim(),
+            bodyText: input.bodyText,
+            bodyHtml: input.bodyHtml,
+            messageId: input.messageId,
+            inReplyTo: input.inReplyTo,
+            createdAt: now
+        };
+        lead.emails.push(message);
+        lead.updatedAt = now;
+        await writeDb(db);
+        return {
+            lead,
+            created,
+            message
+        };
+    });
+}
+async function ingestInboundEmail(input) {
+    const booking = extractWebsiteBookingCustomer(input.bodyText, input.bodyHtml);
+    if (booking) {
+        return upsertLeadFromWebsiteBooking({
+            name: booking.name,
+            email: booking.email,
+            phone: booking.phone,
+            physicalAddress: booking.physicalAddress,
+            subject: input.subject,
+            bodyText: input.bodyText,
+            bodyHtml: input.bodyHtml,
+            toAddress: input.to,
+            messageId: input.messageId,
+            inReplyTo: input.inReplyTo
+        });
+    }
+    const { name, email } = parseFromHeader(input.fromHeader);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        throw new Error('Invalid sender email');
+    }
+    return withLock(async ()=>{
+        const db = await readDb();
+        let lead = db.leads.find((l)=>l.email === email);
+        let created = false;
+        const now = new Date().toISOString();
+        if (!lead) {
+            created = true;
+            lead = {
+                id: crypto.randomUUID(),
+                name,
+                email,
+                phone: '',
+                physicalAddress: '',
+                status: 'new_lead',
+                notes: '',
+                emails: [],
+                timeline: [],
+                createdAt: now,
+                updatedAt: now
+            };
+            db.leads.push(lead);
+        }
+        const message = {
+            id: crypto.randomUUID(),
+            direction: 'inbound',
+            from: input.fromHeader.trim(),
+            to: input.to.trim(),
+            subject: input.subject.trim(),
+            bodyText: input.bodyText,
+            bodyHtml: input.bodyHtml,
+            messageId: input.messageId,
+            inReplyTo: input.inReplyTo,
+            createdAt: now
+        };
+        lead.emails.push(message);
+        lead.updatedAt = now;
+        await writeDb(db);
+        return {
+            lead,
+            created,
+            message
+        };
+    });
+}
+function applyTemplateVars(template, vars) {
+    let out = template;
+    for (const [k, v] of Object.entries(vars)){
+        out = out.split(`{{${k}}}`).join(v);
+    }
+    return out;
+}
+}),
+"[project]/lib/inbound-sync-state.ts [app-route] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "hasSyncedMessageId",
+    ()=>hasSyncedMessageId,
+    "markMessageIdSynced",
+    ()=>markMessageIdSynced
+]);
+var __TURBOPACK__imported__module__$5b$externals$5d2f$fs$2f$promises__$5b$external$5d$__$28$fs$2f$promises$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/fs/promises [external] (fs/promises, cjs)");
+var __TURBOPACK__imported__module__$5b$externals$5d2f$path__$5b$external$5d$__$28$path$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/path [external] (path, cjs)");
+;
+;
+const PATH = __TURBOPACK__imported__module__$5b$externals$5d2f$path__$5b$external$5d$__$28$path$2c$__cjs$29$__["default"].join(process.cwd(), 'data', 'inbound-synced-message-ids.json');
+const MAX_IDS = 4000;
+let mutex = Promise.resolve();
+async function withLock(fn) {
+    const run = mutex.then(()=>fn());
+    mutex = run.then(()=>undefined, ()=>undefined);
+    return run;
+}
+async function hasSyncedMessageId(id) {
+    const norm = id.trim();
+    if (!norm) return false;
+    return withLock(async ()=>{
+        try {
+            const raw = await (0, __TURBOPACK__imported__module__$5b$externals$5d2f$fs$2f$promises__$5b$external$5d$__$28$fs$2f$promises$2c$__cjs$29$__["readFile"])(PATH, 'utf8');
+            const j = JSON.parse(raw);
+            return Array.isArray(j.ids) && j.ids.includes(norm);
+        } catch  {
+            return false;
+        }
+    });
+}
+async function markMessageIdSynced(id) {
+    const norm = id.trim();
+    if (!norm) return;
+    await withLock(async ()=>{
+        let ids = [];
+        try {
+            const raw = await (0, __TURBOPACK__imported__module__$5b$externals$5d2f$fs$2f$promises__$5b$external$5d$__$28$fs$2f$promises$2c$__cjs$29$__["readFile"])(PATH, 'utf8');
+            const j = JSON.parse(raw);
+            if (Array.isArray(j.ids)) ids = j.ids;
+        } catch  {
+            ids = [];
+        }
+        if (ids.includes(norm)) return;
+        ids.push(norm);
+        if (ids.length > MAX_IDS) {
+            ids = ids.slice(ids.length - MAX_IDS);
+        }
+        await (0, __TURBOPACK__imported__module__$5b$externals$5d2f$fs$2f$promises__$5b$external$5d$__$28$fs$2f$promises$2c$__cjs$29$__["mkdir"])(__TURBOPACK__imported__module__$5b$externals$5d2f$path__$5b$external$5d$__$28$path$2c$__cjs$29$__["default"].dirname(PATH), {
+            recursive: true
+        });
+        await (0, __TURBOPACK__imported__module__$5b$externals$5d2f$fs$2f$promises__$5b$external$5d$__$28$fs$2f$promises$2c$__cjs$29$__["writeFile"])(PATH, JSON.stringify({
+            ids
+        }, null, 2), 'utf8');
+    });
+}
+}),
+"[project]/lib/gmail-inbound-sync.ts [app-route] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "syncGmailInboundToCrm",
+    ()=>syncGmailInboundToCrm
+]);
+var __TURBOPACK__imported__module__$5b$externals$5d2f$imapflow__$5b$external$5d$__$28$imapflow$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/imapflow [external] (imapflow, cjs)");
+var __TURBOPACK__imported__module__$5b$externals$5d2f$mailparser__$5b$external$5d$__$28$mailparser$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/mailparser [external] (mailparser, cjs)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$store$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/crm-store.ts [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$inbound$2d$sync$2d$state$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/inbound-sync-state.ts [app-route] (ecmascript)");
+;
+;
+;
+;
+const IMAP_HOST = 'imap.gmail.com';
+const DAYS_BACK = 21;
+const MAX_MESSAGES = 120;
+function collectAddresses(field) {
+    if (field == null) return [];
+    const blocks = Array.isArray(field) ? field : [
+        field
+    ];
+    const out = [];
+    for (const b of blocks){
+        const vals = b.value ?? [];
+        for (const v of vals){
+            const addr = (v.address ?? '').trim();
+            if (!addr) continue;
+            out.push({
+                name: (v.name ?? '').trim() || addr.split('@')[0] || 'Unknown',
+                address: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$store$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["normalizeEmail"])(addr)
+            });
+        }
+    }
+    return out;
+}
+function normalizeInReplyTo(v) {
+    if (v == null) return undefined;
+    if (typeof v === 'string') return v.replace(/^<|>$/g, '').trim() || undefined;
+    if (Array.isArray(v) && v[0]) {
+        const s = String(v[0]);
+        return s.replace(/^<|>$/g, '').trim() || undefined;
+    }
+    if (typeof v === 'object' && 'value' in v && Array.isArray(v.value) && v.value[0]?.address) {
+        return v.value[0].address.replace(/^<|>$/g, '').trim() || undefined;
+    }
+    return undefined;
+}
+function formatFromHeader(name, email) {
+    const safeName = name.replace(/"/g, '').trim() || email.split('@')[0] || 'Customer';
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(safeName)) {
+        return safeName;
+    }
+    return `${safeName} <${email}>`;
+}
+async function syncGmailInboundToCrm() {
+    const user = process.env.EMAIL_USER?.trim();
+    const pass = process.env.EMAIL_APP_PASSWORD?.trim();
+    if (!user || !pass) {
+        throw new Error('EMAIL_USER and EMAIL_APP_PASSWORD are required for inbox sync');
+    }
+    const self = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$store$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["normalizeEmail"])(user);
+    const client = new __TURBOPACK__imported__module__$5b$externals$5d2f$imapflow__$5b$external$5d$__$28$imapflow$2c$__cjs$29$__["ImapFlow"]({
+        host: IMAP_HOST,
+        port: 993,
+        secure: true,
+        auth: {
+            user,
+            pass
+        },
+        logger: false
+    });
+    const errors = [];
+    let scanned = 0;
+    let imported = 0;
+    let skipped = 0;
+    try {
+        await client.connect();
+        const lock = await client.getMailboxLock('INBOX');
+        try {
+            const since = new Date();
+            since.setDate(since.getDate() - DAYS_BACK);
+            const found = await client.search({
+                since
+            });
+            const uids = found === false ? [] : found;
+            const sorted = [
+                ...uids
+            ].sort((a, b)=>a - b);
+            const slice = sorted.slice(-MAX_MESSAGES);
+            for (const uid of slice){
+                scanned++;
+                let messageIdKey = '';
+                try {
+                    const fetched = await client.fetchOne(uid, {
+                        source: true,
+                        uid: true
+                    });
+                    if (fetched === false || !fetched.source) continue;
+                    const parsed = await (0, __TURBOPACK__imported__module__$5b$externals$5d2f$mailparser__$5b$external$5d$__$28$mailparser$2c$__cjs$29$__["simpleParser"])(fetched.source);
+                    const rawMid = parsed.messageId?.trim() || '';
+                    messageIdKey = rawMid.replace(/^<|>$/g, '') || `imap-uid-${uid}`;
+                    if (await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$inbound$2d$sync$2d$state$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["hasSyncedMessageId"])(messageIdKey)) {
+                        skipped++;
+                        continue;
+                    }
+                    const fromList = collectAddresses(parsed.from);
+                    const toList = [
+                        ...collectAddresses(parsed.to),
+                        ...collectAddresses(parsed.cc)
+                    ];
+                    if (fromList.length === 0) continue;
+                    const fromFirst = fromList[0];
+                    if (fromFirst.address === self) {
+                        skipped++;
+                        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$inbound$2d$sync$2d$state$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["markMessageIdSynced"])(messageIdKey);
+                        continue;
+                    }
+                    const toUs = toList.some((a)=>a.address === self);
+                    if (!toUs) {
+                        skipped++;
+                        continue;
+                    }
+                    const fromHeader = formatFromHeader(fromFirst.name, fromFirst.address);
+                    const text = parsed.text && parsed.text.trim() || (typeof parsed.html === 'string' ? parsed.html.replace(/<[^>]+>/g, ' ').trim() : '') || '(no plain text body)';
+                    await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$store$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["ingestInboundEmail"])({
+                        fromHeader,
+                        to: user,
+                        subject: (parsed.subject ?? '').trim() || '(no subject)',
+                        bodyText: text,
+                        bodyHtml: typeof parsed.html === 'string' && parsed.html ? parsed.html : undefined,
+                        messageId: rawMid || undefined,
+                        inReplyTo: normalizeInReplyTo(parsed.inReplyTo)
+                    });
+                    await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$inbound$2d$sync$2d$state$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["markMessageIdSynced"])(messageIdKey);
+                    imported++;
+                } catch (e) {
+                    const msg = e instanceof Error ? e.message : 'sync item failed';
+                    errors.push(`uid ${uid}${messageIdKey ? ` (${messageIdKey})` : ''}: ${msg}`);
+                }
+            }
+        } finally{
+            lock.release();
+        }
+    } finally{
+        try {
+            await client.logout();
+        } catch  {
+        // ignore
+        }
+    }
+    return {
+        scanned,
+        imported,
+        skipped,
+        errors
+    };
+}
+}),
+"[project]/app/api/crm/sync-inbox/route.ts [app-route] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "POST",
+    ()=>POST,
+    "runtime",
+    ()=>runtime
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/server.js [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/auth.ts [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$gmail$2d$inbound$2d$sync$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/gmail-inbound-sync.ts [app-route] (ecmascript)");
+;
+;
+;
+const runtime = 'nodejs';
+function bearerMatches(request) {
+    const secret = process.env.CRM_INBOUND_SYNC_SECRET?.trim() || process.env.CRM_INBOUND_WEBHOOK_SECRET?.trim();
+    if (!secret) return false;
+    const auth = request.headers.get('authorization');
+    return auth === `Bearer ${secret}`;
+}
+async function POST(request) {
+    const sessionOk = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["verifySession"])();
+    if (!sessionOk && !bearerMatches(request)) {
+        return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+            error: 'Unauthorized'
+        }, {
+            status: 401
+        });
+    }
+    try {
+        const result = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$gmail$2d$inbound$2d$sync$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["syncGmailInboundToCrm"])();
+        return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json(result);
+    } catch (e) {
+        const msg = e instanceof Error ? e.message : 'Sync failed';
+        console.error('sync-inbox', e);
+        return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+            error: msg
+        }, {
+            status: 500
+        });
+    }
+}
+}),
+];
+
+//# sourceMappingURL=%5Broot-of-the-server%5D__b2784531._.js.map

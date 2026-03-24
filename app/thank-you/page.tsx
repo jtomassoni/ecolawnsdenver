@@ -4,7 +4,7 @@ import { useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Script from 'next/script';
-import { FaCheckCircle, FaPhone, FaEnvelope } from 'react-icons/fa';
+import { FaCheckCircle, FaEnvelope } from 'react-icons/fa';
 import { trackConversion, trackEvent } from '@/components/GoogleAnalytics';
 
 function ThankYouContent() {
@@ -63,7 +63,7 @@ function ThankYouContent() {
             Your {getServiceName()} request has been received.
           </p>
           <p className="text-sm text-gray-600 mb-4">
-            We'll contact you within 24 hours to confirm your booking and provide your personalized quote.
+            We&apos;ll follow up within 24 hours—usually by email—with your personalized quote and next steps.
           </p>
 
           {/* What Happens Next */}
@@ -76,7 +76,7 @@ function ThankYouContent() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="bg-primary text-white rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 text-xs font-semibold">2</span>
-                <span>You'll receive an email or phone call within 24 hours with your quote</span>
+                <span>You&apos;ll usually hear from us by email within 24 hours with your quote</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="bg-primary text-white rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 text-xs font-semibold">3</span>
@@ -87,21 +87,12 @@ function ThankYouContent() {
 
           {/* Contact Information */}
           <div className="border-t border-gray-200 pt-4 mb-4">
-            <p className="text-sm text-gray-600 mb-2">Have questions? We're here to help!</p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-              <a
-                href="tel:+13019437914"
-                onClick={() => trackEvent('click', 'Contact', 'Phone - Thank You')}
-                className="flex items-center gap-2 text-primary hover:text-primary-dark font-semibold text-sm"
-              >
-                <FaPhone />
-                <span>(301) 943-7914</span>
-              </a>
-              <span className="hidden sm:inline text-gray-300">|</span>
+            <p className="text-sm text-gray-600 mb-2">Questions? Reply to our email or reach out directly.</p>
+            <div className="flex justify-center">
               <a
                 href="mailto:jtomassoni@gmail.com"
                 onClick={() => trackEvent('click', 'Contact', 'Email - Thank You')}
-                className="flex items-center gap-2 text-primary hover:text-primary-dark font-semibold text-sm"
+                className="inline-flex items-center gap-2 text-primary hover:text-primary-dark font-semibold text-sm"
               >
                 <FaEnvelope />
                 <span>jtomassoni@gmail.com</span>

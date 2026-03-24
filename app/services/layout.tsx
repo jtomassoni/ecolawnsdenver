@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Lawn Care Services in Denver | Weekly Mowing, Spring Cleanup, Snow Removal',
-  description: 'Professional lawn care services in Denver: weekly & bi-weekly mowing, spring cleanup & aeration, fall cleanup, and electric snow removal. All services use battery-powered equipment for quiet, emission-free operation.',
+  description:
+    'Denver lawn services with free quotes: weekly & bi-weekly electric mowing, spring/fall cleanup, aeration, and quiet snow removal. Battery-powered on your lawn; solar-assisted charging. From $40/mow.',
   keywords: [
     'lawn mowing service Denver',
     'weekly lawn mowing',
@@ -17,7 +18,8 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Lawn Care Services in Denver | EcoLawns Denver',
-    description: 'Professional lawn care services in Denver: weekly mowing, spring cleanup, snow removal. All with battery-powered electric equipment.',
+    description:
+      'Electric lawn mowing, cleanups & snow removal in Denver. Free quotes, transparent pricing, solar-backed battery charging.',
     url: 'https://ecolawnsdenver.com/services',
     siteName: 'EcoLawns Denver',
     images: [
@@ -34,7 +36,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Lawn Care Services in Denver | EcoLawns Denver',
-    description: 'Professional lawn care services: weekly mowing, spring cleanup, snow removal with electric equipment.',
+    description:
+      'Denver electric lawn care—mowing, cleanups, snow removal. Free quotes & pricing on this page.',
     images: ['https://ecolawnsdenver.com/images/lawn-being-cut.png'],
   },
   alternates: {

@@ -1,0 +1,3 @@
+{
+  "/api/crm/leads/[id]/macros/send-invoice/route": "app/api/crm/leads/[id]/macros/send-invoice/route.js"
+}

@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///Users/jamestomassoni/ecolawnsdenver/app/crm/layout.tsx"],"sourcesContent":["export default function CrmLayout({ children }: { children: React.ReactNode }) {\n  return (\n    <div className=\"min-h-screen bg-gray-50\">\n      <main className=\"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6\">{children}</main>\n    </div>\n  );\n}\n"],"names":[],"mappings":";;;;;;AAAe,SAAS,UAAU,EAAE,QAAQ,EAAiC;IAC3E,qBACE,8OAAC;QAAI,WAAU;kBACb,cAAA,8OAAC;YAAK,WAAU;sBAA+C;;;;;;;;;;;AAGrE"}}]
+}
