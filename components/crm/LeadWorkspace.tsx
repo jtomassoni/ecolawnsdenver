@@ -19,7 +19,6 @@ import type {
   LeadRecord,
   LeadStatus,
 } from '@/lib/crm-types';
-import EmailPreviewModal, { type EmailPreviewData } from '@/components/EmailPreviewModal';
 import { LEAD_STATUSES, LEAD_STATUS_LABELS } from '@/lib/crm-types';
 import { formatCrmDateTime, formatCrmDateTimeCompact } from '@/lib/crm-format';
 import { FaBell, FaChevronDown, FaEdit, FaEnvelope, FaStickyNote } from 'react-icons/fa';
@@ -509,9 +508,7 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
   const [mailBody, setMailBody] = useState('');
   const [mailBusy, setMailBusy] = useState(false);
   const [mailError, setMailError] = useState('');
-  const [mailPreviewOpen, setMailPreviewOpen] = useState(false);
-  const [mailPreviewData, setMailPreviewData] = useState<EmailPreviewData | null>(null);
-  const [mailPreviewBusy, setMailPreviewBusy] = useState(false);
+  const [mailTemplateBusy, setMailTemplateBusy] = useState(false);
 
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [stripeLink, setStripeLink] = useState('');
@@ -523,6 +520,17 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
   const [invoiceBusy, setInvoiceBusy] = useState(false);
   const [invoiceError, setInvoiceError] = useState('');
   const [invoiceStep, setInvoiceStep] = useState<'link' | 'preview'>('link');
+
+  const [mowReminderOpen, setMowReminderOpen] = useState(false);
+  const [mowReminderServiceDay, setMowReminderServiceDay] = useState('');
+  const [mowReminderPreview, setMowReminderPreview] = useState<{
+    subject: string;
+    html: string;
+    text: string;
+  } | null>(null);
+  const [mowReminderBusy, setMowReminderBusy] = useState(false);
+  const [mowReminderError, setMowReminderError] = useState('');
+  const [mowReminderStep, setMowReminderStep] = useState<'form' | 'preview'>('form');
 
   const [activitySearch, setActivitySearch] = useState('');
   const [timelineComposer, setTimelineComposer] = useState<'note' | 'email'>('note');
@@ -668,6 +676,7 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
   useEffect(() => {
     let cancelled = false;
     const POLL_MS = 60_000;
+    const leadId = initialLead.id;
 
     async function pullGmailReplies() {
       if (cancelled || gmailSyncInFlight.current) return;
@@ -675,7 +684,15 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
       gmailSyncInFlight.current = true;
       try {
         const res = await fetch('/api/crm/sync-inbox', { method: 'POST' });
-        if (!cancelled && res.ok) router.refresh();
+        if (cancelled || !res.ok) return;
+        try {
+          const leadRes = await fetch(`/api/crm/leads/${leadId}`);
+          const j = (await leadRes.json()) as { lead?: LeadRecord };
+          if (j.lead) setLead(j.lead);
+        } catch {
+          /* ignore */
+        }
+        router.refresh();
       } catch {
         /* ignore */
       } finally {
@@ -695,7 +712,7 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
       window.clearInterval(intervalId);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [router]);
+  }, [router, initialLead.id]);
 
   function toggleActivity(key: string) {
     setOpenActivityKeys((prev) => {
@@ -847,35 +864,19 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
     return data.lead as LeadRecord;
   }
 
-  async function previewOutgoingMail(subject: string, text: string) {
-    setMailError('');
-    const s = subject.trim();
-    const t = text.trim();
-    if (!s || !t) {
-      setMailError('Subject and message are required to preview.');
+  function discardOutgoingDraft() {
+    if (mailBusy || mailTemplateBusy) return;
+    const hasContent = mailSubject.trim() || mailBody.trim();
+    if (
+      hasContent &&
+      !confirm('Discard this draft? The subject and message will be cleared.')
+    ) {
       return;
     }
-    setMailPreviewBusy(true);
-    try {
-      const res = await fetch(`/api/crm/leads/${lead.id}/send-email`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subject: s, text: t, previewOnly: true }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setMailError(data.error || 'Preview failed');
-        return;
-      }
-      if (data.preview) {
-        setMailPreviewData(data.preview as EmailPreviewData);
-        setMailPreviewOpen(true);
-      }
-    } catch {
-      setMailError('Request failed');
-    } finally {
-      setMailPreviewBusy(false);
-    }
+    setMailSubject('');
+    setMailBody('');
+    setMailError('');
+    setTimelineComposer('note');
   }
 
   async function sendOutgoingMail(
@@ -973,6 +974,106 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
       setInvoiceError('Request failed');
     } finally {
       setInvoiceBusy(false);
+    }
+  }
+
+  function openMowReminder() {
+    setMowReminderOpen(true);
+    setMowReminderServiceDay('');
+    setMowReminderPreview(null);
+    setMowReminderError('');
+    setMowReminderStep('form');
+  }
+
+  async function previewMowReminder() {
+    setMowReminderError('');
+    setMowReminderBusy(true);
+    try {
+      const res = await fetch(`/api/crm/leads/${lead.id}/macros/email-template`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          templateId: 'mow_reminder',
+          serviceDayLabel: mowReminderServiceDay.trim() || undefined,
+          previewOnly: true,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMowReminderError(data.error || 'Preview failed');
+        return;
+      }
+      setMowReminderPreview({ subject: data.subject, html: data.html, text: data.text });
+      setMowReminderStep('preview');
+    } catch {
+      setMowReminderError('Request failed');
+    } finally {
+      setMowReminderBusy(false);
+    }
+  }
+
+  async function sendMowReminder() {
+    setMowReminderError('');
+    setMowReminderBusy(true);
+    try {
+      const res = await fetch(`/api/crm/leads/${lead.id}/macros/email-template`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          templateId: 'mow_reminder',
+          serviceDayLabel: mowReminderServiceDay.trim() || undefined,
+          previewOnly: false,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMowReminderError(data.error || 'Send failed');
+        return;
+      }
+      setMowReminderOpen(false);
+      const refresh = await fetch(`/api/crm/leads/${lead.id}`);
+      const j = await refresh.json();
+      if (j.lead) setLead(j.lead);
+      router.refresh();
+    } catch {
+      setMowReminderError('Request failed');
+    } finally {
+      setMowReminderBusy(false);
+    }
+  }
+
+  type ComposerTemplateId = 'mow_reminder' | 'lawn_cut_notice';
+
+  async function insertEmailTemplateIntoComposer(
+    templateId: ComposerTemplateId,
+    options?: { serviceDayLabel?: string }
+  ) {
+    setMailError('');
+    setMailTemplateBusy(true);
+    try {
+      const res = await fetch(`/api/crm/leads/${lead.id}/macros/email-template`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          templateId,
+          previewOnly: true,
+          ...(options?.serviceDayLabel !== undefined && options.serviceDayLabel !== ''
+            ? { serviceDayLabel: options.serviceDayLabel }
+            : {}),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMailError(data.error || 'Could not load template');
+        return;
+      }
+      setTimelineComposer('email');
+      setMailSubject(data.subject);
+      setMailBody(data.text);
+    } catch {
+      setMailError('Request failed');
+    } finally {
+      setMailTemplateBusy(false);
     }
   }
 
@@ -1096,6 +1197,20 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
               </button>
               <button
                 type="button"
+                onClick={openMowReminder}
+                className="inline-flex h-9 items-center justify-center rounded-md border border-primary/35 bg-white px-3 text-xs font-semibold text-primary-dark shadow-sm hover:bg-primary/[0.06]"
+              >
+                Mow reminder
+              </button>
+              <button
+                type="button"
+                onClick={() => void insertEmailTemplateIntoComposer('lawn_cut_notice')}
+                className="inline-flex h-9 items-center justify-center rounded-md border border-primary/35 bg-white px-3 text-xs font-semibold text-primary-dark shadow-sm hover:bg-primary/[0.06]"
+              >
+                We&apos;ve cut your lawn
+              </button>
+              <button
+                type="button"
                 onClick={deleteLead}
                 className="inline-flex h-9 items-center justify-center rounded-md border border-red-200 bg-white px-3 text-xs text-red-700 hover:bg-red-50"
               >
@@ -1121,7 +1236,8 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 mt-0.5 max-w-2xl leading-snug">
-                  Newest first — emails, notes, and field changes. Gmail syncs about every minute.
+                  Newest first — emails, notes, and field changes. While this lead is open we check Gmail
+                  every minute for new messages to or from this inbox (and when you return to the tab).
                 </p>
               </div>
               <input
@@ -1261,49 +1377,124 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
                   </div>
                 </>
               ) : (
-                <>
-                  <p className="text-xs text-slate-500">
-                    Sends via Gmail (<code className="text-[11px] bg-slate-100 px-1 rounded">EMAIL_USER</code>
-                    ). Outbound and inbound messages appear in the timeline below.
-                  </p>
-                  <input
-                    className={`${inputClass} bg-white`}
-                    placeholder="Subject"
-                    value={mailSubject}
-                    onChange={(e) => setMailSubject(e.target.value)}
-                  />
-                  <textarea
-                    className={`${inputClass} min-h-[6rem] py-2 resize-y bg-white text-sm`}
-                    placeholder="Message"
-                    value={mailBody}
-                    onChange={(e) => setMailBody(e.target.value)}
-                  />
-                  {mailError && <p className="text-sm text-red-600">{mailError}</p>}
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      disabled={
-                        mailPreviewBusy || mailBusy || !mailSubject.trim() || !mailBody.trim()
-                      }
-                      onClick={() => void previewOutgoingMail(mailSubject, mailBody)}
-                      className="px-3 py-1.5 rounded-md border border-slate-300 bg-white text-slate-800 text-xs font-medium hover:bg-slate-50 disabled:opacity-50"
-                    >
-                      {mailPreviewBusy ? 'Preview…' : 'Preview'}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={mailBusy || !mailSubject.trim() || !mailBody.trim()}
-                      onClick={() => void sendOutgoingMail(mailSubject, mailBody)}
-                      className="px-3 py-1.5 rounded-md bg-primary text-white text-xs font-semibold hover:bg-primary-dark disabled:opacity-50"
-                    >
-                      {mailBusy ? 'Sending…' : 'Send to customer'}
-                    </button>
-                  </div>
-                </>
+                <p className="text-xs text-slate-500 leading-snug">
+                  Compose in the <span className="font-medium text-slate-700">draft card</span> on the
+                  timeline below. Sends via Gmail (<code className="text-[11px] bg-slate-100 px-1 rounded">EMAIL_USER</code>
+                  ); inbound mail is checked every minute while you stay on this lead.
+                </p>
               )}
             </div>
 
             <div className="relative pl-3 border-l-2 border-primary/20 space-y-2.5 ml-1">
+              {timelineComposer === 'email' ? (
+                <article className="relative ml-2 overflow-hidden rounded-2xl border border-primary/25 bg-gradient-to-b from-white to-primary/[0.04] shadow-sm">
+                  <div className="absolute -left-[15px] top-5 h-2.5 w-2.5 rounded-full border-2 border-white bg-primary" />
+                  <div className="border-b border-primary/15 bg-white/80 px-3 py-2.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary-dark">
+                        <FaEnvelope className="text-[13px] shrink-0" aria-hidden />
+                        Outgoing draft
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+                      Subject and message update live here. Send when ready — the sent message appears in the
+                      timeline below.
+                    </p>
+                  </div>
+                  <div className="px-3 py-3 space-y-2.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-[11px] font-medium text-slate-500">Template</span>
+                      <button
+                        type="button"
+                        disabled={mailTemplateBusy}
+                        onClick={() => void insertEmailTemplateIntoComposer('mow_reminder')}
+                        className="px-2.5 py-1 rounded-md border border-slate-200 bg-white text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                      >
+                        {mailTemplateBusy ? 'Loading…' : 'Mow reminder (tomorrow)'}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={mailTemplateBusy}
+                        onClick={() => void insertEmailTemplateIntoComposer('lawn_cut_notice')}
+                        className="px-2.5 py-1 rounded-md border border-slate-200 bg-white text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                      >
+                        We&apos;ve cut your lawn
+                      </button>
+                    </div>
+                    {!lead.email.trim() ? (
+                      <p className="text-xs text-amber-900 bg-amber-50/90 border border-amber-200/70 rounded-lg px-3 py-2">
+                        Add an email address in the contact panel to send.
+                      </p>
+                    ) : null}
+                    <input
+                      className={`${inputClass} bg-white`}
+                      placeholder="Subject"
+                      value={mailSubject}
+                      onChange={(e) => {
+                        setMailError('');
+                        setMailSubject(e.target.value);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                          e.preventDefault();
+                          void sendOutgoingMail(mailSubject, mailBody);
+                        }
+                      }}
+                    />
+                    <textarea
+                      className={`${inputClass} min-h-[7rem] py-2 resize-y bg-white text-sm`}
+                      placeholder="Message"
+                      value={mailBody}
+                      onChange={(e) => {
+                        setMailError('');
+                        setMailBody(e.target.value);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                          e.preventDefault();
+                          void sendOutgoingMail(mailSubject, mailBody);
+                        }
+                      }}
+                    />
+                    {mailError ? <p className="text-sm text-red-600">{mailError}</p> : null}
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
+                      <p className="text-[10px] text-slate-400">
+                        <kbd className="rounded border border-slate-200 bg-slate-50 px-1 py-0.5 font-mono text-[9px]">
+                          ⌘
+                        </kbd>
+                        {' + '}
+                        <kbd className="rounded border border-slate-200 bg-slate-50 px-1 py-0.5 font-mono text-[9px]">
+                          ↵
+                        </kbd>
+                        {' or Ctrl+↵ to send'}
+                      </p>
+                      <div className="flex flex-wrap items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          disabled={mailBusy || mailTemplateBusy}
+                          onClick={discardOutgoingDraft}
+                          className="px-3 py-1.5 rounded-md border border-slate-200 bg-white text-slate-600 text-xs font-medium hover:bg-slate-50 disabled:opacity-50"
+                        >
+                          Discard draft
+                        </button>
+                        <button
+                          type="button"
+                          disabled={
+                            mailBusy ||
+                            !lead.email.trim() ||
+                            !mailSubject.trim() ||
+                            !mailBody.trim()
+                          }
+                          onClick={() => void sendOutgoingMail(mailSubject, mailBody)}
+                          className="px-3 py-1.5 rounded-md bg-primary text-white text-xs font-semibold hover:bg-primary-dark disabled:opacity-50"
+                        >
+                          {mailBusy ? 'Sending…' : 'Send'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              ) : null}
               {filteredRows.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-6 text-center text-slate-500 text-sm ml-2">
                   No events match this search.
@@ -1330,8 +1521,6 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
                         mailError,
                         onClearMailError: () => setMailError(''),
                         mailBusy,
-                        mailPreviewBusy,
-                        onPreviewMail: (subject, text) => previewOutgoingMail(subject, text),
                         onSendMail: (subject, text) =>
                           sendOutgoingMail(subject, text, { clearMainComposer: false }),
                       }}
@@ -1348,8 +1537,6 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
                       mailError={mailError}
                       onClearMailError={() => setMailError('')}
                       mailBusy={mailBusy}
-                      mailPreviewBusy={mailPreviewBusy}
-                      onPreviewMail={(subject, text) => previewOutgoingMail(subject, text)}
                       onSendMail={(subject, text) =>
                         sendOutgoingMail(subject, text, { clearMainComposer: false })
                       }
@@ -1467,109 +1654,187 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
           </div>
         </div>
 
-      <EmailPreviewModal
-        open={mailPreviewOpen}
-        onClose={() => {
-          setMailPreviewOpen(false);
-          setMailPreviewData(null);
-        }}
-        preview={mailPreviewData}
-        title="Outgoing email preview"
-      />
-
-      {invoiceOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div
-            className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col"
-            role="dialog"
-            aria-labelledby="invoice-title"
-          >
-            <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-center">
-              <h2 id="invoice-title" className="font-semibold text-slate-900">
-                Send invoice
-              </h2>
-              <button
-                type="button"
-                onClick={() => setInvoiceOpen(false)}
-                className="text-slate-400 hover:text-slate-600 text-xl leading-none px-1"
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </div>
-            <div className="p-5 overflow-y-auto flex-1 space-y-4">
-              {invoiceStep === 'link' && (
-                <>
-                  <p className="text-sm text-slate-600">
-                    Paste your Stripe Payment Link. We&apos;ll merge{' '}
-                    <strong>name</strong> and <strong>address</strong> from this lead into the message.
-                  </p>
-                  <input
-                    className={inputClass}
-                    placeholder="https://buy.stripe.com/…"
-                    value={stripeLink}
-                    onChange={(e) => setStripeLink(e.target.value)}
-                  />
-                </>
-              )}
-              {invoiceStep === 'preview' && invoicePreview && (
-                <>
-                  <p className="text-xs font-medium text-slate-500">Subject</p>
-                  <p className="text-sm text-slate-900">{invoicePreview.subject}</p>
-                  <p className="text-xs font-medium text-slate-500 mt-3">Preview</p>
-                  <div
-                    className="rounded-lg border border-slate-100 bg-slate-50/80 p-4 text-sm overflow-auto max-h-48"
-                    dangerouslySetInnerHTML={{ __html: invoicePreview.html }}
-                  />
-                </>
-              )}
-              {invoiceError && <p className="text-sm text-red-600">{invoiceError}</p>}
-            </div>
-            <div className="px-5 py-4 border-t border-slate-100 flex gap-2 justify-end">
-              {invoiceStep === 'link' ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setInvoiceOpen(false)}
-                    className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    disabled={invoiceBusy || !stripeLink.trim()}
-                    onClick={previewInvoice}
-                    className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-50"
-                  >
-                    {invoiceBusy ? '…' : 'Preview'}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setInvoiceStep('link');
-                      setInvoicePreview(null);
-                    }}
-                    className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg"
-                  >
-                    Back
-                  </button>
-                  <button
-                    type="button"
-                    disabled={invoiceBusy}
-                    onClick={sendInvoice}
-                    className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-dark disabled:opacity-50"
-                  >
-                    {invoiceBusy ? 'Sending…' : 'Send email'}
-                  </button>
-                </>
-              )}
-            </div>
+      {invoiceOpen ? (
+        <div className="lg:col-span-2 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-100 flex justify-between items-center gap-2">
+            <h2 id="invoice-title" className="font-semibold text-slate-900 text-sm">
+              Send invoice
+            </h2>
+            <button
+              type="button"
+              onClick={() => setInvoiceOpen(false)}
+              className="text-slate-400 hover:text-slate-600 text-lg leading-none px-2 py-1 rounded-md hover:bg-slate-50"
+              aria-label="Close"
+            >
+              ×
+            </button>
+          </div>
+          <div className="p-4 space-y-4 max-h-[min(70vh,28rem)] overflow-y-auto">
+            {invoiceStep === 'link' && (
+              <>
+                <p className="text-sm text-slate-600">
+                  Paste your Stripe Payment Link. We&apos;ll merge{' '}
+                  <strong>name</strong> and <strong>address</strong> from this lead into the message.
+                </p>
+                <input
+                  className={inputClass}
+                  placeholder="https://buy.stripe.com/…"
+                  value={stripeLink}
+                  onChange={(e) => setStripeLink(e.target.value)}
+                />
+              </>
+            )}
+            {invoiceStep === 'preview' && invoicePreview && (
+              <>
+                <p className="text-xs font-medium text-slate-500">Subject</p>
+                <p className="text-sm text-slate-900">{invoicePreview.subject}</p>
+                <p className="text-xs font-medium text-slate-500 mt-3">Body preview</p>
+                <div
+                  className="rounded-lg border border-slate-100 bg-slate-50/80 p-4 text-sm overflow-auto max-h-48"
+                  dangerouslySetInnerHTML={{ __html: invoicePreview.html }}
+                />
+              </>
+            )}
+            {invoiceError && <p className="text-sm text-red-600">{invoiceError}</p>}
+          </div>
+          <div className="px-4 py-3 border-t border-slate-100 flex flex-wrap gap-2 justify-end">
+            {invoiceStep === 'link' ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setInvoiceOpen(false)}
+                  className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={invoiceBusy || !stripeLink.trim()}
+                  onClick={previewInvoice}
+                  className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-50"
+                >
+                  {invoiceBusy ? '…' : 'Continue'}
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInvoiceStep('link');
+                    setInvoicePreview(null);
+                  }}
+                  className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg"
+                >
+                  Back
+                </button>
+                <button
+                  type="button"
+                  disabled={invoiceBusy}
+                  onClick={sendInvoice}
+                  className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-dark disabled:opacity-50"
+                >
+                  {invoiceBusy ? 'Sending…' : 'Send email'}
+                </button>
+              </>
+            )}
           </div>
         </div>
-      )}
+      ) : null}
+
+      {mowReminderOpen ? (
+        <div className="lg:col-span-2 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-100 flex justify-between items-center gap-2">
+            <h2 id="mow-reminder-title" className="font-semibold text-slate-900 text-sm">
+              Mow reminder email
+            </h2>
+            <button
+              type="button"
+              onClick={() => setMowReminderOpen(false)}
+              className="text-slate-400 hover:text-slate-600 text-lg leading-none px-2 py-1 rounded-md hover:bg-slate-50"
+              aria-label="Close"
+            >
+              ×
+            </button>
+          </div>
+          <div className="p-4 space-y-4 max-h-[min(70vh,28rem)] overflow-y-auto">
+            {mowReminderStep === 'form' && (
+              <>
+                <p className="text-sm text-slate-600">
+                  Sends a short reminder that you&apos;ll mow their lawn. We merge{' '}
+                  <strong>name</strong> and <strong>address</strong> from this lead. Leave the field
+                  below empty to say <strong>tomorrow</strong> in the subject and body.
+                </p>
+                <label className="block space-y-1.5">
+                  <span className="text-xs font-medium text-slate-600">
+                    When (optional — default: tomorrow)
+                  </span>
+                  <input
+                    className={inputClass}
+                    placeholder="e.g. tomorrow, or Friday, April 11"
+                    value={mowReminderServiceDay}
+                    onChange={(e) => setMowReminderServiceDay(e.target.value)}
+                  />
+                </label>
+              </>
+            )}
+            {mowReminderStep === 'preview' && mowReminderPreview && (
+              <>
+                <p className="text-xs font-medium text-slate-500">Subject</p>
+                <p className="text-sm text-slate-900">{mowReminderPreview.subject}</p>
+                <p className="text-xs font-medium text-slate-500 mt-3">Body preview</p>
+                <div
+                  className="rounded-lg border border-slate-100 bg-slate-50/80 p-4 text-sm overflow-auto max-h-48"
+                  dangerouslySetInnerHTML={{ __html: mowReminderPreview.html }}
+                />
+              </>
+            )}
+            {mowReminderError && <p className="text-sm text-red-600">{mowReminderError}</p>}
+          </div>
+          <div className="px-4 py-3 border-t border-slate-100 flex flex-wrap gap-2 justify-end">
+            {mowReminderStep === 'form' ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setMowReminderOpen(false)}
+                  className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={mowReminderBusy}
+                  onClick={previewMowReminder}
+                  className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-50"
+                >
+                  {mowReminderBusy ? '…' : 'Continue'}
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMowReminderStep('form');
+                    setMowReminderPreview(null);
+                  }}
+                  className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg"
+                >
+                  Back
+                </button>
+                <button
+                  type="button"
+                  disabled={mowReminderBusy}
+                  onClick={sendMowReminder}
+                  className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-dark disabled:opacity-50"
+                >
+                  {mowReminderBusy ? 'Sending…' : 'Send email'}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -2174,8 +2439,6 @@ type EmailReplyActionsProps = {
   mailError: string;
   onClearMailError: () => void;
   mailBusy: boolean;
-  mailPreviewBusy: boolean;
-  onPreviewMail: (subject: string, text: string) => void | Promise<void>;
   onSendMail: (subject: string, text: string) => Promise<boolean>;
 };
 
@@ -2197,8 +2460,6 @@ function EmailThreadReplyComposer({
   mailError,
   onClearMailError,
   mailBusy,
-  mailPreviewBusy,
-  onPreviewMail,
   onSendMail,
 }: EmailReplyActionsProps & {
   threadMessages: CrmEmailMessage[];
@@ -2212,6 +2473,11 @@ function EmailThreadReplyComposer({
 
   function subjectForSend() {
     return replySubjectForThread(threadMessages);
+  }
+
+  async function submitReply() {
+    const ok = await onSendMail(subjectForSend(), replyBody);
+    if (ok) setReplyBody('');
   }
 
   return (
@@ -2231,42 +2497,35 @@ function EmailThreadReplyComposer({
           <div className="rounded-2xl bg-white border border-slate-200/80 shadow-sm overflow-hidden">
             <textarea
               className="w-full min-h-[4.25rem] max-h-48 px-3.5 py-3 text-[15px] leading-snug bg-transparent border-0 focus:outline-none focus:ring-0 resize-y placeholder:text-slate-400 disabled:opacity-50"
-              placeholder="Message…"
+              placeholder="Reply… (⌘↵ or Ctrl+↵ to send)"
               value={replyBody}
               onChange={(e) => {
                 onClearMailError();
                 setReplyBody(e.target.value);
               }}
+              onKeyDown={(e) => {
+                if (e.key !== 'Enter' || !(e.metaKey || e.ctrlKey)) return;
+                e.preventDefault();
+                if (!canSend || mailBusy || !replyReady) return;
+                void submitReply();
+              }}
               disabled={!canSend}
-              aria-label="Message"
+              aria-label="Reply message"
             />
-            <div className="flex flex-wrap items-center justify-end gap-2 px-2.5 pb-2.5 pt-0">
-              <button
-                type="button"
-                disabled={!canSend || mailPreviewBusy || mailBusy || !replyReady}
-                onClick={() => void onPreviewMail(subjectForSend(), replyBody)}
-                className="px-3 py-1.5 rounded-full text-xs font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-40"
-              >
-                {mailPreviewBusy ? 'Preview…' : 'Preview'}
-              </button>
+            <div className="flex flex-wrap items-center justify-between gap-2 px-3 pb-2.5 pt-0">
+              <p className="text-[10px] text-slate-400 pl-0.5">
+                Threading uses <span className="font-medium text-slate-500">Re:</span> automatically.
+              </p>
               <button
                 type="button"
                 disabled={!canSend || mailBusy || !replyReady}
-                onClick={() => {
-                  void (async () => {
-                    const ok = await onSendMail(subjectForSend(), replyBody);
-                    if (ok) setReplyBody('');
-                  })();
-                }}
+                onClick={() => void submitReply()}
                 className="px-4 py-1.5 rounded-full bg-primary text-white text-xs font-semibold hover:bg-primary-dark disabled:opacity-40 shadow-sm"
               >
                 {mailBusy ? 'Sending…' : 'Send'}
               </button>
             </div>
           </div>
-          <p className="text-[10px] text-slate-400 mt-2 px-0.5">
-            Goes out through your mail — threading stays linked automatically.
-          </p>
           {mailError ? <p className="text-sm text-red-600 mt-2">{mailError}</p> : null}
         </>
       )}
@@ -2284,8 +2543,6 @@ function EmailThreadConversation({
   mailError,
   onClearMailError,
   mailBusy,
-  mailPreviewBusy,
-  onPreviewMail,
   onSendMail,
 }: {
   rows: ActivityRow[];
@@ -2362,8 +2619,6 @@ function EmailThreadConversation({
             mailError={mailError}
             onClearMailError={onClearMailError}
             mailBusy={mailBusy}
-            mailPreviewBusy={mailPreviewBusy}
-            onPreviewMail={onPreviewMail}
             onSendMail={onSendMail}
           />
         </>
@@ -2382,8 +2637,6 @@ function EmailActivityCard({
   mailError,
   onClearMailError,
   mailBusy,
-  mailPreviewBusy,
-  onPreviewMail,
   onSendMail,
 }: {
   message: CrmEmailMessage;
@@ -2489,8 +2742,6 @@ function EmailActivityCard({
               mailError={mailError}
               onClearMailError={onClearMailError}
               mailBusy={mailBusy}
-              mailPreviewBusy={mailPreviewBusy}
-              onPreviewMail={onPreviewMail}
               onSendMail={onSendMail}
             />
           ) : null}

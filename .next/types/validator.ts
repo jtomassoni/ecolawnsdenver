@@ -119,6 +119,15 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../app/api/crm/leads/[id]/macros/email-template/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/crm/leads/[id]/macros/email-template">> = Specific
+  const handler = {} as typeof import("../../app/api/crm/leads/[id]/macros/email-template/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../app/api/crm/leads/[id]/macros/send-invoice/route.ts
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/api/crm/leads/[id]/macros/send-invoice">> = Specific

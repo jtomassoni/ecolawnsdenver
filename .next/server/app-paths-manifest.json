@@ -2,6 +2,7 @@
   "/_global-error/page": "app/_global-error/page.js",
   "/_not-found/page": "app/_not-found/page.js",
   "/about/page": "app/about/page.js",
+  "/api/crm/leads/[id]/macros/email-template/route": "app/api/crm/leads/[id]/macros/email-template/route.js",
   "/api/crm/leads/[id]/macros/send-invoice/route": "app/api/crm/leads/[id]/macros/send-invoice/route.js",
   "/api/crm/leads/[id]/notes/route": "app/api/crm/leads/[id]/notes/route.js",
   "/api/crm/leads/[id]/route": "app/api/crm/leads/[id]/route.js",

@@ -1021,6 +1021,12 @@ function LeadWorkspace({ initialLead }) {
     const [invoiceBusy, setInvoiceBusy] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const [invoiceError, setInvoiceError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('');
     const [invoiceStep, setInvoiceStep] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('link');
+    const [mowReminderOpen, setMowReminderOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [mowReminderServiceDay, setMowReminderServiceDay] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('');
+    const [mowReminderPreview, setMowReminderPreview] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
+    const [mowReminderBusy, setMowReminderBusy] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [mowReminderError, setMowReminderError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('');
+    const [mowReminderStep, setMowReminderStep] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('form');
     const [activitySearch, setActivitySearch] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('');
     const [timelineComposer, setTimelineComposer] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('note');
     const [timelineNote, setTimelineNote] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('');
@@ -1556,6 +1562,104 @@ function LeadWorkspace({ initialLead }) {
             setInvoiceBusy(false);
         }
     }
+    function openMowReminder() {
+        setMowReminderOpen(true);
+        setMowReminderServiceDay('');
+        setMowReminderPreview(null);
+        setMowReminderError('');
+        setMowReminderStep('form');
+    }
+    async function previewMowReminder() {
+        setMowReminderError('');
+        setMowReminderBusy(true);
+        try {
+            const res = await fetch(`/api/crm/leads/${lead.id}/macros/email-template`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    templateId: 'mow_reminder',
+                    serviceDayLabel: mowReminderServiceDay.trim() || undefined,
+                    previewOnly: true
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setMowReminderError(data.error || 'Preview failed');
+                return;
+            }
+            setMowReminderPreview({
+                subject: data.subject,
+                html: data.html,
+                text: data.text
+            });
+            setMowReminderStep('preview');
+        } catch  {
+            setMowReminderError('Request failed');
+        } finally{
+            setMowReminderBusy(false);
+        }
+    }
+    async function sendMowReminder() {
+        setMowReminderError('');
+        setMowReminderBusy(true);
+        try {
+            const res = await fetch(`/api/crm/leads/${lead.id}/macros/email-template`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    templateId: 'mow_reminder',
+                    serviceDayLabel: mowReminderServiceDay.trim() || undefined,
+                    previewOnly: false
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setMowReminderError(data.error || 'Send failed');
+                return;
+            }
+            setMowReminderOpen(false);
+            const refresh = await fetch(`/api/crm/leads/${lead.id}`);
+            const j = await refresh.json();
+            if (j.lead) setLead(j.lead);
+            router.refresh();
+        } catch  {
+            setMowReminderError('Request failed');
+        } finally{
+            setMowReminderBusy(false);
+        }
+    }
+    async function insertMowReminderIntoComposer() {
+        setMailError('');
+        setMailPreviewBusy(true);
+        try {
+            const res = await fetch(`/api/crm/leads/${lead.id}/macros/email-template`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    templateId: 'mow_reminder',
+                    previewOnly: true
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setMailError(data.error || 'Could not load template');
+                return;
+            }
+            setTimelineComposer('email');
+            setMailSubject(data.subject);
+            setMailBody(data.text);
+        } catch  {
+            setMailError('Request failed');
+        } finally{
+            setMailPreviewBusy(false);
+        }
+    }
     async function deleteLead() {
         if (!confirm('Delete this lead and all stored messages? This cannot be undone.')) return;
         const res = await fetch(`/api/crm/leads/${lead.id}`, {
@@ -1578,7 +1682,7 @@ function LeadWorkspace({ initialLead }) {
                         children: "← All leads"
                     }, void 0, false, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 991,
+                        lineNumber: 1091,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1603,12 +1707,12 @@ function LeadWorkspace({ initialLead }) {
                                     onCancel: cancelEdit
                                 }, void 0, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 999,
+                                    lineNumber: 1099,
                                     columnNumber: 13
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                lineNumber: 998,
+                                lineNumber: 1098,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1622,7 +1726,7 @@ function LeadWorkspace({ initialLead }) {
                                                 children: "Status"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                lineNumber: 1018,
+                                                lineNumber: 1118,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1648,7 +1752,7 @@ function LeadWorkspace({ initialLead }) {
                                                                 children: __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$types$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["LEAD_STATUS_LABELS"][lead.status]
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                                lineNumber: 1036,
+                                                                lineNumber: 1136,
                                                                 columnNumber: 19
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$fa$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FaChevronDown"], {
@@ -1656,13 +1760,13 @@ function LeadWorkspace({ initialLead }) {
                                                                 "aria-hidden": true
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                                lineNumber: 1041,
+                                                                lineNumber: 1141,
                                                                 columnNumber: 19
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                        lineNumber: 1022,
+                                                        lineNumber: 1122,
                                                         columnNumber: 17
                                                     }, this),
                                                     statusMenuOpen ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -1686,7 +1790,7 @@ function LeadWorkspace({ initialLead }) {
                                                                             children: __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$types$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["LEAD_STATUS_LABELS"][s]
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                                            lineNumber: 1067,
+                                                                            lineNumber: 1167,
                                                                             columnNumber: 29
                                                                         }, this),
                                                                         selected ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1695,36 +1799,36 @@ function LeadWorkspace({ initialLead }) {
                                                                             children: "Current"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                                            lineNumber: 1069,
+                                                                            lineNumber: 1169,
                                                                             columnNumber: 31
                                                                         }, this) : null
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                                    lineNumber: 1057,
+                                                                    lineNumber: 1157,
                                                                     columnNumber: 27
                                                                 }, this)
                                                             }, s, false, {
                                                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                                lineNumber: 1056,
+                                                                lineNumber: 1156,
                                                                 columnNumber: 25
                                                             }, this);
                                                         })
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                        lineNumber: 1047,
+                                                        lineNumber: 1147,
                                                         columnNumber: 19
                                                     }, this) : null
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                lineNumber: 1021,
+                                                lineNumber: 1121,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                        lineNumber: 1017,
+                                        lineNumber: 1117,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1736,7 +1840,7 @@ function LeadWorkspace({ initialLead }) {
                                                 onDismissAll: dismissAllDeliveryNotifications
                                             }, void 0, false, {
                                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                lineNumber: 1085,
+                                                lineNumber: 1185,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1746,7 +1850,17 @@ function LeadWorkspace({ initialLead }) {
                                                 children: "Send invoice"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                lineNumber: 1090,
+                                                lineNumber: 1190,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                type: "button",
+                                                onClick: openMowReminder,
+                                                className: "inline-flex h-9 items-center justify-center rounded-md border border-primary/35 bg-white px-3 text-xs font-semibold text-primary-dark shadow-sm hover:bg-primary/[0.06]",
+                                                children: "Mow reminder"
+                                            }, void 0, false, {
+                                                fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                                lineNumber: 1197,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1756,25 +1870,25 @@ function LeadWorkspace({ initialLead }) {
                                                 children: "Delete lead"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                lineNumber: 1097,
+                                                lineNumber: 1204,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                        lineNumber: 1084,
+                                        lineNumber: 1184,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                lineNumber: 1016,
+                                lineNumber: 1116,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 997,
+                        lineNumber: 1097,
                         columnNumber: 9
                     }, this),
                     fieldError && statusMenuOpen && !editing && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1782,13 +1896,13 @@ function LeadWorkspace({ initialLead }) {
                         children: fieldError
                     }, void 0, false, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 1109,
+                        lineNumber: 1216,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                lineNumber: 990,
+                lineNumber: 1090,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1810,7 +1924,7 @@ function LeadWorkspace({ initialLead }) {
                                                     children: "Timeline"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                    lineNumber: 1118,
+                                                    lineNumber: 1225,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1822,13 +1936,13 @@ function LeadWorkspace({ initialLead }) {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                    lineNumber: 1119,
+                                                    lineNumber: 1226,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1117,
+                                            lineNumber: 1224,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1836,13 +1950,13 @@ function LeadWorkspace({ initialLead }) {
                                             children: "Newest first — emails, notes, and field changes. Gmail syncs about every minute."
                                         }, void 0, false, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1123,
+                                            lineNumber: 1230,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 1116,
+                                    lineNumber: 1223,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1853,13 +1967,13 @@ function LeadWorkspace({ initialLead }) {
                                     className: "w-full sm:max-w-xs px-2.5 py-1.5 rounded-md border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary shrink-0"
                                 }, void 0, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 1127,
+                                    lineNumber: 1234,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1115,
+                            lineNumber: 1222,
                             columnNumber: 13
                         }, this),
                         activitySearch.trim() ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1871,7 +1985,7 @@ function LeadWorkspace({ initialLead }) {
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1136,
+                            lineNumber: 1243,
                             columnNumber: 15
                         }, this) : null,
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1885,7 +1999,7 @@ function LeadWorkspace({ initialLead }) {
                                             children: "Add to timeline"
                                         }, void 0, false, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1143,
+                                            lineNumber: 1250,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1909,14 +2023,14 @@ function LeadWorkspace({ initialLead }) {
                                                                     "aria-hidden": true
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                                    lineNumber: 1162,
+                                                                    lineNumber: 1269,
                                                                     columnNumber: 25
                                                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$fa$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FaEnvelope"], {
                                                                     className: "shrink-0 text-[14px] text-primary-dark",
                                                                     "aria-hidden": true
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                                    lineNumber: 1167,
+                                                                    lineNumber: 1274,
                                                                     columnNumber: 25
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1924,13 +2038,13 @@ function LeadWorkspace({ initialLead }) {
                                                                     children: timelineComposer === 'note' ? 'Add note' : 'Send email'
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                                    lineNumber: 1169,
+                                                                    lineNumber: 1276,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                            lineNumber: 1160,
+                                                            lineNumber: 1267,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$fa$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FaChevronDown"], {
@@ -1938,13 +2052,13 @@ function LeadWorkspace({ initialLead }) {
                                                             "aria-hidden": true
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                            lineNumber: 1173,
+                                                            lineNumber: 1280,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                    lineNumber: 1147,
+                                                    lineNumber: 1254,
                                                     columnNumber: 19
                                                 }, this),
                                                 timelineComposerOpen ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -1969,7 +2083,7 @@ function LeadWorkspace({ initialLead }) {
                                                                         "aria-hidden": true
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                                        lineNumber: 1199,
+                                                                        lineNumber: 1306,
                                                                         columnNumber: 27
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1977,7 +2091,7 @@ function LeadWorkspace({ initialLead }) {
                                                                         children: "Add note"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                                        lineNumber: 1203,
+                                                                        lineNumber: 1310,
                                                                         columnNumber: 27
                                                                     }, this),
                                                                     timelineComposer === 'note' ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1985,18 +2099,18 @@ function LeadWorkspace({ initialLead }) {
                                                                         children: "Current"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                                        lineNumber: 1205,
+                                                                        lineNumber: 1312,
                                                                         columnNumber: 29
                                                                     }, this) : null
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                                lineNumber: 1185,
+                                                                lineNumber: 1292,
                                                                 columnNumber: 25
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                            lineNumber: 1184,
+                                                            lineNumber: 1291,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
@@ -2016,7 +2130,7 @@ function LeadWorkspace({ initialLead }) {
                                                                         "aria-hidden": true
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                                        lineNumber: 1226,
+                                                                        lineNumber: 1333,
                                                                         columnNumber: 27
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2024,7 +2138,7 @@ function LeadWorkspace({ initialLead }) {
                                                                         children: "Send email"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                                        lineNumber: 1230,
+                                                                        lineNumber: 1337,
                                                                         columnNumber: 27
                                                                     }, this),
                                                                     timelineComposer === 'email' ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2032,36 +2146,36 @@ function LeadWorkspace({ initialLead }) {
                                                                         children: "Current"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                                        lineNumber: 1232,
+                                                                        lineNumber: 1339,
                                                                         columnNumber: 29
                                                                     }, this) : null
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                                lineNumber: 1212,
+                                                                lineNumber: 1319,
                                                                 columnNumber: 25
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                            lineNumber: 1211,
+                                                            lineNumber: 1318,
                                                             columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                    lineNumber: 1179,
+                                                    lineNumber: 1286,
                                                     columnNumber: 21
                                                 }, this) : null
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1146,
+                                            lineNumber: 1253,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 1142,
+                                    lineNumber: 1249,
                                     columnNumber: 15
                                 }, this),
                                 timelineComposer === 'note' ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -2073,7 +2187,7 @@ function LeadWorkspace({ initialLead }) {
                                             onChange: (e)=>setTimelineNote(e.target.value)
                                         }, void 0, false, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1245,
+                                            lineNumber: 1352,
                                             columnNumber: 19
                                         }, this),
                                         noteError && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2081,7 +2195,7 @@ function LeadWorkspace({ initialLead }) {
                                             children: noteError
                                         }, void 0, false, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1251,
+                                            lineNumber: 1358,
                                             columnNumber: 33
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2094,12 +2208,12 @@ function LeadWorkspace({ initialLead }) {
                                                 children: noteBusy ? 'Adding…' : 'Add note'
                                             }, void 0, false, {
                                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                lineNumber: 1253,
+                                                lineNumber: 1360,
                                                 columnNumber: 21
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1252,
+                                            lineNumber: 1359,
                                             columnNumber: 19
                                         }, this)
                                     ]
@@ -2114,14 +2228,42 @@ function LeadWorkspace({ initialLead }) {
                                                     children: "EMAIL_USER"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                    lineNumber: 1266,
+                                                    lineNumber: 1373,
                                                     columnNumber: 38
                                                 }, this),
                                                 "). Outbound and inbound messages appear in the timeline below."
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1265,
+                                            lineNumber: 1372,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "flex flex-wrap items-center gap-2",
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                    className: "text-[11px] font-medium text-slate-500",
+                                                    children: "Template"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                                    lineNumber: 1377,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                    type: "button",
+                                                    disabled: mailPreviewBusy,
+                                                    onClick: ()=>void insertMowReminderIntoComposer(),
+                                                    className: "px-2.5 py-1 rounded-md border border-slate-200 bg-white text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50",
+                                                    children: "Mow reminder (tomorrow)"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                                    lineNumber: 1378,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                            lineNumber: 1376,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -2131,7 +2273,7 @@ function LeadWorkspace({ initialLead }) {
                                             onChange: (e)=>setMailSubject(e.target.value)
                                         }, void 0, false, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1269,
+                                            lineNumber: 1387,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("textarea", {
@@ -2141,7 +2283,7 @@ function LeadWorkspace({ initialLead }) {
                                             onChange: (e)=>setMailBody(e.target.value)
                                         }, void 0, false, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1275,
+                                            lineNumber: 1393,
                                             columnNumber: 19
                                         }, this),
                                         mailError && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2149,7 +2291,7 @@ function LeadWorkspace({ initialLead }) {
                                             children: mailError
                                         }, void 0, false, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1281,
+                                            lineNumber: 1399,
                                             columnNumber: 33
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2163,7 +2305,7 @@ function LeadWorkspace({ initialLead }) {
                                                     children: mailPreviewBusy ? 'Preview…' : 'Preview'
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                    lineNumber: 1283,
+                                                    lineNumber: 1401,
                                                     columnNumber: 21
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2174,13 +2316,13 @@ function LeadWorkspace({ initialLead }) {
                                                     children: mailBusy ? 'Sending…' : 'Send to customer'
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                    lineNumber: 1293,
+                                                    lineNumber: 1411,
                                                     columnNumber: 21
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1282,
+                                            lineNumber: 1400,
                                             columnNumber: 19
                                         }, this)
                                     ]
@@ -2188,7 +2330,7 @@ function LeadWorkspace({ initialLead }) {
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1141,
+                            lineNumber: 1248,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2198,7 +2340,7 @@ function LeadWorkspace({ initialLead }) {
                                 children: "No events match this search."
                             }, void 0, false, {
                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                lineNumber: 1308,
+                                lineNumber: 1426,
                                 columnNumber: 17
                             }, this) : timelineSegments.map((seg)=>seg.type === 'row' ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(ActivityItem, {
                                     row: seg.row,
@@ -2226,7 +2368,7 @@ function LeadWorkspace({ initialLead }) {
                                     }
                                 }, seg.row.key, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 1314,
+                                    lineNumber: 1432,
                                     columnNumber: 21
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(EmailThreadConversation, {
                                     rows: seg.rows,
@@ -2245,23 +2387,23 @@ function LeadWorkspace({ initialLead }) {
                                         })
                                 }, seg.threadKey, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 1340,
+                                    lineNumber: 1458,
                                     columnNumber: 21
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1306,
+                            lineNumber: 1424,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                    lineNumber: 1114,
+                    lineNumber: 1221,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                lineNumber: 1113,
+                lineNumber: 1220,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2277,7 +2419,7 @@ function LeadWorkspace({ initialLead }) {
                                     children: "Contact"
                                 }, void 0, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 1367,
+                                    lineNumber: 1485,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2288,7 +2430,7 @@ function LeadWorkspace({ initialLead }) {
                                             children: "Created"
                                         }, void 0, false, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1371,
+                                            lineNumber: 1489,
                                             columnNumber: 17
                                         }, this),
                                         ' ',
@@ -2298,7 +2440,7 @@ function LeadWorkspace({ initialLead }) {
                                             children: "·"
                                         }, void 0, false, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1373,
+                                            lineNumber: 1491,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2306,7 +2448,7 @@ function LeadWorkspace({ initialLead }) {
                                             children: "Updated"
                                         }, void 0, false, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1374,
+                                            lineNumber: 1492,
                                             columnNumber: 17
                                         }, this),
                                         ' ',
@@ -2314,13 +2456,13 @@ function LeadWorkspace({ initialLead }) {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 1370,
+                                    lineNumber: 1488,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1366,
+                            lineNumber: 1484,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2348,12 +2490,12 @@ function LeadWorkspace({ initialLead }) {
                                         autoComplete: "email"
                                     }, void 0, false, {
                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                        lineNumber: 1381,
+                                        lineNumber: 1499,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 1380,
+                                    lineNumber: 1498,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2378,12 +2520,12 @@ function LeadWorkspace({ initialLead }) {
                                         autoComplete: "tel"
                                     }, void 0, false, {
                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                        lineNumber: 1402,
+                                        lineNumber: 1520,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 1401,
+                                    lineNumber: 1519,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2408,12 +2550,12 @@ function LeadWorkspace({ initialLead }) {
                                         minH: "min-h-[4.5rem]"
                                     }, void 0, false, {
                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                        lineNumber: 1423,
+                                        lineNumber: 1541,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 1422,
+                                    lineNumber: 1540,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2440,29 +2582,29 @@ function LeadWorkspace({ initialLead }) {
                                         placeholder: "Internal reference — timeline shows before → after when you Save"
                                     }, void 0, false, {
                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                        lineNumber: 1444,
+                                        lineNumber: 1562,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 1443,
+                                    lineNumber: 1561,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1379,
+                            lineNumber: 1497,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                    lineNumber: 1365,
+                    lineNumber: 1483,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                lineNumber: 1364,
+                lineNumber: 1482,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$EmailPreviewModal$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -2475,7 +2617,7 @@ function LeadWorkspace({ initialLead }) {
                 title: "Outgoing email preview"
             }, void 0, false, {
                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                lineNumber: 1470,
+                lineNumber: 1588,
                 columnNumber: 7
             }, this),
             invoiceOpen && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2494,7 +2636,7 @@ function LeadWorkspace({ initialLead }) {
                                     children: "Send invoice"
                                 }, void 0, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 1488,
+                                    lineNumber: 1606,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2505,13 +2647,13 @@ function LeadWorkspace({ initialLead }) {
                                     children: "×"
                                 }, void 0, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 1491,
+                                    lineNumber: 1609,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1487,
+                            lineNumber: 1605,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2528,7 +2670,7 @@ function LeadWorkspace({ initialLead }) {
                                                     children: "name"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                    lineNumber: 1505,
+                                                    lineNumber: 1623,
                                                     columnNumber: 21
                                                 }, this),
                                                 " and ",
@@ -2536,14 +2678,14 @@ function LeadWorkspace({ initialLead }) {
                                                     children: "address"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                    lineNumber: 1505,
+                                                    lineNumber: 1623,
                                                     columnNumber: 47
                                                 }, this),
                                                 " from this lead into the message."
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1503,
+                                            lineNumber: 1621,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -2553,7 +2695,7 @@ function LeadWorkspace({ initialLead }) {
                                             onChange: (e)=>setStripeLink(e.target.value)
                                         }, void 0, false, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1507,
+                                            lineNumber: 1625,
                                             columnNumber: 19
                                         }, this)
                                     ]
@@ -2565,7 +2707,7 @@ function LeadWorkspace({ initialLead }) {
                                             children: "Subject"
                                         }, void 0, false, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1517,
+                                            lineNumber: 1635,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2573,7 +2715,7 @@ function LeadWorkspace({ initialLead }) {
                                             children: invoicePreview.subject
                                         }, void 0, false, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1518,
+                                            lineNumber: 1636,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2581,7 +2723,7 @@ function LeadWorkspace({ initialLead }) {
                                             children: "Preview"
                                         }, void 0, false, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1519,
+                                            lineNumber: 1637,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2591,7 +2733,7 @@ function LeadWorkspace({ initialLead }) {
                                             }
                                         }, void 0, false, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1520,
+                                            lineNumber: 1638,
                                             columnNumber: 19
                                         }, this)
                                     ]
@@ -2601,13 +2743,13 @@ function LeadWorkspace({ initialLead }) {
                                     children: invoiceError
                                 }, void 0, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 1526,
+                                    lineNumber: 1644,
                                     columnNumber: 32
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1500,
+                            lineNumber: 1618,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2621,7 +2763,7 @@ function LeadWorkspace({ initialLead }) {
                                         children: "Cancel"
                                     }, void 0, false, {
                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                        lineNumber: 1531,
+                                        lineNumber: 1649,
                                         columnNumber: 19
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2632,7 +2774,7 @@ function LeadWorkspace({ initialLead }) {
                                         children: invoiceBusy ? '…' : 'Preview'
                                     }, void 0, false, {
                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                        lineNumber: 1538,
+                                        lineNumber: 1656,
                                         columnNumber: 19
                                     }, this)
                                 ]
@@ -2648,7 +2790,7 @@ function LeadWorkspace({ initialLead }) {
                                         children: "Back"
                                     }, void 0, false, {
                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                        lineNumber: 1549,
+                                        lineNumber: 1667,
                                         columnNumber: 19
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2659,35 +2801,262 @@ function LeadWorkspace({ initialLead }) {
                                         children: invoiceBusy ? 'Sending…' : 'Send email'
                                     }, void 0, false, {
                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                        lineNumber: 1559,
+                                        lineNumber: 1677,
                                         columnNumber: 19
                                     }, this)
                                 ]
                             }, void 0, true)
                         }, void 0, false, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1528,
+                            lineNumber: 1646,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                    lineNumber: 1482,
+                    lineNumber: 1600,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                lineNumber: 1481,
+                lineNumber: 1599,
+                columnNumber: 9
+            }, this),
+            mowReminderOpen && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm",
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: "bg-white rounded-2xl shadow-xl border border-slate-200 max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col",
+                    role: "dialog",
+                    "aria-labelledby": "mow-reminder-title",
+                    children: [
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "px-5 py-4 border-b border-slate-100 flex justify-between items-center",
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
+                                    id: "mow-reminder-title",
+                                    className: "font-semibold text-slate-900",
+                                    children: "Mow reminder email"
+                                }, void 0, false, {
+                                    fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                    lineNumber: 1700,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                    type: "button",
+                                    onClick: ()=>setMowReminderOpen(false),
+                                    className: "text-slate-400 hover:text-slate-600 text-xl leading-none px-1",
+                                    "aria-label": "Close",
+                                    children: "×"
+                                }, void 0, false, {
+                                    fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                    lineNumber: 1703,
+                                    columnNumber: 15
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                            lineNumber: 1699,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "p-5 overflow-y-auto flex-1 space-y-4",
+                            children: [
+                                mowReminderStep === 'form' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                            className: "text-sm text-slate-600",
+                                            children: [
+                                                "Sends a short reminder that you'll mow their lawn. We merge",
+                                                ' ',
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                    children: "name"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                                    lineNumber: 1717,
+                                                    columnNumber: 21
+                                                }, this),
+                                                " and ",
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                    children: "address"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                                    lineNumber: 1717,
+                                                    columnNumber: 47
+                                                }, this),
+                                                " from this lead. Leave the field below empty to say ",
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                    children: "tomorrow"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                                    lineNumber: 1718,
+                                                    columnNumber: 40
+                                                }, this),
+                                                " in the subject and body."
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                            lineNumber: 1715,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                            className: "block space-y-1.5",
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                    className: "text-xs font-medium text-slate-600",
+                                                    children: "When (optional — default: tomorrow)"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                                    lineNumber: 1721,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                    className: inputClass,
+                                                    placeholder: "e.g. tomorrow, or Friday, April 11",
+                                                    value: mowReminderServiceDay,
+                                                    onChange: (e)=>setMowReminderServiceDay(e.target.value)
+                                                }, void 0, false, {
+                                                    fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                                    lineNumber: 1724,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                            lineNumber: 1720,
+                                            columnNumber: 19
+                                        }, this)
+                                    ]
+                                }, void 0, true),
+                                mowReminderStep === 'preview' && mowReminderPreview && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                            className: "text-xs font-medium text-slate-500",
+                                            children: "Subject"
+                                        }, void 0, false, {
+                                            fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                            lineNumber: 1735,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                            className: "text-sm text-slate-900",
+                                            children: mowReminderPreview.subject
+                                        }, void 0, false, {
+                                            fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                            lineNumber: 1736,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                            className: "text-xs font-medium text-slate-500 mt-3",
+                                            children: "Preview"
+                                        }, void 0, false, {
+                                            fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                            lineNumber: 1737,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "rounded-lg border border-slate-100 bg-slate-50/80 p-4 text-sm overflow-auto max-h-48",
+                                            dangerouslySetInnerHTML: {
+                                                __html: mowReminderPreview.html
+                                            }
+                                        }, void 0, false, {
+                                            fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                            lineNumber: 1738,
+                                            columnNumber: 19
+                                        }, this)
+                                    ]
+                                }, void 0, true),
+                                mowReminderError && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                    className: "text-sm text-red-600",
+                                    children: mowReminderError
+                                }, void 0, false, {
+                                    fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                    lineNumber: 1744,
+                                    columnNumber: 36
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                            lineNumber: 1712,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "px-5 py-4 border-t border-slate-100 flex gap-2 justify-end",
+                            children: mowReminderStep === 'form' ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                        type: "button",
+                                        onClick: ()=>setMowReminderOpen(false),
+                                        className: "px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg",
+                                        children: "Cancel"
+                                    }, void 0, false, {
+                                        fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                        lineNumber: 1749,
+                                        columnNumber: 19
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                        type: "button",
+                                        disabled: mowReminderBusy,
+                                        onClick: previewMowReminder,
+                                        className: "px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-50",
+                                        children: mowReminderBusy ? '…' : 'Preview'
+                                    }, void 0, false, {
+                                        fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                        lineNumber: 1756,
+                                        columnNumber: 19
+                                    }, this)
+                                ]
+                            }, void 0, true) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                        type: "button",
+                                        onClick: ()=>{
+                                            setMowReminderStep('form');
+                                            setMowReminderPreview(null);
+                                        },
+                                        className: "px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg",
+                                        children: "Back"
+                                    }, void 0, false, {
+                                        fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                        lineNumber: 1767,
+                                        columnNumber: 19
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                        type: "button",
+                                        disabled: mowReminderBusy,
+                                        onClick: sendMowReminder,
+                                        className: "px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-dark disabled:opacity-50",
+                                        children: mowReminderBusy ? 'Sending…' : 'Send email'
+                                    }, void 0, false, {
+                                        fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                                        lineNumber: 1777,
+                                        columnNumber: 19
+                                    }, this)
+                                ]
+                            }, void 0, true)
+                        }, void 0, false, {
+                            fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                            lineNumber: 1746,
+                            columnNumber: 13
+                        }, this)
+                    ]
+                }, void 0, true, {
+                    fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                    lineNumber: 1694,
+                    columnNumber: 11
+                }, this)
+            }, void 0, false, {
+                fileName: "[project]/components/crm/LeadWorkspace.tsx",
+                lineNumber: 1693,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-        lineNumber: 989,
+        lineNumber: 1089,
         columnNumber: 5
     }, this);
 }
-_s1(LeadWorkspace, "3EOuwzKoQEMLatzStwdulyQabx4=", false, function() {
+_s1(LeadWorkspace, "7rJpmnpcBirz+RJk3CBgUgPPL38=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"]
     ];
@@ -2721,7 +3090,7 @@ function ContactField({ label, labelHint, shortLabel, emptyHint, editing, fieldK
                         children: label
                     }, void 0, false, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 1648,
+                        lineNumber: 1866,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2734,25 +3103,25 @@ function ContactField({ label, labelHint, shortLabel, emptyHint, editing, fieldK
                             children: displayValue
                         }, void 0, false, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1656,
+                            lineNumber: 1874,
                             columnNumber: 15
                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                             className: "text-sm text-slate-400 italic",
                             children: emptyHint
                         }, void 0, false, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1660,
+                            lineNumber: 1878,
                             columnNumber: 15
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 1649,
+                        lineNumber: 1867,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                lineNumber: 1647,
+                lineNumber: 1865,
                 columnNumber: 9
             }, this);
         }
@@ -2765,13 +3134,13 @@ function ContactField({ label, labelHint, shortLabel, emptyHint, editing, fieldK
                     children: labelHint
                 }, void 0, false, {
                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                    lineNumber: 1677,
+                    lineNumber: 1895,
                     columnNumber: 11
                 }, this) : null
             ]
         }, void 0, true, {
             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-            lineNumber: 1668,
+            lineNumber: 1886,
             columnNumber: 7
         }, this);
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2790,23 +3159,23 @@ function ContactField({ label, labelHint, shortLabel, emptyHint, editing, fieldK
                             children: emptyHint
                         }, void 0, false, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1706,
+                            lineNumber: 1924,
                             columnNumber: 51
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 1703,
+                        lineNumber: 1921,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                lineNumber: 1692,
+                lineNumber: 1910,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-            lineNumber: 1691,
+            lineNumber: 1909,
             columnNumber: 7
         }, this);
     }
@@ -2824,7 +3193,7 @@ function ContactField({ label, labelHint, shortLabel, emptyHint, editing, fieldK
                             children: labelHint
                         }, void 0, false, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1732,
+                            lineNumber: 1950,
                             columnNumber: 15
                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                             className: "font-normal text-slate-400",
@@ -2834,18 +3203,18 @@ function ContactField({ label, labelHint, shortLabel, emptyHint, editing, fieldK
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1734,
+                            lineNumber: 1952,
                             columnNumber: 15
                         }, this) : null
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                    lineNumber: 1722,
+                    lineNumber: 1940,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                lineNumber: 1721,
+                lineNumber: 1939,
                 columnNumber: 7
             }, this),
             multiline ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("textarea", {
@@ -2857,7 +3226,7 @@ function ContactField({ label, labelHint, shortLabel, emptyHint, editing, fieldK
                 placeholder: placeholder
             }, void 0, false, {
                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                lineNumber: 1740,
+                lineNumber: 1958,
                 columnNumber: 9
             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
                 ref: inputRef,
@@ -2870,7 +3239,7 @@ function ContactField({ label, labelHint, shortLabel, emptyHint, editing, fieldK
                 placeholder: placeholder
             }, void 0, false, {
                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                lineNumber: 1749,
+                lineNumber: 1967,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2884,7 +3253,7 @@ function ContactField({ label, labelHint, shortLabel, emptyHint, editing, fieldK
                         children: saving ? 'Saving…' : 'Save'
                     }, void 0, false, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 1761,
+                        lineNumber: 1979,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2895,13 +3264,13 @@ function ContactField({ label, labelHint, shortLabel, emptyHint, editing, fieldK
                         children: "Cancel"
                     }, void 0, false, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 1769,
+                        lineNumber: 1987,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                lineNumber: 1760,
+                lineNumber: 1978,
                 columnNumber: 7
             }, this),
             error ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2909,13 +3278,13 @@ function ContactField({ label, labelHint, shortLabel, emptyHint, editing, fieldK
                 children: error
             }, void 0, false, {
                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                lineNumber: 1778,
+                lineNumber: 1996,
                 columnNumber: 16
             }, this) : null
         ]
     }, void 0, true, {
         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-        lineNumber: 1714,
+        lineNumber: 1932,
         columnNumber: 5
     }, this);
 }
@@ -2977,7 +3346,7 @@ function StaffNoteActivityCard({ ev, open, onToggle, onLeadUpdated, updateTimeli
                 className: "absolute -left-[15px] top-4 h-2.5 w-2.5 rounded-full border-2 border-white bg-amber-400"
             }, void 0, false, {
                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                lineNumber: 1849,
+                lineNumber: 2067,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2994,14 +3363,14 @@ function StaffNoteActivityCard({ ev, open, onToggle, onLeadUpdated, updateTimeli
                                         "aria-hidden": true
                                     }, void 0, false, {
                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                        lineNumber: 1853,
+                                        lineNumber: 2071,
                                         columnNumber: 13
                                     }, this),
                                     "Staff note"
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                lineNumber: 1852,
+                                lineNumber: 2070,
                                 columnNumber: 11
                             }, this),
                             needsExpand && !editing ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -3011,13 +3380,13 @@ function StaffNoteActivityCard({ ev, open, onToggle, onLeadUpdated, updateTimeli
                                 children: open ? 'Show less' : 'Expand'
                             }, void 0, false, {
                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                lineNumber: 1857,
+                                lineNumber: 2075,
                                 columnNumber: 13
                             }, this) : null
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 1851,
+                        lineNumber: 2069,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("time", {
@@ -3027,13 +3396,13 @@ function StaffNoteActivityCard({ ev, open, onToggle, onLeadUpdated, updateTimeli
                         children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$format$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["formatCrmDateTimeCompact"])(ev.createdAt)
                     }, void 0, false, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 1866,
+                        lineNumber: 2084,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                lineNumber: 1850,
+                lineNumber: 2068,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3048,7 +3417,7 @@ function StaffNoteActivityCard({ ev, open, onToggle, onLeadUpdated, updateTimeli
                             "aria-label": "Edit staff note"
                         }, void 0, false, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1877,
+                            lineNumber: 2095,
                             columnNumber: 13
                         }, this),
                         err ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3056,7 +3425,7 @@ function StaffNoteActivityCard({ ev, open, onToggle, onLeadUpdated, updateTimeli
                             children: err
                         }, void 0, false, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1884,
+                            lineNumber: 2102,
                             columnNumber: 20
                         }, this) : null,
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3070,7 +3439,7 @@ function StaffNoteActivityCard({ ev, open, onToggle, onLeadUpdated, updateTimeli
                                     children: busy ? 'Saving…' : 'Save'
                                 }, void 0, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 1886,
+                                    lineNumber: 2104,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -3081,13 +3450,13 @@ function StaffNoteActivityCard({ ev, open, onToggle, onLeadUpdated, updateTimeli
                                     children: "Cancel"
                                 }, void 0, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 1894,
+                                    lineNumber: 2112,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1885,
+                            lineNumber: 2103,
                             columnNumber: 13
                         }, this)
                     ]
@@ -3098,7 +3467,7 @@ function StaffNoteActivityCard({ ev, open, onToggle, onLeadUpdated, updateTimeli
                             children: ev.body
                         }, void 0, false, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1906,
+                            lineNumber: 2124,
                             columnNumber: 13
                         }, this),
                         (!needsExpand || open) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -3108,20 +3477,20 @@ function StaffNoteActivityCard({ ev, open, onToggle, onLeadUpdated, updateTimeli
                             children: "Edit note"
                         }, void 0, false, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1912,
+                            lineNumber: 2130,
                             columnNumber: 15
                         }, this)
                     ]
                 }, void 0, true)
             }, void 0, false, {
                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                lineNumber: 1874,
+                lineNumber: 2092,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-        lineNumber: 1848,
+        lineNumber: 2066,
         columnNumber: 5
     }, this);
 }
@@ -3136,7 +3505,7 @@ function ActivityItem({ row, open, onToggle, searchActive, staffNoteActions, ema
                     className: "absolute -left-[15px] top-3 h-2.5 w-2.5 rounded-full border-2 border-white bg-slate-300"
                 }, void 0, false, {
                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                    lineNumber: 1945,
+                    lineNumber: 2163,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3147,7 +3516,7 @@ function ActivityItem({ row, open, onToggle, searchActive, staffNoteActions, ema
                             children: "Lead record created"
                         }, void 0, false, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1947,
+                            lineNumber: 2165,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("time", {
@@ -3156,13 +3525,13 @@ function ActivityItem({ row, open, onToggle, searchActive, staffNoteActions, ema
                             children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$format$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["formatCrmDateTime"])(row.sortAt)
                         }, void 0, false, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1948,
+                            lineNumber: 2166,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                    lineNumber: 1946,
+                    lineNumber: 2164,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3170,13 +3539,13 @@ function ActivityItem({ row, open, onToggle, searchActive, staffNoteActions, ema
                     children: "System · record added to CRM"
                 }, void 0, false, {
                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                    lineNumber: 1952,
+                    lineNumber: 2170,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-            lineNumber: 1944,
+            lineNumber: 2162,
             columnNumber: 7
         }, this);
     }
@@ -3189,7 +3558,7 @@ function ActivityItem({ row, open, onToggle, searchActive, staffNoteActions, ema
             ...emailReply
         }, void 0, false, {
             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-            lineNumber: 1959,
+            lineNumber: 2177,
             columnNumber: 7
         }, this);
     }
@@ -3203,7 +3572,7 @@ function ActivityItem({ row, open, onToggle, searchActive, staffNoteActions, ema
                 ...staffNoteActions
             }, void 0, false, {
                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                lineNumber: 1973,
+                lineNumber: 2191,
                 columnNumber: 9
             }, this);
         }
@@ -3216,7 +3585,7 @@ function ActivityItem({ row, open, onToggle, searchActive, staffNoteActions, ema
                     className: "absolute -left-[15px] top-4 h-2.5 w-2.5 rounded-full border-2 border-white bg-amber-400"
                 }, void 0, false, {
                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                    lineNumber: 1985,
+                    lineNumber: 2203,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3233,14 +3602,14 @@ function ActivityItem({ row, open, onToggle, searchActive, staffNoteActions, ema
                                             "aria-hidden": true
                                         }, void 0, false, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 1989,
+                                            lineNumber: 2207,
                                             columnNumber: 15
                                         }, this),
                                         "Staff note"
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 1988,
+                                    lineNumber: 2206,
                                     columnNumber: 13
                                 }, this),
                                 needsExpand ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -3250,13 +3619,13 @@ function ActivityItem({ row, open, onToggle, searchActive, staffNoteActions, ema
                                     children: open ? 'Show less' : 'Expand'
                                 }, void 0, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 1993,
+                                    lineNumber: 2211,
                                     columnNumber: 15
                                 }, this) : null
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 1987,
+                            lineNumber: 2205,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("time", {
@@ -3266,13 +3635,13 @@ function ActivityItem({ row, open, onToggle, searchActive, staffNoteActions, ema
                             children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$format$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["formatCrmDateTimeCompact"])(ev.createdAt)
                         }, void 0, false, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 2002,
+                            lineNumber: 2220,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                    lineNumber: 1986,
+                    lineNumber: 2204,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3282,18 +3651,18 @@ function ActivityItem({ row, open, onToggle, searchActive, staffNoteActions, ema
                         children: ev.body
                     }, void 0, false, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 2011,
+                        lineNumber: 2229,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                    lineNumber: 2010,
+                    lineNumber: 2228,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-            lineNumber: 1984,
+            lineNumber: 2202,
             columnNumber: 7
         }, this);
     }
@@ -3309,7 +3678,7 @@ function ActivityItem({ row, open, onToggle, searchActive, staffNoteActions, ema
                     className: "absolute -left-[15px] top-4 h-2.5 w-2.5 rounded-full border-2 border-white bg-primary/70"
                 }, void 0, false, {
                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                    lineNumber: 2029,
+                    lineNumber: 2247,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3326,14 +3695,14 @@ function ActivityItem({ row, open, onToggle, searchActive, staffNoteActions, ema
                                             "aria-hidden": true
                                         }, void 0, false, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 2033,
+                                            lineNumber: 2251,
                                             columnNumber: 15
                                         }, this),
                                         "Saved edit"
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 2032,
+                                    lineNumber: 2250,
                                     columnNumber: 13
                                 }, this),
                                 !useToggle ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3341,7 +3710,7 @@ function ActivityItem({ row, open, onToggle, searchActive, staffNoteActions, ema
                                     children: renderProfileUpdateLine(ev.lines[0] ?? '')
                                 }, void 0, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 2037,
+                                    lineNumber: 2255,
                                     columnNumber: 15
                                 }, this) : expanded ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
                                     className: "mt-2 text-sm text-slate-800 space-y-1.5 list-disc pl-4 marker:text-slate-400",
@@ -3350,12 +3719,12 @@ function ActivityItem({ row, open, onToggle, searchActive, staffNoteActions, ema
                                             children: renderProfileUpdateLine(line)
                                         }, line, false, {
                                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                            lineNumber: 2043,
+                                            lineNumber: 2261,
                                             columnNumber: 19
                                         }, this))
                                 }, void 0, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 2041,
+                                    lineNumber: 2259,
                                     columnNumber: 15
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                     type: "button",
@@ -3366,18 +3735,18 @@ function ActivityItem({ row, open, onToggle, searchActive, staffNoteActions, ema
                                         children: renderProfileUpdateLine(collapsedSummary)
                                     }, void 0, false, {
                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                        lineNumber: 2054,
+                                        lineNumber: 2272,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 2049,
+                                    lineNumber: 2267,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 2031,
+                            lineNumber: 2249,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3389,7 +3758,7 @@ function ActivityItem({ row, open, onToggle, searchActive, staffNoteActions, ema
                                     children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$format$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["formatCrmDateTimeCompact"])(ev.createdAt)
                                 }, void 0, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 2061,
+                                    lineNumber: 2279,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("time", {
@@ -3398,7 +3767,7 @@ function ActivityItem({ row, open, onToggle, searchActive, staffNoteActions, ema
                                     children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$format$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["formatCrmDateTime"])(ev.createdAt)
                                 }, void 0, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 2064,
+                                    lineNumber: 2282,
                                     columnNumber: 13
                                 }, this),
                                 useToggle ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -3408,25 +3777,25 @@ function ActivityItem({ row, open, onToggle, searchActive, staffNoteActions, ema
                                     children: open ? 'Hide' : 'Details'
                                 }, void 0, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 2068,
+                                    lineNumber: 2286,
                                     columnNumber: 15
                                 }, this) : null
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 2060,
+                            lineNumber: 2278,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                    lineNumber: 2030,
+                    lineNumber: 2248,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-            lineNumber: 2028,
+            lineNumber: 2246,
             columnNumber: 7
         }, this);
     }
@@ -3453,7 +3822,7 @@ function EmailMessageBubble({ message, contactDisplayName }) {
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 2102,
+                        lineNumber: 2320,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3461,7 +3830,7 @@ function EmailMessageBubble({ message, contactDisplayName }) {
                         children: b.summary
                     }, void 0, false, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 2105,
+                        lineNumber: 2323,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3473,13 +3842,13 @@ function EmailMessageBubble({ message, contactDisplayName }) {
                                 children: b.failedRecipient
                             }, void 0, false, {
                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                lineNumber: 2107,
+                                lineNumber: 2325,
                                 columnNumber: 29
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 2106,
+                        lineNumber: 2324,
                         columnNumber: 11
                     }, this),
                     b.diagnostic ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3487,7 +3856,7 @@ function EmailMessageBubble({ message, contactDisplayName }) {
                         children: b.diagnostic
                     }, void 0, false, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 2110,
+                        lineNumber: 2328,
                         columnNumber: 13
                     }, this) : null,
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3498,18 +3867,18 @@ function EmailMessageBubble({ message, contactDisplayName }) {
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 2114,
+                        lineNumber: 2332,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                lineNumber: 2101,
+                lineNumber: 2319,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-            lineNumber: 2100,
+            lineNumber: 2318,
             columnNumber: 7
         }, this);
     }
@@ -3527,7 +3896,7 @@ function EmailMessageBubble({ message, contactDisplayName }) {
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                    lineNumber: 2136,
+                    lineNumber: 2354,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3535,7 +3904,7 @@ function EmailMessageBubble({ message, contactDisplayName }) {
                     children: body || '—'
                 }, void 0, false, {
                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                    lineNumber: 2141,
+                    lineNumber: 2359,
                     columnNumber: 9
                 }, this),
                 outbound && failure ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3546,7 +3915,7 @@ function EmailMessageBubble({ message, contactDisplayName }) {
                             children: "Not delivered"
                         }, void 0, false, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 2148,
+                            lineNumber: 2366,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3554,7 +3923,7 @@ function EmailMessageBubble({ message, contactDisplayName }) {
                             children: failure.summary
                         }, void 0, false, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 2151,
+                            lineNumber: 2369,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3564,12 +3933,12 @@ function EmailMessageBubble({ message, contactDisplayName }) {
                                 children: failure.failedRecipient
                             }, void 0, false, {
                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                lineNumber: 2153,
+                                lineNumber: 2371,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 2152,
+                            lineNumber: 2370,
                             columnNumber: 13
                         }, this),
                         failure.diagnostic ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3577,7 +3946,7 @@ function EmailMessageBubble({ message, contactDisplayName }) {
                             children: failure.diagnostic
                         }, void 0, false, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 2156,
+                            lineNumber: 2374,
                             columnNumber: 15
                         }, this) : null,
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3588,24 +3957,24 @@ function EmailMessageBubble({ message, contactDisplayName }) {
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 2160,
+                            lineNumber: 2378,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                    lineNumber: 2147,
+                    lineNumber: 2365,
                     columnNumber: 11
                 }, this) : null
             ]
         }, void 0, true, {
             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-            lineNumber: 2125,
+            lineNumber: 2343,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-        lineNumber: 2124,
+        lineNumber: 2342,
         columnNumber: 5
     }, this);
 }
@@ -3634,7 +4003,7 @@ function EmailThreadReplyComposer({ threadMessages, customerEmail, followUpBlock
             children: "This send was not delivered, so follow-up from here is turned off. Correct the lead’s email (or wait until a new message in this thread sends successfully), then you can reply again."
         }, void 0, false, {
             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-            lineNumber: 2220,
+            lineNumber: 2438,
             columnNumber: 9
         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
             children: [
@@ -3643,7 +4012,7 @@ function EmailThreadReplyComposer({ threadMessages, customerEmail, followUpBlock
                     children: "Add an email address on this lead to send a message."
                 }, void 0, false, {
                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                    lineNumber: 2227,
+                    lineNumber: 2445,
                     columnNumber: 13
                 }, this) : null,
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3661,7 +4030,7 @@ function EmailThreadReplyComposer({ threadMessages, customerEmail, followUpBlock
                             "aria-label": "Message"
                         }, void 0, false, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 2232,
+                            lineNumber: 2450,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3675,7 +4044,7 @@ function EmailThreadReplyComposer({ threadMessages, customerEmail, followUpBlock
                                     children: mailPreviewBusy ? 'Preview…' : 'Preview'
                                 }, void 0, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 2244,
+                                    lineNumber: 2462,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -3691,19 +4060,19 @@ function EmailThreadReplyComposer({ threadMessages, customerEmail, followUpBlock
                                     children: mailBusy ? 'Sending…' : 'Send'
                                 }, void 0, false, {
                                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                    lineNumber: 2252,
+                                    lineNumber: 2470,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 2243,
+                            lineNumber: 2461,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                    lineNumber: 2231,
+                    lineNumber: 2449,
                     columnNumber: 11
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3711,7 +4080,7 @@ function EmailThreadReplyComposer({ threadMessages, customerEmail, followUpBlock
                     children: "Goes out through your mail — threading stays linked automatically."
                 }, void 0, false, {
                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                    lineNumber: 2267,
+                    lineNumber: 2485,
                     columnNumber: 11
                 }, this),
                 mailError ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3719,14 +4088,14 @@ function EmailThreadReplyComposer({ threadMessages, customerEmail, followUpBlock
                     children: mailError
                 }, void 0, false, {
                     fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                    lineNumber: 2270,
+                    lineNumber: 2488,
                     columnNumber: 24
                 }, this) : null
             ]
         }, void 0, true)
     }, void 0, false, {
         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-        lineNumber: 2218,
+        lineNumber: 2436,
         columnNumber: 5
     }, this);
 }
@@ -3750,7 +4119,7 @@ function EmailThreadConversation({ rows, open, onToggle, searchActive, contactDi
                 className: "absolute -left-[15px] top-5 h-2.5 w-2.5 rounded-full border-2 border-white bg-primary"
             }, void 0, false, {
                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                lineNumber: 2315,
+                lineNumber: 2533,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -3772,7 +4141,7 @@ function EmailThreadConversation({ rows, open, onToggle, searchActive, contactDi
                                                 "aria-hidden": true
                                             }, void 0, false, {
                                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                lineNumber: 2324,
+                                                lineNumber: 2542,
                                                 columnNumber: 15
                                             }, this),
                                             messages.length,
@@ -3780,7 +4149,7 @@ function EmailThreadConversation({ rows, open, onToggle, searchActive, contactDi
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                        lineNumber: 2323,
+                                        lineNumber: 2541,
                                         columnNumber: 13
                                     }, this),
                                     showToggle && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -3788,13 +4157,13 @@ function EmailThreadConversation({ rows, open, onToggle, searchActive, contactDi
                                         children: open ? '▼' : '▶'
                                     }, void 0, false, {
                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                        lineNumber: 2327,
+                                        lineNumber: 2545,
                                         columnNumber: 28
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                lineNumber: 2322,
+                                lineNumber: 2540,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3802,7 +4171,7 @@ function EmailThreadConversation({ rows, open, onToggle, searchActive, contactDi
                                 children: subject
                             }, void 0, false, {
                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                lineNumber: 2329,
+                                lineNumber: 2547,
                                 columnNumber: 11
                             }, this),
                             !open && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -3815,7 +4184,7 @@ function EmailThreadConversation({ rows, open, onToggle, searchActive, contactDi
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                        lineNumber: 2333,
+                                        lineNumber: 2551,
                                         columnNumber: 17
                                     }, this) : null,
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3823,7 +4192,7 @@ function EmailThreadConversation({ rows, open, onToggle, searchActive, contactDi
                                         children: preview
                                     }, void 0, false, {
                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                        lineNumber: 2337,
+                                        lineNumber: 2555,
                                         columnNumber: 15
                                     }, this)
                                 ]
@@ -3831,7 +4200,7 @@ function EmailThreadConversation({ rows, open, onToggle, searchActive, contactDi
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 2321,
+                        lineNumber: 2539,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("time", {
@@ -3840,13 +4209,13 @@ function EmailThreadConversation({ rows, open, onToggle, searchActive, contactDi
                         children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$format$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["formatCrmDateTimeCompact"])(latest.createdAt)
                     }, void 0, false, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 2343,
+                        lineNumber: 2561,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                lineNumber: 2316,
+                lineNumber: 2534,
                 columnNumber: 7
             }, this),
             open && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -3858,12 +4227,12 @@ function EmailThreadConversation({ rows, open, onToggle, searchActive, contactDi
                                 contactDisplayName: contactDisplayName
                             }, m.id, false, {
                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                lineNumber: 2354,
+                                lineNumber: 2572,
                                 columnNumber: 15
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 2352,
+                        lineNumber: 2570,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(EmailThreadReplyComposer, {
@@ -3879,7 +4248,7 @@ function EmailThreadConversation({ rows, open, onToggle, searchActive, contactDi
                         onSendMail: onSendMail
                     }, void 0, false, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 2357,
+                        lineNumber: 2575,
                         columnNumber: 11
                     }, this)
                 ]
@@ -3887,7 +4256,7 @@ function EmailThreadConversation({ rows, open, onToggle, searchActive, contactDi
         ]
     }, void 0, true, {
         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-        lineNumber: 2314,
+        lineNumber: 2532,
         columnNumber: 5
     }, this);
 }
@@ -3907,7 +4276,7 @@ function EmailActivityCard({ message, open, onToggle, showToggle, contactDisplay
                 className: `absolute -left-[15px] top-5 h-2.5 w-2.5 rounded-full border-2 border-white ${isBounce ? 'bg-amber-500' : outbound && failure ? 'bg-amber-500' : outbound ? 'bg-primary' : 'bg-slate-400'}`
             }, void 0, false, {
                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                lineNumber: 2426,
+                lineNumber: 2644,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -3929,14 +4298,14 @@ function EmailActivityCard({ message, open, onToggle, showToggle, contactDisplay
                                                 "aria-hidden": true
                                             }, void 0, false, {
                                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                                lineNumber: 2449,
+                                                lineNumber: 2667,
                                                 columnNumber: 15
                                             }, this),
                                             roleLine
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                        lineNumber: 2438,
+                                        lineNumber: 2656,
                                         columnNumber: 13
                                     }, this),
                                     showToggle && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -3944,13 +4313,13 @@ function EmailActivityCard({ message, open, onToggle, showToggle, contactDisplay
                                         children: open ? '▼' : '▶'
                                     }, void 0, false, {
                                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                        lineNumber: 2461,
+                                        lineNumber: 2679,
                                         columnNumber: 28
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                lineNumber: 2437,
+                                lineNumber: 2655,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3958,7 +4327,7 @@ function EmailActivityCard({ message, open, onToggle, showToggle, contactDisplay
                                 children: message.subject || '(no subject)'
                             }, void 0, false, {
                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                lineNumber: 2463,
+                                lineNumber: 2681,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3970,7 +4339,7 @@ function EmailActivityCard({ message, open, onToggle, showToggle, contactDisplay
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                lineNumber: 2464,
+                                lineNumber: 2682,
                                 columnNumber: 11
                             }, this),
                             !open && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3978,13 +4347,13 @@ function EmailActivityCard({ message, open, onToggle, showToggle, contactDisplay
                                 children: preview
                             }, void 0, false, {
                                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                                lineNumber: 2468,
+                                lineNumber: 2686,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 2436,
+                        lineNumber: 2654,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("time", {
@@ -3993,13 +4362,13 @@ function EmailActivityCard({ message, open, onToggle, showToggle, contactDisplay
                         children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$crm$2d$format$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["formatCrmDateTimeCompact"])(message.createdAt)
                     }, void 0, false, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 2471,
+                        lineNumber: 2689,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                lineNumber: 2431,
+                lineNumber: 2649,
                 columnNumber: 7
             }, this),
             open && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -4011,12 +4380,12 @@ function EmailActivityCard({ message, open, onToggle, showToggle, contactDisplay
                             contactDisplayName: contactDisplayName
                         }, void 0, false, {
                             fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                            lineNumber: 2481,
+                            lineNumber: 2699,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 2480,
+                        lineNumber: 2698,
                         columnNumber: 11
                     }, this),
                     !isBounce ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(EmailThreadReplyComposer, {
@@ -4034,7 +4403,7 @@ function EmailActivityCard({ message, open, onToggle, showToggle, contactDisplay
                         onSendMail: onSendMail
                     }, void 0, false, {
                         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-                        lineNumber: 2484,
+                        lineNumber: 2702,
                         columnNumber: 13
                     }, this) : null
                 ]
@@ -4042,7 +4411,7 @@ function EmailActivityCard({ message, open, onToggle, showToggle, contactDisplay
         ]
     }, void 0, true, {
         fileName: "[project]/components/crm/LeadWorkspace.tsx",
-        lineNumber: 2415,
+        lineNumber: 2633,
         columnNumber: 5
     }, this);
 }

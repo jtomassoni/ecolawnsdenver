@@ -2,6 +2,7 @@ import { ImapFlow } from 'imapflow';
 import { simpleParser } from 'mailparser';
 import { ingestInboundEmail, normalizeEmail, tryIngestBounceEmail } from '@/lib/crm-store';
 import { hasSyncedMessageId, markMessageIdSynced } from '@/lib/inbound-sync-state';
+import { normalizeSmtpPassword } from '@/lib/crm-mail';
 
 const IMAP_HOST = 'imap.gmail.com';
 const DAYS_BACK = 21;
@@ -59,7 +60,9 @@ export async function syncGmailInboundToCrm(): Promise<{
   errors: string[];
 }> {
   const user = process.env.EMAIL_USER?.trim();
-  const pass = process.env.EMAIL_APP_PASSWORD?.trim();
+  const pass = process.env.EMAIL_APP_PASSWORD
+    ? normalizeSmtpPassword(process.env.EMAIL_APP_PASSWORD)
+    : '';
   if (!user || !pass) {
     throw new Error('EMAIL_USER and EMAIL_APP_PASSWORD are required for inbox sync');
   }

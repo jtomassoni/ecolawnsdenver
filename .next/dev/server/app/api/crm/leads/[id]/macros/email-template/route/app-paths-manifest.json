@@ -1,0 +1,3 @@
+{
+  "/api/crm/leads/[id]/macros/email-template/route": "app/api/crm/leads/[id]/macros/email-template/route.js"
+}

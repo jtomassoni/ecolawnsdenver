@@ -1,8 +1,15 @@
 import nodemailer from 'nodemailer';
 
+/** Gmail app passwords are 16 chars; Google often displays them with spaces — strip so SMTP accepts them. */
+export function normalizeSmtpPassword(raw: string): string {
+  return raw.trim().replace(/\s+/g, '');
+}
+
 export function getMailTransporter() {
-  const user = process.env.EMAIL_USER;
-  const pass = process.env.EMAIL_APP_PASSWORD;
+  const user = process.env.EMAIL_USER?.trim();
+  const pass = process.env.EMAIL_APP_PASSWORD
+    ? normalizeSmtpPassword(process.env.EMAIL_APP_PASSWORD)
+    : '';
   if (!user || !pass) return null;
   return nodemailer.createTransport({
     service: 'gmail',
@@ -12,10 +19,13 @@ export function getMailTransporter() {
 
 /**
  * Optional second Gmail account used only for CRM / invoice outbound.
+ * If CRM_SMTP_USER and CRM_SMTP_PASSWORD are both set, they override EMAIL_USER / EMAIL_APP_PASSWORD for sends.
  */
 function getCrmSmtpTransporter() {
   const user = process.env.CRM_SMTP_USER?.trim();
-  const pass = process.env.CRM_SMTP_PASSWORD?.trim();
+  const pass = process.env.CRM_SMTP_PASSWORD
+    ? normalizeSmtpPassword(process.env.CRM_SMTP_PASSWORD)
+    : '';
   if (user && pass) {
     return nodemailer.createTransport({
       service: 'gmail',
