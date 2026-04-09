@@ -496,9 +496,6 @@ export default function Home() {
               <p className="text-white text-base sm:text-lg md:text-xl lg:text-2xl mb-4 sm:mb-6 drop-shadow-md max-w-3xl mx-auto leading-relaxed px-2">
                 Get your weekends back with reliable, eco-friendly lawn care. <strong>All our equipment is electric by design</strong> - half of our mission is reducing noise and neighborhood emissions. <strong>Book your spring service now</strong>, or get snow removal for the rest of winter!
               </p>
-              <div className="bg-yellow-400/90 text-gray-900 px-4 py-2 rounded-lg font-semibold text-sm sm:text-base mb-4 sm:mb-6 inline-block">
-                ⚡ Limited Spring Spots Available - Book Now for April Start!
-              </div>
             </div>
           
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-6 sm:mb-8 px-2">

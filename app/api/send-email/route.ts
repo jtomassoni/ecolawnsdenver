@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
 import { upsertLeadFromWebsiteBooking } from '@/lib/crm-store';
-
-// Create nodemailer transporter
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_APP_PASSWORD,
-  },
-});
+import { getMailTransporter } from '@/lib/crm-mail';
 
 export async function POST(request: NextRequest) {
   try {
@@ -91,16 +82,17 @@ export async function POST(request: NextRequest) {
       ...(sanitizedNotes ? [`Notes: ${sanitizedNotes}`] : []),
     ].join('\n');
 
+    const notifyUser = process.env.EMAIL_USER?.trim() ?? '';
     const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER,
+      from: notifyUser,
+      to: notifyUser,
       subject: `New ${bookingLabel} from ${sanitizedName || 'No Name'}`,
       text: textBody,
       html: htmlBody,
     };
 
     if (previewOnly) {
-      if (!process.env.EMAIL_USER) {
+      if (!notifyUser) {
         return NextResponse.json(
           { success: false, message: 'Email service not configured properly' },
           { status: 500 }
@@ -109,7 +101,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         preview: {
-          to: process.env.EMAIL_USER,
+          to: notifyUser,
           subject: mailOptions.subject,
           html: htmlBody,
           text: textBody,
@@ -117,7 +109,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASSWORD) {
+    const transporter = getMailTransporter();
+    if (!transporter || !notifyUser) {
       return NextResponse.json(
         { success: false, message: 'Email service not configured properly' },
         { status: 500 }
@@ -126,7 +119,7 @@ export async function POST(request: NextRequest) {
 
     await transporter.sendMail(mailOptions);
 
-    const notifyTo = process.env.EMAIL_USER?.trim() ?? '';
+    const notifyTo = notifyUser;
     if (notifyTo) {
       try {
         await upsertLeadFromWebsiteBooking({

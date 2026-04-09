@@ -1,6 +1,13 @@
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import path from 'path';
 import { getCrmDataDir } from '@/lib/crm-data-dir';
+import {
+  deleteLeadFromPg,
+  ensureCrmSchemaAndMigrate,
+  isCrmPostgresEnabled,
+  loadAllLeadsFromPg,
+  saveLeadToPg,
+} from '@/lib/crm-pg';
 import type { CrmDatabase, CrmEmailMessage, LeadRecord, LeadStatus } from '@/lib/crm-types';
 import { LEAD_STATUSES, LEAD_STATUS_LABELS } from '@/lib/crm-types';
 import {
@@ -37,6 +44,11 @@ function normalizeLead(lead: LeadRecord): LeadRecord {
 }
 
 async function readDb(): Promise<CrmDatabase> {
+  if (isCrmPostgresEnabled()) {
+    await ensureCrmSchemaAndMigrate();
+    const leads = await loadAllLeadsFromPg();
+    return { version: 1, leads };
+  }
   try {
     const raw = await readFile(STORE_PATH, 'utf8');
     const parsed = JSON.parse(raw) as CrmDatabase;
@@ -57,6 +69,24 @@ async function readDb(): Promise<CrmDatabase> {
 async function writeDb(db: CrmDatabase): Promise<void> {
   await mkdir(DATA_DIR, { recursive: true });
   await writeFile(STORE_PATH, JSON.stringify(db, null, 2), 'utf8');
+}
+
+async function persistLeadDb(db: CrmDatabase, lead: LeadRecord): Promise<void> {
+  if (isCrmPostgresEnabled()) {
+    await ensureCrmSchemaAndMigrate();
+    await saveLeadToPg(lead);
+  } else {
+    await writeDb(db);
+  }
+}
+
+async function persistDeleteDb(db: CrmDatabase, id: string): Promise<void> {
+  if (isCrmPostgresEnabled()) {
+    await ensureCrmSchemaAndMigrate();
+    await deleteLeadFromPg(id);
+  } else {
+    await writeDb(db);
+  }
 }
 
 function isLeadStatus(s: string): s is LeadStatus {
@@ -150,7 +180,7 @@ export async function createLead(input: {
       updatedAt: now,
     };
     db.leads.push(lead);
-    await writeDb(db);
+    await persistLeadDb(db, lead);
     return lead;
   });
 }
@@ -228,7 +258,7 @@ export async function updateLead(
 
     lead.timeline = timeline;
     lead.updatedAt = now;
-    await writeDb(db);
+    await persistLeadDb(db, lead);
     return lead;
   });
 }
@@ -250,7 +280,7 @@ export async function appendLeadTimelineNote(id: string, body: string): Promise<
     });
     lead.timeline = timeline;
     lead.updatedAt = now;
-    await writeDb(db);
+    await persistLeadDb(db, lead);
     return lead;
   });
 }
@@ -275,7 +305,7 @@ export async function updateLeadTimelineNote(
     timeline[i] = { ...ev, body: text };
     lead.timeline = timeline;
     lead.updatedAt = now;
-    await writeDb(db);
+    await persistLeadDb(db, lead);
     return lead;
   });
 }
@@ -286,7 +316,7 @@ export async function deleteLead(id: string): Promise<boolean> {
     const i = db.leads.findIndex((l) => l.id === id);
     if (i === -1) return false;
     db.leads.splice(i, 1);
-    await writeDb(db);
+    await persistDeleteDb(db, id);
     return true;
   });
 }
@@ -347,7 +377,7 @@ export async function tryIngestBounceEmail(input: {
         recordedAt: now,
       };
       lead.updatedAt = now;
-      await writeDb(db);
+      await persistLeadDb(db, lead);
       return { handled: true, imported: true };
     }
 
@@ -371,7 +401,7 @@ export async function tryIngestBounceEmail(input: {
     };
     lead.emails.push(row);
     lead.updatedAt = now;
-    await writeDb(db);
+    await persistLeadDb(db, lead);
     return { handled: true, imported: true };
   });
 }
@@ -388,7 +418,7 @@ export async function appendEmailToLead(leadId: string, msg: Omit<CrmEmailMessag
     };
     lead.emails.push(row);
     lead.updatedAt = row.createdAt;
-    await writeDb(db);
+    await persistLeadDb(db, lead);
     return row;
   });
 }
@@ -519,7 +549,7 @@ export async function upsertLeadFromWebsiteBooking(input: {
     };
     lead.emails.push(message);
     lead.updatedAt = now;
-    await writeDb(db);
+    await persistLeadDb(db, lead);
     return { lead, created, message };
   });
 }
@@ -593,7 +623,7 @@ export async function ingestInboundEmail(input: {
     };
     lead.emails.push(message);
     lead.updatedAt = now;
-    await writeDb(db);
+    await persistLeadDb(db, lead);
     return { lead, created, message };
   });
 }

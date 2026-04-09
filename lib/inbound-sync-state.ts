@@ -1,6 +1,11 @@
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import path from 'path';
 import { getCrmDataDir } from '@/lib/crm-data-dir';
+import {
+  hasInboundSyncIdPg,
+  isCrmPostgresEnabled,
+  markInboundSyncIdPg,
+} from '@/lib/crm-pg';
 
 const PATH = path.join(getCrmDataDir(), 'inbound-synced-message-ids.json');
 const MAX_IDS = 4000;
@@ -21,6 +26,9 @@ async function withLock<T>(fn: () => Promise<T>): Promise<T> {
 export async function hasSyncedMessageId(id: string): Promise<boolean> {
   const norm = id.trim();
   if (!norm) return false;
+  if (isCrmPostgresEnabled()) {
+    return hasInboundSyncIdPg(norm);
+  }
   return withLock(async () => {
     try {
       const raw = await readFile(PATH, 'utf8');
@@ -35,6 +43,10 @@ export async function hasSyncedMessageId(id: string): Promise<boolean> {
 export async function markMessageIdSynced(id: string): Promise<void> {
   const norm = id.trim();
   if (!norm) return;
+  if (isCrmPostgresEnabled()) {
+    await markInboundSyncIdPg(norm);
+    return;
+  }
   await withLock(async () => {
     let ids: string[] = [];
     try {

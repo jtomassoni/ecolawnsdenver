@@ -4,9 +4,8 @@ import path from 'path';
  * Directory for CRM JSON files (`crm-store.json`, inbound sync state).
  *
  * - **Local:** `./data` under the project (gitignored).
- * - **Vercel / Lambda:** `/tmp/ecolawns-crm-data` — only guaranteed writable path; data is
- *   ephemeral and not shared across all instances. For real production persistence, use
- *   `CRM_DATA_DIR` on a mounted volume or migrate to a database.
+ * - **Vercel / Lambda:** `/tmp/ecolawns-crm-data` — only used when `DATABASE_URL` is unset; data is
+ *   ephemeral. Set `DATABASE_URL` (e.g. Neon) so CRM uses Postgres instead.
  * - **Override:** set `CRM_DATA_DIR` to an absolute path.
  */
 export function getCrmDataDir(): string {

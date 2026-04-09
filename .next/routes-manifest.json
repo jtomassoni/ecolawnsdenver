@@ -29,6 +29,14 @@
       "namedRegex": "^/api/crm/leads/(?<nxtPid>[^/]+?)(?:/)?$"
     },
     {
+      "page": "/api/crm/leads/[id]/macros/email-template",
+      "regex": "^/api/crm/leads/([^/]+?)/macros/email\\-template(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/crm/leads/(?<nxtPid>[^/]+?)/macros/email\\-template(?:/)?$"
+    },
+    {
       "page": "/api/crm/leads/[id]/macros/send-invoice",
       "regex": "^/api/crm/leads/([^/]+?)/macros/send\\-invoice(?:/)?$",
       "routeKeys": {
