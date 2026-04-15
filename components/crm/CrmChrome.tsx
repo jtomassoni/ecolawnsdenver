@@ -15,11 +15,11 @@ function navLinkClass(active: boolean) {
 export default function CrmChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const isLogin = pathname === '/crm/login';
+  const isLogin = pathname === '/crm/login' || pathname === '/admin/login';
 
   async function signOut() {
     await fetch('/api/crm/logout', { method: 'POST' });
-    router.push('/crm/login');
+    router.push('/admin/login');
     router.refresh();
   }
 

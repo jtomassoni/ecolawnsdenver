@@ -32,3 +32,8 @@ coverage
 
 # Local CRM data (leads + email threads)
 /data
+
+# Next.js / Turbopack build output
+.next
+out
+.turbo

@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 
 export default async function CrmHomePage() {
   const ok = await verifySession();
-  if (!ok) redirect('/crm/login');
+  if (!ok) redirect('/admin/login');
 
   const leads = await listLeads();
 

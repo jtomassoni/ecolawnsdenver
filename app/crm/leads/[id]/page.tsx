@@ -7,7 +7,7 @@ type Props = { params: Promise<{ id: string }> };
 
 export default async function LeadPage({ params }: Props) {
   const ok = await verifySession();
-  if (!ok) redirect('/crm/login');
+  if (!ok) redirect('/admin/login');
 
   const { id } = await params;
   const lead = await getLeadById(id);

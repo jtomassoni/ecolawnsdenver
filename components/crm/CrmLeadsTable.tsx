@@ -36,6 +36,7 @@ function NewLeadUrlSync({ setAddOpen }: { setAddOpen: (open: boolean) => void })
 }
 
 export default function CrmLeadsTable({ initialLeads }: { initialLeads: LeadRecord[] }) {
+  const router = useRouter();
   const [q, setQ] = useState('');
   const [status, setStatus] = useState<LeadStatus | ''>('');
   const [scope, setScope] = useState<LeadScope>('everything');
@@ -153,7 +154,15 @@ export default function CrmLeadsTable({ initialLeads }: { initialLeads: LeadReco
                 </tr>
               ) : (
                 filtered.map((lead) => (
-                  <tr key={lead.id} className="hover:bg-gray-50/80 transition-colors">
+                  <tr
+                    key={lead.id}
+                    className="hover:bg-gray-50/80 transition-colors cursor-pointer"
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement | null;
+                      if (target?.closest('a,button,input,select,textarea,label')) return;
+                      router.push(`/crm/leads/${lead.id}`);
+                    }}
+                  >
                     <td className="px-4 py-3">
                       <Link
                         href={`/crm/leads/${lead.id}`}

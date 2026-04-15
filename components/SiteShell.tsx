@@ -6,7 +6,11 @@ import Footer from '@/components/Footer';
 
 export default function SiteShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isCrm = pathname === '/crm' || pathname?.startsWith('/crm/');
+  const isCrm =
+    pathname === '/crm' ||
+    pathname?.startsWith('/crm/') ||
+    pathname === '/admin' ||
+    pathname?.startsWith('/admin/');
 
   if (isCrm) {
     return (
