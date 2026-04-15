@@ -38,3 +38,6 @@ coverage
 .next
 out
 .turbo
+
+# TypeScript incremental build cache (do not commit)
+*.tsbuildinfo
