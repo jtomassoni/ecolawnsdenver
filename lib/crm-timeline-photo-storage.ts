@@ -38,7 +38,7 @@ export async function storeCrmTimelinePhoto(input: {
 
   if (process.env.VERCEL) {
     throw new Error(
-      'Timeline photos on Vercel need Blob storage. In the Vercel dashboard: Storage → Blob → create/link a store for this project (sets BLOB_READ_WRITE_TOKEN).'
+      'Timeline photos on Vercel need BLOB_READ_WRITE_TOKEN. In Vercel: Project → Settings → Environment Variables, ensure that token is set for Preview (not only Production), then redeploy. Or: Storage → Blob → link the store to this project so the token is injected on deploy.'
     );
   }
 

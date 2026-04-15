@@ -630,6 +630,7 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
       const res = hasPhoto
         ? await fetch(`/api/crm/leads/${lead.id}/notes`, {
             method: 'POST',
+            credentials: 'include',
             body: (() => {
               const form = new FormData();
               form.set('text', text);
@@ -639,6 +640,7 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
           })
         : await fetch(`/api/crm/leads/${lead.id}/notes`, {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text }),
           });
@@ -646,12 +648,20 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
       try {
         data = (await res.json()) as typeof data;
       } catch {
+        if (res.status === 413) {
+          setNoteError('Upload too large for the host (try a smaller photo or re-save as JPEG).');
+          return;
+        }
         setNoteError(
           `Could not read the server response (${res.status}). Check your connection and try again.`
         );
         return;
       }
       if (!res.ok) {
+        if (res.status === 413) {
+          setNoteError('Upload too large for the host (try a smaller photo or re-save as JPEG).');
+          return;
+        }
         setNoteError(data.error || 'Could not add note');
         if (typeof data.detail === 'string' && data.detail.trim()) {
           setNoteErrorDetail(data.detail.trim());
