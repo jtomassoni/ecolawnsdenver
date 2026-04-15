@@ -32,3 +32,12 @@ coverage
 
 # Local CRM data (leads + email threads)
 /data
+/public/uploads/crm-timeline
+
+# Next.js / Turbopack build output
+.next
+out
+.turbo
+
+# TypeScript incremental build cache (do not commit)
+*.tsbuildinfo

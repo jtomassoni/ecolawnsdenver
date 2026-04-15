@@ -12,14 +12,22 @@ function navLinkClass(active: boolean) {
   ].join(' ');
 }
 
-export default function CrmChrome({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+export default function CrmChrome({
+  children,
+  pathnameFromServer = '',
+}: {
+  children: React.ReactNode;
+  /** From middleware — avoids SSR/client `usePathname()` mismatches (e.g. mobile Safari). */
+  pathnameFromServer?: string;
+}) {
+  const clientPath = usePathname();
+  const pathname = pathnameFromServer || clientPath || '';
   const router = useRouter();
-  const isLogin = pathname === '/crm/login';
+  const isLogin = pathname === '/login';
 
   async function signOut() {
     await fetch('/api/crm/logout', { method: 'POST' });
-    router.push('/crm/login');
+    router.push('/login');
     router.refresh();
   }
 
@@ -45,13 +53,13 @@ export default function CrmChrome({ children }: { children: React.ReactNode }) {
           <p className="text-xs text-slate-400">Lead inbox</p>
         </div>
         <nav className="flex-1 p-2 space-y-0.5" aria-label="CRM">
-          <Link href="/crm" className={navLinkClass(pathname === '/crm')}>
+          <Link href="/admin" className={navLinkClass(pathname === '/admin' || pathname.startsWith('/admin/leads/'))}>
             <span className="text-slate-400" aria-hidden>
               ◇
             </span>
             Leads
           </Link>
-          <Link href="/crm?newLead=1" className={navLinkClass(false)}>
+          <Link href="/admin?newLead=1" className={navLinkClass(false)}>
             <span className="text-slate-400" aria-hidden>
               +
             </span>
@@ -81,13 +89,13 @@ export default function CrmChrome({ children }: { children: React.ReactNode }) {
           <span className="text-sm font-semibold text-slate-900">EcoLawns CRM</span>
           <div className="flex items-center gap-1">
             <Link
-              href="/crm"
+              href="/admin"
               className="px-2 py-1.5 text-xs font-medium text-slate-600 rounded-md hover:bg-slate-100"
             >
               Leads
             </Link>
             <Link
-              href="/crm?newLead=1"
+              href="/admin?newLead=1"
               className="px-2 py-1.5 text-xs font-medium text-slate-600 rounded-md hover:bg-slate-100"
             >
               New
@@ -97,7 +105,7 @@ export default function CrmChrome({ children }: { children: React.ReactNode }) {
               onClick={signOut}
               className="px-2 py-1.5 text-xs font-medium text-red-700 rounded-md hover:bg-red-50"
             >
-              Out
+              Logout
             </button>
           </div>
         </header>

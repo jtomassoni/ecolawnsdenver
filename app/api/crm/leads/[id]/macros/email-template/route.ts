@@ -6,7 +6,7 @@ import {
   type CrmEmailTemplateId,
 } from '@/lib/crm-email-templates';
 import { appendEmailToLead, getLeadById } from '@/lib/crm-store';
-import { getCrmFromAddress, sendCrmEmail } from '@/lib/crm-mail';
+import { getCrmFromAddress, getCrmSmtpDebugInfo, sendCrmEmail } from '@/lib/crm-mail';
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -65,9 +65,12 @@ export async function POST(request: NextRequest, { params }: Params) {
     const sent = await sendCrmEmail({ to: toAddr, subject, text, html });
     messageId = sent.messageId;
   } catch (e) {
-    console.error('email-template macro', e);
+    console.error('email-template macro', { smtp: getCrmSmtpDebugInfo(), error: e });
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : 'Failed to send email' },
+      {
+        error: e instanceof Error ? e.message : 'Failed to send email',
+        smtpDebug: getCrmSmtpDebugInfo(),
+      },
       { status: 500 }
     );
   }

@@ -29,13 +29,14 @@ function NewLeadUrlSync({ setAddOpen }: { setAddOpen: (open: boolean) => void })
   useEffect(() => {
     if (searchParams.get('newLead') !== '1') return;
     setAddOpen(true);
-    router.replace('/crm', { scroll: false });
+    router.replace('/admin', { scroll: false });
   }, [searchParams, router, setAddOpen]);
 
   return null;
 }
 
 export default function CrmLeadsTable({ initialLeads }: { initialLeads: LeadRecord[] }) {
+  const router = useRouter();
   const [q, setQ] = useState('');
   const [status, setStatus] = useState<LeadStatus | ''>('');
   const [scope, setScope] = useState<LeadScope>('everything');
@@ -153,10 +154,18 @@ export default function CrmLeadsTable({ initialLeads }: { initialLeads: LeadReco
                 </tr>
               ) : (
                 filtered.map((lead) => (
-                  <tr key={lead.id} className="hover:bg-gray-50/80 transition-colors">
+                  <tr
+                    key={lead.id}
+                    className="hover:bg-gray-50/80 transition-colors cursor-pointer"
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement | null;
+                      if (target?.closest('a,button,input,select,textarea,label')) return;
+                      router.push(`/admin/leads/${lead.id}`);
+                    }}
+                  >
                     <td className="px-4 py-3">
                       <Link
-                        href={`/crm/leads/${lead.id}`}
+                        href={`/admin/leads/${lead.id}`}
                         className="font-medium text-gray-900 hover:text-primary"
                       >
                         {lead.name}

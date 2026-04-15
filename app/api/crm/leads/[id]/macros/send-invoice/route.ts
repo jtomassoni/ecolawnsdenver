@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireCrmSession } from '@/lib/auth';
 import { appendEmailToLead, getLeadById } from '@/lib/crm-store';
 import { buildInvoiceEmail } from '@/lib/crm-invoice-template';
-import { getCrmFromAddress, sendCrmEmail } from '@/lib/crm-mail';
+import { getCrmFromAddress, getCrmSmtpDebugInfo, sendCrmEmail } from '@/lib/crm-mail';
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -46,9 +46,12 @@ export async function POST(request: NextRequest, { params }: Params) {
     const sent = await sendCrmEmail({ to: lead.email, subject, text, html });
     messageId = sent.messageId;
   } catch (e) {
-    console.error('send-invoice', e);
+    console.error('send-invoice', { smtp: getCrmSmtpDebugInfo(), error: e });
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : 'Failed to send email' },
+      {
+        error: e instanceof Error ? e.message : 'Failed to send email',
+        smtpDebug: getCrmSmtpDebugInfo(),
+      },
       { status: 500 }
     );
   }

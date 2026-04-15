@@ -5,9 +5,14 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { trackEvent } from '@/components/GoogleAnalytics';
 
-export default function Navigation() {
+export default function Navigation({
+  pathnameFromServer = '',
+}: {
+  pathnameFromServer?: string;
+}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const pathname = usePathname();
+  const clientPath = usePathname();
+  const pathname = pathnameFromServer || clientPath || '';
   const router = useRouter();
 
   const closeMobileMenu = () => {

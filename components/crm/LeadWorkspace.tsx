@@ -12,20 +12,18 @@ import {
   type RefObject,
 } from 'react';
 import type {
-  CrmDeliveryFailure,
   CrmEmailMessage,
   CrmTimelineEvent,
   CrmTimelineStaffNote,
   LeadRecord,
   LeadStatus,
 } from '@/lib/crm-types';
+import EmailPreviewModal, { type EmailPreviewData } from '@/components/EmailPreviewModal';
 import { LEAD_STATUSES, LEAD_STATUS_LABELS } from '@/lib/crm-types';
 import { formatCrmDateTime, formatCrmDateTimeCompact } from '@/lib/crm-format';
-import { FaBell, FaChevronDown, FaEdit, FaEnvelope, FaStickyNote } from 'react-icons/fa';
+import { FaChevronDown, FaEdit, FaEnvelope, FaImage, FaStickyNote } from 'react-icons/fa';
 import { mergeLegacyBounceRowsForDisplay } from '@/lib/crm-bounce';
-
-/** Per-lead dismissed delivery alerts: JSON string[] of `recordedAt`, or legacy single ISO string. */
-const CRM_LEAD_ALERT_DISMISS_DELIVERY = 'ecolawns-crm:lead-alert-dismissed:delivery:';
+import { compressPhotoForTimelineUpload } from '@/lib/crm-photo-upload';
 
 const inputClass =
   'w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary';
@@ -339,157 +337,6 @@ function rowMatchesQuery(row: ActivityRow, q: string): boolean {
 
 type ContactEditKey = 'name' | 'email' | 'phone' | 'physicalAddress' | 'notes';
 
-function parseDismissedDeliveryIds(raw: string | null): Set<string> {
-  if (!raw) return new Set();
-  const t = raw.trim();
-  if (t.startsWith('[')) {
-    try {
-      const arr = JSON.parse(t) as unknown;
-      if (Array.isArray(arr)) {
-        return new Set(arr.filter((x): x is string => typeof x === 'string'));
-      }
-    } catch {
-      return new Set();
-    }
-    return new Set();
-  }
-  return new Set([t]);
-}
-
-function readDismissedDeliveries(leadId: string): Set<string> {
-  if (typeof window === 'undefined') return new Set();
-  try {
-    return parseDismissedDeliveryIds(localStorage.getItem(`${CRM_LEAD_ALERT_DISMISS_DELIVERY}${leadId}`));
-  } catch {
-    return new Set();
-  }
-}
-
-function persistDismissedDeliveries(leadId: string, ids: Set<string>) {
-  try {
-    localStorage.setItem(
-      `${CRM_LEAD_ALERT_DISMISS_DELIVERY}${leadId}`,
-      JSON.stringify([...ids])
-    );
-  } catch {
-    /* private mode / quota */
-  }
-}
-
-function LeadHeaderNotificationsFlyout({
-  activeItems,
-  onDismissOne,
-  onDismissAll,
-}: {
-  activeItems: CrmDeliveryFailure[];
-  onDismissOne: (recordedAt: string) => void;
-  onDismissAll: () => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const count = activeItems.length;
-
-  useEffect(() => {
-    if (!open) return;
-    function onDoc(e: MouseEvent) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
-  }, [open]);
-
-  useEffect(() => {
-    function onKey(e: globalThis.KeyboardEvent) {
-      if (e.key === 'Escape') setOpen(false);
-    }
-    if (open) {
-      document.addEventListener('keydown', onKey);
-      return () => document.removeEventListener('keydown', onKey);
-    }
-  }, [open]);
-
-  return (
-    <div className="relative" ref={wrapRef}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-colors"
-        aria-label={count ? `Notifications, ${count} unread` : 'Notifications'}
-        aria-expanded={open}
-        aria-haspopup="dialog"
-      >
-        <FaBell className="h-4 w-4" aria-hidden />
-        {count > 0 ? (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-600 px-0.5 text-[9px] font-bold leading-none text-white tabular-nums">
-            {count > 9 ? '9+' : count}
-          </span>
-        ) : null}
-      </button>
-      {open ? (
-        <div
-          className="absolute right-0 top-full z-50 mt-2 w-[min(calc(100vw-2rem),22rem)] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl ring-1 ring-black/5"
-          role="dialog"
-          aria-label="Lead notifications"
-        >
-          <div className="flex items-center justify-between gap-2 border-b border-slate-100 bg-slate-50/80 px-3 py-2.5">
-            <span className="text-sm font-semibold text-slate-900">Notifications</span>
-            {count > 0 ? (
-              <button
-                type="button"
-                onClick={() => {
-                  onDismissAll();
-                  setOpen(false);
-                }}
-                className="text-xs font-medium text-primary hover:underline"
-              >
-                Clear all
-              </button>
-            ) : null}
-          </div>
-          <ul className="max-h-80 overflow-y-auto py-1">
-            {count === 0 ? (
-              <li className="px-4 py-8 text-center text-sm text-slate-500">No active alerts for this lead.</li>
-            ) : (
-              activeItems.map((n) => (
-                <li
-                  key={n.recordedAt}
-                  className="border-b border-slate-100 px-3 py-3 last:border-b-0"
-                >
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-900">
-                    Email delivery failed
-                  </p>
-                  <p className="mt-1 text-sm font-medium text-slate-900">{n.summary}</p>
-                  <p className="mt-0.5 font-mono text-xs text-slate-600 break-all">{n.failedRecipient}</p>
-                  {n.diagnostic ? (
-                    <p className="mt-1.5 text-[11px] text-slate-500 font-mono leading-snug break-all">
-                      {n.diagnostic}
-                    </p>
-                  ) : null}
-                  <p className="mt-1 text-[11px] text-slate-400 tabular-nums">
-                    {formatCrmDateTimeCompact(n.recordedAt)}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onDismissOne(n.recordedAt);
-                      if (activeItems.length <= 1) setOpen(false);
-                    }}
-                    className="mt-2 text-xs font-medium text-primary hover:underline"
-                  >
-                    Dismiss
-                  </button>
-                </li>
-              ))
-            )}
-          </ul>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord }) {
   const router = useRouter();
   const [lead, setLead] = useState(initialLead);
@@ -509,39 +356,20 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
   const [mailBusy, setMailBusy] = useState(false);
   const [mailError, setMailError] = useState('');
   const [mailTemplateBusy, setMailTemplateBusy] = useState(false);
-
-  const [invoiceOpen, setInvoiceOpen] = useState(false);
-  const [stripeLink, setStripeLink] = useState('');
-  const [invoicePreview, setInvoicePreview] = useState<{
-    subject: string;
-    html: string;
-    text: string;
-  } | null>(null);
-  const [invoiceBusy, setInvoiceBusy] = useState(false);
-  const [invoiceError, setInvoiceError] = useState('');
-  const [invoiceStep, setInvoiceStep] = useState<'link' | 'preview'>('link');
-
-  const [mowReminderOpen, setMowReminderOpen] = useState(false);
-  const [mowReminderServiceDay, setMowReminderServiceDay] = useState('');
-  const [mowReminderPreview, setMowReminderPreview] = useState<{
-    subject: string;
-    html: string;
-    text: string;
-  } | null>(null);
-  const [mowReminderBusy, setMowReminderBusy] = useState(false);
-  const [mowReminderError, setMowReminderError] = useState('');
-  const [mowReminderStep, setMowReminderStep] = useState<'form' | 'preview'>('form');
+  const [mailPreviewOpen, setMailPreviewOpen] = useState(false);
+  const [mailPreviewData, setMailPreviewData] = useState<EmailPreviewData | null>(null);
+  const [mailPreviewBusy, setMailPreviewBusy] = useState(false);
 
   const [activitySearch, setActivitySearch] = useState('');
   const [timelineComposer, setTimelineComposer] = useState<'note' | 'email'>('note');
   const [timelineNote, setTimelineNote] = useState('');
+  const [timelineNotePhoto, setTimelineNotePhoto] = useState<File | null>(null);
   const [noteBusy, setNoteBusy] = useState(false);
+  const [notePreparingPhoto, setNotePreparingPhoto] = useState(false);
   const [noteError, setNoteError] = useState('');
+  const [noteErrorDetail, setNoteErrorDetail] = useState('');
 
   const [openActivityKeys, setOpenActivityKeys] = useState<Set<string>>(() => new Set());
-  const [dismissedDeliveries, setDismissedDeliveries] = useState<Set<string>>(
-    () => new Set(readDismissedDeliveries(initialLead.id))
-  );
 
   const allRows = useMemo(() => buildActivityRows(lead), [lead]);
   const filteredRows = useMemo(() => {
@@ -551,30 +379,6 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
   }, [allRows, activitySearch]);
 
   const timelineSegments = useMemo(() => groupTimelineRows(filteredRows), [filteredRows]);
-
-  const allDeliveryFailuresForLeadEmail = useMemo(() => {
-    const norm = lead.email.trim().toLowerCase();
-    if (!norm) return [] as CrmDeliveryFailure[];
-    const merged = mergeLegacyBounceRowsForDisplay(lead.emails);
-    const seen = new Set<string>();
-    const out: CrmDeliveryFailure[] = [];
-    for (const m of merged) {
-      const d = m.deliveryFailure;
-      if (!d || d.failedRecipient !== norm) continue;
-      if (seen.has(d.recordedAt)) continue;
-      seen.add(d.recordedAt);
-      out.push(d);
-    }
-    out.sort(
-      (a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime()
-    );
-    return out;
-  }, [lead.emails, lead.email]);
-
-  const activeDeliveryNotifications = useMemo(
-    () => allDeliveryFailuresForLeadEmail.filter((d) => !dismissedDeliveries.has(d.recordedAt)),
-    [allDeliveryFailuresForLeadEmail, dismissedDeliveries]
-  );
 
   const emailSignature = useMemo(
     () =>
@@ -589,31 +393,8 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
     setStatusMenuOpen(false);
     setTimelineComposerOpen(false);
     setFieldError('');
+    setTimelineNotePhoto(null);
   }, [initialLead]);
-
-  useEffect(() => {
-    setDismissedDeliveries(new Set(readDismissedDeliveries(lead.id)));
-  }, [lead.id]);
-
-  function dismissDeliveryNotification(recordedAt: string) {
-    setDismissedDeliveries((prev) => {
-      const next = new Set(prev);
-      next.add(recordedAt);
-      persistDismissedDeliveries(lead.id, next);
-      return next;
-    });
-  }
-
-  function dismissAllDeliveryNotifications() {
-    setDismissedDeliveries((prev) => {
-      const next = new Set(prev);
-      for (const d of activeDeliveryNotifications) {
-        next.add(d.recordedAt);
-      }
-      persistDismissedDeliveries(lead.id, next);
-      return next;
-    });
-  }
 
   /** Default expansion: latest email or its conversation open. Re-run when the email thread changes. */
   useEffect(() => {
@@ -827,27 +608,77 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
 
   async function addTimelineNote() {
     setNoteError('');
+    setNoteErrorDetail('');
     const text = timelineNote.trim();
-    if (!text) return;
+    if (!text) {
+      setNoteError('Note content is required.');
+      return;
+    }
     setNoteBusy(true);
+    setNotePreparingPhoto(false);
     try {
-      const res = await fetch(`/api/crm/leads/${lead.id}/notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setNoteError(data.error || 'Could not add note');
+      let photoFile = timelineNotePhoto;
+      if (photoFile) {
+        setNotePreparingPhoto(true);
+        try {
+          photoFile = await compressPhotoForTimelineUpload(photoFile);
+        } finally {
+          setNotePreparingPhoto(false);
+        }
+      }
+      const hasPhoto = Boolean(photoFile);
+      const res = hasPhoto
+        ? await fetch(`/api/crm/leads/${lead.id}/notes`, {
+            method: 'POST',
+            credentials: 'include',
+            body: (() => {
+              const form = new FormData();
+              form.set('text', text);
+              if (photoFile) form.set('photo', photoFile);
+              return form;
+            })(),
+          })
+        : await fetch(`/api/crm/leads/${lead.id}/notes`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text }),
+          });
+      let data: { error?: string; detail?: string; lead?: LeadRecord } = {};
+      try {
+        data = (await res.json()) as typeof data;
+      } catch {
+        if (res.status === 413) {
+          setNoteError('Upload too large for the host (try a smaller photo or re-save as JPEG).');
+          return;
+        }
+        setNoteError(
+          `Could not read the server response (${res.status}). Check your connection and try again.`
+        );
         return;
       }
+      if (!res.ok) {
+        if (res.status === 413) {
+          setNoteError('Upload too large for the host (try a smaller photo or re-save as JPEG).');
+          return;
+        }
+        setNoteError(data.error || 'Could not add note');
+        if (typeof data.detail === 'string' && data.detail.trim()) {
+          setNoteErrorDetail(data.detail.trim());
+        }
+        return;
+      }
+      setNoteError('');
+      setNoteErrorDetail('');
       setTimelineNote('');
+      setTimelineNotePhoto(null);
       if (data.lead) setLead(data.lead);
       router.refresh();
     } catch {
-      setNoteError('Request failed');
+      setNoteError('Network error — try again in a moment.');
     } finally {
       setNoteBusy(false);
+      setNotePreparingPhoto(false);
     }
   }
 
@@ -860,6 +691,19 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
     const data = await res.json();
     if (!res.ok) {
       throw new Error(data.error || 'Could not update note');
+    }
+    return data.lead as LeadRecord;
+  }
+
+  async function deleteTimelineNote(noteId: string): Promise<LeadRecord | null> {
+    const res = await fetch(`/api/crm/leads/${lead.id}/notes`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ noteId }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Could not delete note');
     }
     return data.lead as LeadRecord;
   }
@@ -920,129 +764,38 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
     }
   }
 
-  function openInvoice() {
-    setInvoiceOpen(true);
-    setStripeLink('');
-    setInvoicePreview(null);
-    setInvoiceError('');
-    setInvoiceStep('link');
-  }
-
-  async function previewInvoice() {
-    setInvoiceError('');
-    setInvoiceBusy(true);
+  async function previewOutgoingMail(subject: string, text: string): Promise<void> {
+    setMailError('');
+    const s = subject.trim();
+    const t = text.trim();
+    if (!s || !t) {
+      setMailError('Subject and message are required to preview.');
+      return;
+    }
+    setMailPreviewBusy(true);
     try {
-      const res = await fetch(`/api/crm/leads/${lead.id}/macros/send-invoice`, {
+      const res = await fetch(`/api/crm/leads/${lead.id}/send-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stripePaymentLink: stripeLink, previewOnly: true }),
+        body: JSON.stringify({ subject: s, text: t, previewOnly: true }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setInvoiceError(data.error || 'Preview failed');
+        setMailError(data.error || 'Preview failed');
         return;
       }
-      setInvoicePreview({ subject: data.subject, html: data.html, text: data.text });
-      setInvoiceStep('preview');
+      if (data.preview) {
+        setMailPreviewData(data.preview as EmailPreviewData);
+        setMailPreviewOpen(true);
+      }
     } catch {
-      setInvoiceError('Request failed');
+      setMailError('Request failed');
     } finally {
-      setInvoiceBusy(false);
+      setMailPreviewBusy(false);
     }
   }
 
-  async function sendInvoice() {
-    setInvoiceError('');
-    setInvoiceBusy(true);
-    try {
-      const res = await fetch(`/api/crm/leads/${lead.id}/macros/send-invoice`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stripePaymentLink: stripeLink, previewOnly: false }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setInvoiceError(data.error || 'Send failed');
-        return;
-      }
-      setInvoiceOpen(false);
-      const refresh = await fetch(`/api/crm/leads/${lead.id}`);
-      const j = await refresh.json();
-      if (j.lead) setLead(j.lead);
-      router.refresh();
-    } catch {
-      setInvoiceError('Request failed');
-    } finally {
-      setInvoiceBusy(false);
-    }
-  }
-
-  function openMowReminder() {
-    setMowReminderOpen(true);
-    setMowReminderServiceDay('');
-    setMowReminderPreview(null);
-    setMowReminderError('');
-    setMowReminderStep('form');
-  }
-
-  async function previewMowReminder() {
-    setMowReminderError('');
-    setMowReminderBusy(true);
-    try {
-      const res = await fetch(`/api/crm/leads/${lead.id}/macros/email-template`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          templateId: 'mow_reminder',
-          serviceDayLabel: mowReminderServiceDay.trim() || undefined,
-          previewOnly: true,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setMowReminderError(data.error || 'Preview failed');
-        return;
-      }
-      setMowReminderPreview({ subject: data.subject, html: data.html, text: data.text });
-      setMowReminderStep('preview');
-    } catch {
-      setMowReminderError('Request failed');
-    } finally {
-      setMowReminderBusy(false);
-    }
-  }
-
-  async function sendMowReminder() {
-    setMowReminderError('');
-    setMowReminderBusy(true);
-    try {
-      const res = await fetch(`/api/crm/leads/${lead.id}/macros/email-template`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          templateId: 'mow_reminder',
-          serviceDayLabel: mowReminderServiceDay.trim() || undefined,
-          previewOnly: false,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setMowReminderError(data.error || 'Send failed');
-        return;
-      }
-      setMowReminderOpen(false);
-      const refresh = await fetch(`/api/crm/leads/${lead.id}`);
-      const j = await refresh.json();
-      if (j.lead) setLead(j.lead);
-      router.refresh();
-    } catch {
-      setMowReminderError('Request failed');
-    } finally {
-      setMowReminderBusy(false);
-    }
-  }
-
-  type ComposerTemplateId = 'mow_reminder' | 'lawn_cut_notice';
+  type ComposerTemplateId = 'mow_reminder' | 'lawn_cut_notice' | 'invoice_link';
 
   async function insertEmailTemplateIntoComposer(
     templateId: ComposerTemplateId,
@@ -1081,7 +834,7 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
     if (!confirm('Delete this lead and all stored messages? This cannot be undone.')) return;
     const res = await fetch(`/api/crm/leads/${lead.id}`, { method: 'DELETE' });
     if (res.ok) {
-      router.push('/crm');
+      router.push('/admin');
       router.refresh();
     }
   }
@@ -1090,7 +843,7 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
     <div className="flex flex-col gap-5 pb-8 lg:grid lg:grid-cols-[minmax(272px,320px)_minmax(0,1fr)] lg:grid-rows-[auto_1fr] lg:gap-5 lg:items-start">
       <header className="bg-white rounded-xl border border-slate-200 shadow-sm p-3 sm:p-4 lg:col-start-1 lg:row-start-1 lg:self-start">
         <Link
-          href="/crm"
+          href="/admin"
           className="text-xs text-slate-500 hover:text-primary mb-1 inline-block font-medium"
         >
           ← All leads
@@ -1183,32 +936,6 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <LeadHeaderNotificationsFlyout
-                activeItems={activeDeliveryNotifications}
-                onDismissOne={dismissDeliveryNotification}
-                onDismissAll={dismissAllDeliveryNotifications}
-              />
-              <button
-                type="button"
-                onClick={openInvoice}
-                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-xs font-semibold text-white shadow-sm hover:bg-primary-dark"
-              >
-                Send invoice
-              </button>
-              <button
-                type="button"
-                onClick={openMowReminder}
-                className="inline-flex h-9 items-center justify-center rounded-md border border-primary/35 bg-white px-3 text-xs font-semibold text-primary-dark shadow-sm hover:bg-primary/[0.06]"
-              >
-                Mow reminder
-              </button>
-              <button
-                type="button"
-                onClick={() => void insertEmailTemplateIntoComposer('lawn_cut_notice')}
-                className="inline-flex h-9 items-center justify-center rounded-md border border-primary/35 bg-white px-3 text-xs font-semibold text-primary-dark shadow-sm hover:bg-primary/[0.06]"
-              >
-                We&apos;ve cut your lawn
-              </button>
               <button
                 type="button"
                 onClick={deleteLead}
@@ -1364,7 +1091,60 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
                     value={timelineNote}
                     onChange={(e) => setTimelineNote(e.target.value)}
                   />
-                  {noteError && <p className="text-sm text-red-600">{noteError}</p>}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">
+                      <FaImage className="text-[12px] text-slate-500" aria-hidden />
+                      Add photo
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                        className="sr-only"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] ?? null;
+                          setNoteError('');
+                          setNoteErrorDetail('');
+                          setTimelineNotePhoto(file);
+                          e.currentTarget.value = '';
+                        }}
+                      />
+                    </label>
+                    {timelineNotePhoto ? (
+                      <>
+                        <span className="max-w-full truncate text-xs text-slate-600">
+                          {timelineNotePhoto.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setTimelineNotePhoto(null)}
+                          className="text-xs font-medium text-slate-500 hover:text-slate-700 hover:underline"
+                        >
+                          Remove
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-xs text-slate-500">
+                        iPhone photos OK — we resize to JPEG before upload
+                      </span>
+                    )}
+                  </div>
+                  {timelineNotePhoto ? (
+                    <p className="text-xs text-slate-500 -mt-1">
+                      Add a note above to use as the photo caption.
+                    </p>
+                  ) : null}
+                  {noteError ? (
+                    <div
+                      className="rounded-lg border border-red-200 bg-red-50/90 px-3 py-2 text-sm text-red-800 space-y-1.5"
+                      role="alert"
+                    >
+                      <p className="font-medium leading-snug m-0">{noteError}</p>
+                      {noteErrorDetail ? (
+                        <p className="text-xs font-mono text-red-900/90 whitespace-pre-wrap break-words leading-snug m-0 border-t border-red-200/80 pt-1.5">
+                          {noteErrorDetail}
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
@@ -1372,7 +1152,11 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
                       onClick={addTimelineNote}
                       className="px-3 py-1.5 rounded-md bg-slate-800 text-white text-xs font-medium hover:bg-slate-900 disabled:opacity-50"
                     >
-                      {noteBusy ? 'Adding…' : 'Add note'}
+                      {noteBusy
+                        ? notePreparingPhoto
+                          ? 'Preparing photo…'
+                          : 'Adding…'
+                        : 'Add note'}
                     </button>
                   </div>
                 </>
@@ -1419,6 +1203,14 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
                         className="px-2.5 py-1 rounded-md border border-slate-200 bg-white text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                       >
                         We&apos;ve cut your lawn
+                      </button>
+                      <button
+                        type="button"
+                        disabled={mailTemplateBusy}
+                        onClick={() => void insertEmailTemplateIntoComposer('invoice_link')}
+                        className="px-2.5 py-1 rounded-md border border-slate-200 bg-white text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                      >
+                        Invoice link
                       </button>
                     </div>
                     {!lead.email.trim() ? (
@@ -1471,6 +1263,14 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
                       <div className="flex flex-wrap items-center justify-end gap-2">
                         <button
                           type="button"
+                          disabled={mailBusy || mailTemplateBusy || mailPreviewBusy || !mailSubject.trim() || !mailBody.trim()}
+                          onClick={() => void previewOutgoingMail(mailSubject, mailBody)}
+                          className="px-3 py-1.5 rounded-md border border-slate-200 bg-white text-slate-600 text-xs font-medium hover:bg-slate-50 disabled:opacity-50"
+                        >
+                          {mailPreviewBusy ? 'Previewing…' : 'Preview'}
+                        </button>
+                        <button
+                          type="button"
                           disabled={mailBusy || mailTemplateBusy}
                           onClick={discardOutgoingDraft}
                           className="px-3 py-1.5 rounded-md border border-slate-200 bg-white text-slate-600 text-xs font-medium hover:bg-slate-50 disabled:opacity-50"
@@ -1514,6 +1314,7 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
                           router.refresh();
                         },
                         updateTimelineNote,
+                        deleteTimelineNote,
                       }}
                       emailReply={{
                         contactDisplayName: timelineContactLabel(lead.name, lead.email),
@@ -1651,190 +1452,29 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
                 />
               </div>
             </div>
-          </div>
         </div>
+      </div>
 
-      {invoiceOpen ? (
-        <div className="lg:col-span-2 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-100 flex justify-between items-center gap-2">
-            <h2 id="invoice-title" className="font-semibold text-slate-900 text-sm">
-              Send invoice
-            </h2>
-            <button
-              type="button"
-              onClick={() => setInvoiceOpen(false)}
-              className="text-slate-400 hover:text-slate-600 text-lg leading-none px-2 py-1 rounded-md hover:bg-slate-50"
-              aria-label="Close"
-            >
-              ×
-            </button>
-          </div>
-          <div className="p-4 space-y-4 max-h-[min(70vh,28rem)] overflow-y-auto">
-            {invoiceStep === 'link' && (
-              <>
-                <p className="text-sm text-slate-600">
-                  Paste your Stripe Payment Link. We&apos;ll merge{' '}
-                  <strong>name</strong> and <strong>address</strong> from this lead into the message.
-                </p>
-                <input
-                  className={inputClass}
-                  placeholder="https://buy.stripe.com/…"
-                  value={stripeLink}
-                  onChange={(e) => setStripeLink(e.target.value)}
-                />
-              </>
-            )}
-            {invoiceStep === 'preview' && invoicePreview && (
-              <>
-                <p className="text-xs font-medium text-slate-500">Subject</p>
-                <p className="text-sm text-slate-900">{invoicePreview.subject}</p>
-                <p className="text-xs font-medium text-slate-500 mt-3">Body preview</p>
-                <div
-                  className="rounded-lg border border-slate-100 bg-slate-50/80 p-4 text-sm overflow-auto max-h-48"
-                  dangerouslySetInnerHTML={{ __html: invoicePreview.html }}
-                />
-              </>
-            )}
-            {invoiceError && <p className="text-sm text-red-600">{invoiceError}</p>}
-          </div>
-          <div className="px-4 py-3 border-t border-slate-100 flex flex-wrap gap-2 justify-end">
-            {invoiceStep === 'link' ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setInvoiceOpen(false)}
-                  className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  disabled={invoiceBusy || !stripeLink.trim()}
-                  onClick={previewInvoice}
-                  className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-50"
-                >
-                  {invoiceBusy ? '…' : 'Continue'}
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setInvoiceStep('link');
-                    setInvoicePreview(null);
-                  }}
-                  className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg"
-                >
-                  Back
-                </button>
-                <button
-                  type="button"
-                  disabled={invoiceBusy}
-                  onClick={sendInvoice}
-                  className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-dark disabled:opacity-50"
-                >
-                  {invoiceBusy ? 'Sending…' : 'Send email'}
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      ) : null}
-
-      {mowReminderOpen ? (
-        <div className="lg:col-span-2 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-100 flex justify-between items-center gap-2">
-            <h2 id="mow-reminder-title" className="font-semibold text-slate-900 text-sm">
-              Mow reminder email
-            </h2>
-            <button
-              type="button"
-              onClick={() => setMowReminderOpen(false)}
-              className="text-slate-400 hover:text-slate-600 text-lg leading-none px-2 py-1 rounded-md hover:bg-slate-50"
-              aria-label="Close"
-            >
-              ×
-            </button>
-          </div>
-          <div className="p-4 space-y-4 max-h-[min(70vh,28rem)] overflow-y-auto">
-            {mowReminderStep === 'form' && (
-              <>
-                <p className="text-sm text-slate-600">
-                  Sends a short reminder that you&apos;ll mow their lawn. We merge{' '}
-                  <strong>name</strong> and <strong>address</strong> from this lead. Leave the field
-                  below empty to say <strong>tomorrow</strong> in the subject and body.
-                </p>
-                <label className="block space-y-1.5">
-                  <span className="text-xs font-medium text-slate-600">
-                    When (optional — default: tomorrow)
-                  </span>
-                  <input
-                    className={inputClass}
-                    placeholder="e.g. tomorrow, or Friday, April 11"
-                    value={mowReminderServiceDay}
-                    onChange={(e) => setMowReminderServiceDay(e.target.value)}
-                  />
-                </label>
-              </>
-            )}
-            {mowReminderStep === 'preview' && mowReminderPreview && (
-              <>
-                <p className="text-xs font-medium text-slate-500">Subject</p>
-                <p className="text-sm text-slate-900">{mowReminderPreview.subject}</p>
-                <p className="text-xs font-medium text-slate-500 mt-3">Body preview</p>
-                <div
-                  className="rounded-lg border border-slate-100 bg-slate-50/80 p-4 text-sm overflow-auto max-h-48"
-                  dangerouslySetInnerHTML={{ __html: mowReminderPreview.html }}
-                />
-              </>
-            )}
-            {mowReminderError && <p className="text-sm text-red-600">{mowReminderError}</p>}
-          </div>
-          <div className="px-4 py-3 border-t border-slate-100 flex flex-wrap gap-2 justify-end">
-            {mowReminderStep === 'form' ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setMowReminderOpen(false)}
-                  className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  disabled={mowReminderBusy}
-                  onClick={previewMowReminder}
-                  className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-50"
-                >
-                  {mowReminderBusy ? '…' : 'Continue'}
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMowReminderStep('form');
-                    setMowReminderPreview(null);
-                  }}
-                  className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg"
-                >
-                  Back
-                </button>
-                <button
-                  type="button"
-                  disabled={mowReminderBusy}
-                  onClick={sendMowReminder}
-                  className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-dark disabled:opacity-50"
-                >
-                  {mowReminderBusy ? 'Sending…' : 'Send email'}
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      ) : null}
+      <EmailPreviewModal
+        open={mailPreviewOpen}
+        onClose={() => {
+          setMailPreviewOpen(false);
+          setMailPreviewData(null);
+        }}
+        onSend={() => {
+          void (async () => {
+            const sent = await sendOutgoingMail(mailSubject, mailBody);
+            if (sent) {
+              setMailPreviewOpen(false);
+              setMailPreviewData(null);
+            }
+          })();
+        }}
+        preview={mailPreviewData}
+        loading={mailPreviewBusy}
+        sending={mailBusy}
+        title="Outgoing email preview"
+      />
     </div>
   );
 }
@@ -2048,6 +1688,7 @@ function ContactField({
 type StaffNoteActionsProps = {
   onLeadUpdated: (lead: LeadRecord) => void;
   updateTimelineNote: (noteId: string, text: string) => Promise<LeadRecord | null>;
+  deleteTimelineNote: (noteId: string) => Promise<LeadRecord | null>;
 };
 
 function StaffNoteActivityCard({
@@ -2056,6 +1697,7 @@ function StaffNoteActivityCard({
   onToggle,
   onLeadUpdated,
   updateTimelineNote,
+  deleteTimelineNote,
 }: {
   ev: CrmTimelineStaffNote;
   open: boolean;
@@ -2101,6 +1743,21 @@ function StaffNoteActivityCard({
       setEditing(false);
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Save failed');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function deleteNote() {
+    if (!confirm('Delete this staff note?')) return;
+    setErr('');
+    setBusy(true);
+    try {
+      const next = await deleteTimelineNote(ev.id);
+      if (next) onLeadUpdated(next);
+      setEditing(false);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Delete failed');
     } finally {
       setBusy(false);
     }
@@ -2173,14 +1830,40 @@ function StaffNoteActivityCard({
             >
               {ev.body}
             </p>
-            {(!needsExpand || open) && (
-              <button
-                type="button"
-                onClick={startEdit}
-                className="mt-2 text-xs font-medium text-amber-900/90 hover:underline"
+            {ev.photo ? (
+              <a
+                href={ev.photo.url}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2.5 block overflow-hidden rounded-lg border border-amber-200/80 bg-white hover:border-amber-300/90"
               >
-                Edit note
-              </button>
+                <img
+                  src={ev.photo.url}
+                  alt="Timeline photo attachment"
+                  className="max-h-72 w-full object-cover"
+                  loading="lazy"
+                />
+              </a>
+            ) : null}
+            {(!needsExpand || open) && (
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={startEdit}
+                  disabled={busy}
+                  className="text-xs font-medium text-amber-900/90 hover:underline disabled:opacity-50"
+                >
+                  Edit note
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void deleteNote()}
+                  disabled={busy}
+                  className="text-xs font-medium text-red-700 hover:underline disabled:opacity-50"
+                >
+                  Delete note
+                </button>
+              </div>
             )}
           </>
         )}
@@ -2278,6 +1961,21 @@ function ActivityItem({
           >
             {ev.body}
           </p>
+          {ev.photo ? (
+            <a
+              href={ev.photo.url}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2.5 block overflow-hidden rounded-lg border border-amber-200/80 bg-white hover:border-amber-300/90"
+            >
+              <img
+                src={ev.photo.url}
+                alt="Timeline photo attachment"
+                className="max-h-72 w-full object-cover"
+                loading="lazy"
+              />
+            </a>
+          ) : null}
         </div>
       </article>
     );

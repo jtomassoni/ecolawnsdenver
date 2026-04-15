@@ -61,6 +61,12 @@ export type CrmTimelineStaffNote = {
   kind: 'staff_note';
   createdAt: string;
   body: string;
+  photo?: {
+    url: string;
+    fileName: string;
+    mimeType: string;
+    sizeBytes: number;
+  };
 };
 
 /** Logged when contact fields or status change via Save. */

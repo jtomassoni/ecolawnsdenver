@@ -7,6 +7,13 @@ const nextConfig: NextConfig = {
     remotePatterns: [],
     unoptimized: false,
   },
+  experimental: {
+    /** Default 10MB — iPhone photos exceed this; bodies get truncated and formData() fails. */
+    proxyClientMaxBodySize: '32mb',
+    serverActions: {
+      bodySizeLimit: '32mb',
+    },
+  },
 }
 
 export default nextConfig

@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/crm/', '/api/'],
+        disallow: ['/admin/', '/crm/', '/login', '/api/'],
       },
     ],
     sitemap: 'https://ecolawnsdenver.com/sitemap.xml',

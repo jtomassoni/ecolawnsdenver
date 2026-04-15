@@ -2,30 +2,49 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
+const PATHNAME_HEADER = 'x-pathname';
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isLogin = pathname === '/crm/login' || pathname === '/api/crm/login';
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set(PATHNAME_HEADER, pathname);
+
+  const withPathHeader = () =>
+    NextResponse.next({
+      request: { headers: requestHeaders },
+    });
+
+  if (pathname === '/crm' || pathname.startsWith('/crm/')) {
+    const target = pathname.replace(/^\/crm/, '/admin') || '/admin';
+    const url = new URL(target, request.url);
+    url.search = request.nextUrl.search;
+    return NextResponse.redirect(url);
+  }
+
+  const isLogin = pathname === '/login' || pathname === '/api/crm/login';
   const isProtected =
-    (pathname.startsWith('/crm') && !isLogin) ||
+    (pathname.startsWith('/admin') && !isLogin) ||
     (pathname.startsWith('/api/crm') && !pathname.endsWith('/login'));
-  if (!isProtected) return NextResponse.next();
+  if (!isProtected) return withPathHeader();
 
   const session = request.cookies.get('crm_session')?.value;
   if (!session) {
-    return NextResponse.redirect(new URL('/crm/login', request.url));
+    return NextResponse.redirect(new URL('/login', request.url));
   }
   try {
     const secret = process.env.SESSION_SECRET || process.env.CRM_SESSION_SECRET;
     if (!secret) throw new Error('SESSION_SECRET or CRM_SESSION_SECRET not set');
     await jwtVerify(session, new TextEncoder().encode(secret));
   } catch {
-    const res = NextResponse.redirect(new URL('/crm/login', request.url));
+    const res = NextResponse.redirect(new URL('/login', request.url));
     res.cookies.delete('crm_session');
     return res;
   }
-  return NextResponse.next();
+  return withPathHeader();
 }
 
 export const config = {
-  matcher: ['/crm/:path*', '/api/crm/:path*'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+  ],
 };

@@ -1,7 +1,7 @@
 import { headers } from 'next/headers';
 import CrmChrome from '@/components/crm/CrmChrome';
 
-export default async function CrmLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const hdrs = await headers();
   const pathnameFromServer = hdrs.get('x-pathname') ?? '';
   return (

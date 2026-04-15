@@ -263,7 +263,18 @@ export async function updateLead(
   });
 }
 
-export async function appendLeadTimelineNote(id: string, body: string): Promise<LeadRecord | null> {
+export async function appendLeadTimelineNote(
+  id: string,
+  body: string,
+  options?: {
+    photo?: {
+      url: string;
+      fileName: string;
+      mimeType: string;
+      sizeBytes: number;
+    };
+  }
+): Promise<LeadRecord | null> {
   return withLock(async () => {
     const db = await readDb();
     const lead = db.leads.find((l) => l.id === id);
@@ -277,6 +288,7 @@ export async function appendLeadTimelineNote(id: string, body: string): Promise<
       kind: 'staff_note',
       createdAt: now,
       body: text,
+      ...(options?.photo ? { photo: options.photo } : {}),
     });
     lead.timeline = timeline;
     lead.updatedAt = now;
@@ -305,6 +317,25 @@ export async function updateLeadTimelineNote(
     timeline[i] = { ...ev, body: text };
     lead.timeline = timeline;
     lead.updatedAt = now;
+    await persistLeadDb(db, lead);
+    return lead;
+  });
+}
+
+export async function deleteLeadTimelineNote(
+  leadId: string,
+  noteId: string
+): Promise<LeadRecord | null> {
+  return withLock(async () => {
+    const db = await readDb();
+    const lead = db.leads.find((l) => l.id === leadId);
+    if (!lead) return null;
+    const timeline = [...(lead.timeline ?? [])];
+    const i = timeline.findIndex((e) => e.id === noteId && e.kind === 'staff_note');
+    if (i === -1) return null;
+    timeline.splice(i, 1);
+    lead.timeline = timeline;
+    lead.updatedAt = new Date().toISOString();
     await persistLeadDb(db, lead);
     return lead;
   });
