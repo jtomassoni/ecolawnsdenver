@@ -10,8 +10,10 @@ export type StoredTimelinePhoto = {
 };
 
 /**
- * Persists a CRM timeline photo. On Vercel, the filesystem is read-only except /tmp, so we use
- * Vercel Blob when `BLOB_READ_WRITE_TOKEN` is set. Locally we write under `public/uploads/crm-timeline/`.
+ * Persists a CRM timeline photo. When `BLOB_READ_WRITE_TOKEN` is set (same token in `.env` and Vercel is
+ * fine), everything goes to one Vercel Blob store under `crm-timeline/…` — local dev and every deploy use
+ * the same pool. If the token is unset locally only, we fall back to `public/uploads/crm-timeline/`.
+ * On Vercel without a token, uploads cannot run (read-only filesystem).
  */
 export async function storeCrmTimelinePhoto(input: {
   bytes: Uint8Array;
