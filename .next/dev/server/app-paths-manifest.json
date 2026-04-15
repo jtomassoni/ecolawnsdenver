@@ -1,0 +1,8 @@
+{
+  "/api/crm/leads/[id]/macros/email-template/route": "app/api/crm/leads/[id]/macros/email-template/route.js",
+  "/api/crm/leads/[id]/route": "app/api/crm/leads/[id]/route.js",
+  "/api/crm/leads/[id]/send-email/route": "app/api/crm/leads/[id]/send-email/route.js",
+  "/api/crm/sync-inbox/route": "app/api/crm/sync-inbox/route.js",
+  "/crm/leads/[id]/page": "app/crm/leads/[id]/page.js",
+  "/crm/page": "app/crm/page.js"
+}
