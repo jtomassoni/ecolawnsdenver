@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireCrmSession } from '@/lib/auth';
 import { appendEmailToLead, getLeadById } from '@/lib/crm-store';
 import { getCrmFromAddress, getCrmSmtpDebugInfo, sendCrmEmail } from '@/lib/crm-mail';
+import { buildCrmBrandedHtml } from '@/lib/crm-email-templates';
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -36,7 +37,9 @@ export async function POST(request: NextRequest, { params }: Params) {
   }
 
   const html = body.html !== undefined ? String(body.html) : undefined;
-  const resolvedHtml = html !== undefined ? html : text.replace(/\n/g, '<br/>');
+  const origin = request.nextUrl.origin;
+  const logoUrl = `${origin}/images/logo.jpg`;
+  const resolvedHtml = html !== undefined ? html : buildCrmBrandedHtml(text, { logoUrl });
 
   if (body.previewOnly === true) {
     return NextResponse.json({
@@ -56,7 +59,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       to: toAddr,
       subject,
       text,
-      html,
+      html: resolvedHtml,
     });
     messageId = sent.messageId;
   } catch (e) {
@@ -76,7 +79,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     to: toAddr,
     subject,
     bodyText: text,
-    bodyHtml: html,
+    bodyHtml: resolvedHtml,
     messageId,
   });
 

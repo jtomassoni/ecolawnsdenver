@@ -18,10 +18,12 @@ import type {
   LeadRecord,
   LeadStatus,
 } from '@/lib/crm-types';
+import EmailPreviewModal, { type EmailPreviewData } from '@/components/EmailPreviewModal';
 import { LEAD_STATUSES, LEAD_STATUS_LABELS } from '@/lib/crm-types';
 import { formatCrmDateTime, formatCrmDateTimeCompact } from '@/lib/crm-format';
-import { FaChevronDown, FaEdit, FaEnvelope, FaStickyNote } from 'react-icons/fa';
+import { FaChevronDown, FaEdit, FaEnvelope, FaImage, FaStickyNote } from 'react-icons/fa';
 import { mergeLegacyBounceRowsForDisplay } from '@/lib/crm-bounce';
+import { compressPhotoForTimelineUpload } from '@/lib/crm-photo-upload';
 
 const inputClass =
   'w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary';
@@ -354,12 +356,18 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
   const [mailBusy, setMailBusy] = useState(false);
   const [mailError, setMailError] = useState('');
   const [mailTemplateBusy, setMailTemplateBusy] = useState(false);
+  const [mailPreviewOpen, setMailPreviewOpen] = useState(false);
+  const [mailPreviewData, setMailPreviewData] = useState<EmailPreviewData | null>(null);
+  const [mailPreviewBusy, setMailPreviewBusy] = useState(false);
 
   const [activitySearch, setActivitySearch] = useState('');
   const [timelineComposer, setTimelineComposer] = useState<'note' | 'email'>('note');
   const [timelineNote, setTimelineNote] = useState('');
+  const [timelineNotePhoto, setTimelineNotePhoto] = useState<File | null>(null);
   const [noteBusy, setNoteBusy] = useState(false);
+  const [notePreparingPhoto, setNotePreparingPhoto] = useState(false);
   const [noteError, setNoteError] = useState('');
+  const [noteErrorDetail, setNoteErrorDetail] = useState('');
 
   const [openActivityKeys, setOpenActivityKeys] = useState<Set<string>>(() => new Set());
 
@@ -385,6 +393,7 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
     setStatusMenuOpen(false);
     setTimelineComposerOpen(false);
     setFieldError('');
+    setTimelineNotePhoto(null);
   }, [initialLead]);
 
   /** Default expansion: latest email or its conversation open. Re-run when the email thread changes. */
@@ -599,27 +608,67 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
 
   async function addTimelineNote() {
     setNoteError('');
+    setNoteErrorDetail('');
     const text = timelineNote.trim();
-    if (!text) return;
+    if (!text) {
+      setNoteError('Note content is required.');
+      return;
+    }
     setNoteBusy(true);
+    setNotePreparingPhoto(false);
     try {
-      const res = await fetch(`/api/crm/leads/${lead.id}/notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setNoteError(data.error || 'Could not add note');
+      let photoFile = timelineNotePhoto;
+      if (photoFile) {
+        setNotePreparingPhoto(true);
+        try {
+          photoFile = await compressPhotoForTimelineUpload(photoFile);
+        } finally {
+          setNotePreparingPhoto(false);
+        }
+      }
+      const hasPhoto = Boolean(photoFile);
+      const res = hasPhoto
+        ? await fetch(`/api/crm/leads/${lead.id}/notes`, {
+            method: 'POST',
+            body: (() => {
+              const form = new FormData();
+              form.set('text', text);
+              if (photoFile) form.set('photo', photoFile);
+              return form;
+            })(),
+          })
+        : await fetch(`/api/crm/leads/${lead.id}/notes`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text }),
+          });
+      let data: { error?: string; detail?: string; lead?: LeadRecord } = {};
+      try {
+        data = (await res.json()) as typeof data;
+      } catch {
+        setNoteError(
+          `Could not read the server response (${res.status}). Check your connection and try again.`
+        );
         return;
       }
+      if (!res.ok) {
+        setNoteError(data.error || 'Could not add note');
+        if (typeof data.detail === 'string' && data.detail.trim()) {
+          setNoteErrorDetail(data.detail.trim());
+        }
+        return;
+      }
+      setNoteError('');
+      setNoteErrorDetail('');
       setTimelineNote('');
+      setTimelineNotePhoto(null);
       if (data.lead) setLead(data.lead);
       router.refresh();
     } catch {
-      setNoteError('Request failed');
+      setNoteError('Network error — try again in a moment.');
     } finally {
       setNoteBusy(false);
+      setNotePreparingPhoto(false);
     }
   }
 
@@ -702,6 +751,37 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
       return false;
     } finally {
       setMailBusy(false);
+    }
+  }
+
+  async function previewOutgoingMail(subject: string, text: string): Promise<void> {
+    setMailError('');
+    const s = subject.trim();
+    const t = text.trim();
+    if (!s || !t) {
+      setMailError('Subject and message are required to preview.');
+      return;
+    }
+    setMailPreviewBusy(true);
+    try {
+      const res = await fetch(`/api/crm/leads/${lead.id}/send-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject: s, text: t, previewOnly: true }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMailError(data.error || 'Preview failed');
+        return;
+      }
+      if (data.preview) {
+        setMailPreviewData(data.preview as EmailPreviewData);
+        setMailPreviewOpen(true);
+      }
+    } catch {
+      setMailError('Request failed');
+    } finally {
+      setMailPreviewBusy(false);
     }
   }
 
@@ -1001,7 +1081,60 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
                     value={timelineNote}
                     onChange={(e) => setTimelineNote(e.target.value)}
                   />
-                  {noteError && <p className="text-sm text-red-600">{noteError}</p>}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">
+                      <FaImage className="text-[12px] text-slate-500" aria-hidden />
+                      Add photo
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                        className="sr-only"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] ?? null;
+                          setNoteError('');
+                          setNoteErrorDetail('');
+                          setTimelineNotePhoto(file);
+                          e.currentTarget.value = '';
+                        }}
+                      />
+                    </label>
+                    {timelineNotePhoto ? (
+                      <>
+                        <span className="max-w-full truncate text-xs text-slate-600">
+                          {timelineNotePhoto.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setTimelineNotePhoto(null)}
+                          className="text-xs font-medium text-slate-500 hover:text-slate-700 hover:underline"
+                        >
+                          Remove
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-xs text-slate-500">
+                        iPhone photos OK — we resize to JPEG before upload
+                      </span>
+                    )}
+                  </div>
+                  {timelineNotePhoto ? (
+                    <p className="text-xs text-slate-500 -mt-1">
+                      Add a note above to use as the photo caption.
+                    </p>
+                  ) : null}
+                  {noteError ? (
+                    <div
+                      className="rounded-lg border border-red-200 bg-red-50/90 px-3 py-2 text-sm text-red-800 space-y-1.5"
+                      role="alert"
+                    >
+                      <p className="font-medium leading-snug m-0">{noteError}</p>
+                      {noteErrorDetail ? (
+                        <p className="text-xs font-mono text-red-900/90 whitespace-pre-wrap break-words leading-snug m-0 border-t border-red-200/80 pt-1.5">
+                          {noteErrorDetail}
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
@@ -1009,7 +1142,11 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
                       onClick={addTimelineNote}
                       className="px-3 py-1.5 rounded-md bg-slate-800 text-white text-xs font-medium hover:bg-slate-900 disabled:opacity-50"
                     >
-                      {noteBusy ? 'Adding…' : 'Add note'}
+                      {noteBusy
+                        ? notePreparingPhoto
+                          ? 'Preparing photo…'
+                          : 'Adding…'
+                        : 'Add note'}
                     </button>
                   </div>
                 </>
@@ -1114,6 +1251,14 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
                         {' or Ctrl+↵ to send'}
                       </p>
                       <div className="flex flex-wrap items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          disabled={mailBusy || mailTemplateBusy || mailPreviewBusy || !mailSubject.trim() || !mailBody.trim()}
+                          onClick={() => void previewOutgoingMail(mailSubject, mailBody)}
+                          className="px-3 py-1.5 rounded-md border border-slate-200 bg-white text-slate-600 text-xs font-medium hover:bg-slate-50 disabled:opacity-50"
+                        >
+                          {mailPreviewBusy ? 'Previewing…' : 'Preview'}
+                        </button>
                         <button
                           type="button"
                           disabled={mailBusy || mailTemplateBusy}
@@ -1297,9 +1442,29 @@ export default function LeadWorkspace({ initialLead }: { initialLead: LeadRecord
                 />
               </div>
             </div>
-          </div>
         </div>
+      </div>
 
+      <EmailPreviewModal
+        open={mailPreviewOpen}
+        onClose={() => {
+          setMailPreviewOpen(false);
+          setMailPreviewData(null);
+        }}
+        onSend={() => {
+          void (async () => {
+            const sent = await sendOutgoingMail(mailSubject, mailBody);
+            if (sent) {
+              setMailPreviewOpen(false);
+              setMailPreviewData(null);
+            }
+          })();
+        }}
+        preview={mailPreviewData}
+        loading={mailPreviewBusy}
+        sending={mailBusy}
+        title="Outgoing email preview"
+      />
     </div>
   );
 }
@@ -1655,6 +1820,21 @@ function StaffNoteActivityCard({
             >
               {ev.body}
             </p>
+            {ev.photo ? (
+              <a
+                href={ev.photo.url}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2.5 block overflow-hidden rounded-lg border border-amber-200/80 bg-white hover:border-amber-300/90"
+              >
+                <img
+                  src={ev.photo.url}
+                  alt="Timeline photo attachment"
+                  className="max-h-72 w-full object-cover"
+                  loading="lazy"
+                />
+              </a>
+            ) : null}
             {(!needsExpand || open) && (
               <div className="mt-2 flex flex-wrap items-center gap-3">
                 <button
@@ -1771,6 +1951,21 @@ function ActivityItem({
           >
             {ev.body}
           </p>
+          {ev.photo ? (
+            <a
+              href={ev.photo.url}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2.5 block overflow-hidden rounded-lg border border-amber-200/80 bg-white hover:border-amber-300/90"
+            >
+              <img
+                src={ev.photo.url}
+                alt="Timeline photo attachment"
+                className="max-h-72 w-full object-cover"
+                loading="lazy"
+              />
+            </a>
+          ) : null}
         </div>
       </article>
     );

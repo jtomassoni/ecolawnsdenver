@@ -1,4 +1,6 @@
 import nodemailer from 'nodemailer';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 
 /** Gmail app passwords are 16 chars; Google often displays them with spaces — strip so SMTP accepts them. */
 export function normalizeSmtpPassword(raw: string): string {
@@ -118,6 +120,16 @@ export async function sendCrmEmail(options: {
   const from = getCrmFromAddress();
   const replyTo = getCrmReplyTo();
   const html = options.html ?? options.text.replace(/\n/g, '<br/>');
+  const inlineLogoCid = 'ecolawns-logo';
+  const logoPath = path.join(process.cwd(), 'public', 'images', 'logo.jpg');
+  const logoReferenced =
+    /https?:\/\/[^"'\s]+\/images\/logo\.jpg/i.test(html) || /\/images\/logo\.jpg/i.test(html);
+  const canAttachLogo = logoReferenced && existsSync(logoPath);
+  const resolvedHtml = canAttachLogo
+    ? html
+        .replace(/https?:\/\/[^"'\s]+\/images\/logo\.jpg/gi, `cid:${inlineLogoCid}`)
+        .replace(/\/images\/logo\.jpg/gi, `cid:${inlineLogoCid}`)
+    : html;
 
   const transporter = getCrmSmtpTransporter();
   if (!transporter || !from) {
@@ -132,7 +144,18 @@ export async function sendCrmEmail(options: {
       to: options.to,
       subject: options.subject,
       text: options.text,
-      html,
+      html: resolvedHtml,
+      ...(canAttachLogo
+        ? {
+            attachments: [
+              {
+                filename: 'ecolawns-logo.jpg',
+                path: logoPath,
+                cid: inlineLogoCid,
+              },
+            ],
+          }
+        : {}),
       ...(replyTo ? { replyTo } : {}),
     });
   } catch (e) {

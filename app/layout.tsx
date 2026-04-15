@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import './globals.css';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
 import SiteShell from '@/components/SiteShell';
+import { verifySession } from '@/lib/auth';
 
 export const metadata: Metadata = {
   title: {
@@ -77,16 +79,22 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const hasCrmSession = await verifySession();
+  const hdrs = await headers();
+  const pathnameFromServer = hdrs.get('x-pathname') ?? '';
+
   return (
     <html lang="en">
       <body className="h-screen flex flex-col overflow-hidden" suppressHydrationWarning>
         <GoogleAnalytics />
-        <SiteShell>{children}</SiteShell>
+        <SiteShell hasCrmSession={hasCrmSession} pathnameFromServer={pathnameFromServer}>
+          {children}
+        </SiteShell>
       </body>
     </html>
   );

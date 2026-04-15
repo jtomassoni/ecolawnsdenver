@@ -4,14 +4,24 @@ import { usePathname } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 
-export default function SiteShell({ children }: { children: React.ReactNode }) {
+export default function SiteShell({
+  children,
+  hasCrmSession = false,
+  pathnameFromServer = '',
+}: {
+  children: React.ReactNode;
+  hasCrmSession?: boolean;
+  /** From middleware — avoids SSR/client `usePathname()` mismatches (e.g. mobile Safari). */
+  pathnameFromServer?: string;
+}) {
   const pathname = usePathname();
+  const effectivePath = pathnameFromServer || pathname || '';
   const isCrm =
-    pathname === '/crm' ||
-    pathname?.startsWith('/crm/') ||
-    pathname === '/admin' ||
-    pathname?.startsWith('/admin/') ||
-    pathname === '/login';
+    effectivePath === '/crm' ||
+    effectivePath.startsWith('/crm/') ||
+    effectivePath === '/admin' ||
+    effectivePath.startsWith('/admin/') ||
+    effectivePath === '/login';
 
   if (isCrm) {
     return (
@@ -21,9 +31,9 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <Navigation />
+      <Navigation pathnameFromServer={pathnameFromServer} />
       <main className="flex-1 relative min-h-0 overflow-y-auto overflow-x-hidden w-full">{children}</main>
-      <Footer />
+      {!hasCrmSession ? <Footer /> : null}
     </>
   );
 }

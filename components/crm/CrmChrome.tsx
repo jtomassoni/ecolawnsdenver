@@ -12,8 +12,16 @@ function navLinkClass(active: boolean) {
   ].join(' ');
 }
 
-export default function CrmChrome({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+export default function CrmChrome({
+  children,
+  pathnameFromServer = '',
+}: {
+  children: React.ReactNode;
+  /** From middleware — avoids SSR/client `usePathname()` mismatches (e.g. mobile Safari). */
+  pathnameFromServer?: string;
+}) {
+  const clientPath = usePathname();
+  const pathname = pathnameFromServer || clientPath || '';
   const router = useRouter();
   const isLogin = pathname === '/login';
 
@@ -97,7 +105,7 @@ export default function CrmChrome({ children }: { children: React.ReactNode }) {
               onClick={signOut}
               className="px-2 py-1.5 text-xs font-medium text-red-700 rounded-md hover:bg-red-50"
             >
-              Out
+              Logout
             </button>
           </div>
         </header>

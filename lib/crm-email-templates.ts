@@ -51,9 +51,65 @@ function escapeHtml(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
-function textToSimpleHtml(text: string): string {
-  const safe = escapeHtml(text);
-  return `<div style="font-family:system-ui,sans-serif;line-height:1.55;max-width:36rem;">${safe.replace(/\n/g, '<br/>')}</div>`;
+function linkifyEscapedText(escaped: string): string {
+  return escaped.replace(
+    /(https?:\/\/[^\s<]+)/g,
+    '<a href="$1" style="color:#166534;text-decoration:underline;font-weight:600;">$1</a>'
+  );
+}
+
+export function buildCrmBrandedHtml(text: string, options?: { logoUrl?: string }): string {
+  const logoUrl = options?.logoUrl?.trim() || '/images/logo.jpg';
+  const blocks = text
+    .trim()
+    .split(/\n\s*\n/)
+    .map((b) => b.trim())
+    .filter(Boolean);
+  const body = blocks
+    .map((block) => {
+      const safe = linkifyEscapedText(escapeHtml(block)).replace(/\n/g, '<br/>');
+      const signature = block.startsWith('—');
+      if (signature) {
+        return `<p style="margin:14px 0 0;color:#64748b;font-size:14px;">${safe}</p>`;
+      }
+      return `<p style="margin:0 0 14px;color:#0f172a;font-size:16px;line-height:1.6;">${safe}</p>`;
+    })
+    .join('');
+
+  const logoMarkup = logoUrl
+    ? `<img src="${escapeHtml(logoUrl)}" alt="EcoLawns Denver" width="170" style="display:block;width:170px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;" />`
+    : `<div style="font-size:22px;font-weight:800;line-height:1;color:#ffffff;letter-spacing:0.3px;">EcoLawns Denver</div>`;
+  return `<!doctype html>
+<html lang="en">
+  <body style="margin:0;padding:0;background:#e9f5ee;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#e9f5ee;padding:20px 8px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="640" cellpadding="0" cellspacing="0" style="width:640px;max-width:100%;background:#ffffff;border:1px solid #cde6d3;border-radius:16px;overflow:hidden;">
+            <tr>
+              <td style="background:#166534;padding:18px 20px;">
+                ${logoMarkup}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:22px 20px 12px 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+                ${body}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 20px 22px 20px;">
+                <div style="height:1px;background:#dbece0;margin:0 0 12px 0;"></div>
+                <p style="margin:0;color:#6b7280;font:13px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+                  www.ecolawnsdenver.com
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
 }
 
 function leadTemplateVars(
@@ -79,7 +135,7 @@ export function buildMowReminderEmail(
   const vars = leadTemplateVars(lead, { service_day: serviceDay });
   const subject = applyTemplateVars(MOW_REMINDER_SUBJECT_TEMPLATE, vars);
   const text = applyTemplateVars(MOW_REMINDER_BODY, vars);
-  return { subject, text, html: textToSimpleHtml(text) };
+  return { subject, text, html: buildCrmBrandedHtml(text) };
 }
 
 export function buildLawnCutNoticeEmail(lead: LeadRecord): {
@@ -89,7 +145,7 @@ export function buildLawnCutNoticeEmail(lead: LeadRecord): {
 } {
   const vars = leadTemplateVars(lead, {});
   const text = applyTemplateVars(LAWN_CUT_NOTICE_BODY, vars);
-  return { subject: LAWN_CUT_NOTICE_SUBJECT, text, html: textToSimpleHtml(text) };
+  return { subject: LAWN_CUT_NOTICE_SUBJECT, text, html: buildCrmBrandedHtml(text) };
 }
 
 export function buildInvoiceTemplateEmail(lead: LeadRecord): {
@@ -99,7 +155,7 @@ export function buildInvoiceTemplateEmail(lead: LeadRecord): {
 } {
   const vars = leadTemplateVars(lead, {});
   const text = applyTemplateVars(INVOICE_TEMPLATE_BODY, vars);
-  return { subject: INVOICE_TEMPLATE_SUBJECT, text, html: textToSimpleHtml(text) };
+  return { subject: INVOICE_TEMPLATE_SUBJECT, text, html: buildCrmBrandedHtml(text) };
 }
 
 export function buildCrmEmailFromTemplate(
