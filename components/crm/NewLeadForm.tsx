@@ -54,7 +54,7 @@ export default function NewLeadForm({ variant = 'page', onCancel, onSuccess }: N
       if (onSuccess) {
         onSuccess(data.lead.id);
       } else {
-        router.push(`/crm/leads/${data.lead.id}`);
+        router.push(`/admin/leads/${data.lead.id}`);
         router.refresh();
       }
     } catch {

@@ -29,7 +29,7 @@ function NewLeadUrlSync({ setAddOpen }: { setAddOpen: (open: boolean) => void })
   useEffect(() => {
     if (searchParams.get('newLead') !== '1') return;
     setAddOpen(true);
-    router.replace('/crm', { scroll: false });
+    router.replace('/admin', { scroll: false });
   }, [searchParams, router, setAddOpen]);
 
   return null;
@@ -160,12 +160,12 @@ export default function CrmLeadsTable({ initialLeads }: { initialLeads: LeadReco
                     onClick={(e) => {
                       const target = e.target as HTMLElement | null;
                       if (target?.closest('a,button,input,select,textarea,label')) return;
-                      router.push(`/crm/leads/${lead.id}`);
+                      router.push(`/admin/leads/${lead.id}`);
                     }}
                   >
                     <td className="px-4 py-3">
                       <Link
-                        href={`/crm/leads/${lead.id}`}
+                        href={`/admin/leads/${lead.id}`}
                         className="font-medium text-gray-900 hover:text-primary"
                       >
                         {lead.name}

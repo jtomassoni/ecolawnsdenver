@@ -21,12 +21,26 @@ If something doesn't look right, reply to this email and we'll make it right.
 
 — EcoLawns Denver`;
 
-export const CRM_EMAIL_TEMPLATE_IDS = ['mow_reminder', 'lawn_cut_notice'] as const;
+export const INVOICE_TEMPLATE_SUBJECT = 'Your EcoLawns Denver invoice';
+
+const INVOICE_TEMPLATE_BODY = `Hi {{name}},
+
+Thanks for choosing EcoLawns Denver.
+
+You can pay your invoice here:
+[PASTE PAYMENT LINK]
+
+If you have any questions, just reply to this email.
+
+— EcoLawns Denver`;
+
+export const CRM_EMAIL_TEMPLATE_IDS = ['mow_reminder', 'lawn_cut_notice', 'invoice_link'] as const;
 export type CrmEmailTemplateId = (typeof CRM_EMAIL_TEMPLATE_IDS)[number];
 
 export const CRM_EMAIL_TEMPLATE_LABELS: Record<CrmEmailTemplateId, string> = {
   mow_reminder: 'Mow reminder',
   lawn_cut_notice: "We've cut your lawn",
+  invoice_link: 'Invoice link',
 };
 
 function escapeHtml(s: string): string {
@@ -78,6 +92,16 @@ export function buildLawnCutNoticeEmail(lead: LeadRecord): {
   return { subject: LAWN_CUT_NOTICE_SUBJECT, text, html: textToSimpleHtml(text) };
 }
 
+export function buildInvoiceTemplateEmail(lead: LeadRecord): {
+  subject: string;
+  text: string;
+  html: string;
+} {
+  const vars = leadTemplateVars(lead, {});
+  const text = applyTemplateVars(INVOICE_TEMPLATE_BODY, vars);
+  return { subject: INVOICE_TEMPLATE_SUBJECT, text, html: textToSimpleHtml(text) };
+}
+
 export function buildCrmEmailFromTemplate(
   templateId: string,
   lead: LeadRecord,
@@ -88,6 +112,9 @@ export function buildCrmEmailFromTemplate(
   }
   if (templateId === 'lawn_cut_notice') {
     return buildLawnCutNoticeEmail(lead);
+  }
+  if (templateId === 'invoice_link') {
+    return buildInvoiceTemplateEmail(lead);
   }
   return null;
 }

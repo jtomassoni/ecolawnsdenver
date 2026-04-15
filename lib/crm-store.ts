@@ -310,6 +310,25 @@ export async function updateLeadTimelineNote(
   });
 }
 
+export async function deleteLeadTimelineNote(
+  leadId: string,
+  noteId: string
+): Promise<LeadRecord | null> {
+  return withLock(async () => {
+    const db = await readDb();
+    const lead = db.leads.find((l) => l.id === leadId);
+    if (!lead) return null;
+    const timeline = [...(lead.timeline ?? [])];
+    const i = timeline.findIndex((e) => e.id === noteId && e.kind === 'staff_note');
+    if (i === -1) return null;
+    timeline.splice(i, 1);
+    lead.timeline = timeline;
+    lead.updatedAt = new Date().toISOString();
+    await persistLeadDb(db, lead);
+    return lead;
+  });
+}
+
 export async function deleteLead(id: string): Promise<boolean> {
   return withLock(async () => {
     const db = await readDb();

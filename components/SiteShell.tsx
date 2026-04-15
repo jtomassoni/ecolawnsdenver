@@ -10,7 +10,8 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
     pathname === '/crm' ||
     pathname?.startsWith('/crm/') ||
     pathname === '/admin' ||
-    pathname?.startsWith('/admin/');
+    pathname?.startsWith('/admin/') ||
+    pathname === '/login';
 
   if (isCrm) {
     return (

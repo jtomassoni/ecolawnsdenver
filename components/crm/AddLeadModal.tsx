@@ -64,7 +64,7 @@ export default function AddLeadModal({
             onCancel={onClose}
             onSuccess={(leadId) => {
               onClose();
-              router.push(`/crm/leads/${leadId}`);
+              router.push(`/admin/leads/${leadId}`);
               router.refresh();
             }}
           />
