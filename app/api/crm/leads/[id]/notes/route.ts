@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { mkdir, writeFile } from 'fs/promises';
-import path from 'path';
 import { requireCrmSession } from '@/lib/auth';
 import { appendLeadTimelineNote, deleteLeadTimelineNote, updateLeadTimelineNote } from '@/lib/crm-store';
+import { storeCrmTimelinePhoto } from '@/lib/crm-timeline-photo-storage';
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -142,17 +141,14 @@ export async function POST(request: NextRequest, { params }: Params) {
         }
         const ext = EXT_BY_MIME[mime] ?? '.bin';
         const fileName = `${crypto.randomUUID()}${ext}`;
-        const relDir = path.join('uploads', 'crm-timeline');
-        const absDir = path.join(process.cwd(), 'public', relDir);
-        await mkdir(absDir, { recursive: true });
         const arrayBuffer = await blob.arrayBuffer();
-        await writeFile(path.join(absDir, fileName), new Uint8Array(arrayBuffer));
-        photo = {
-          url: `/${relDir.replace(/\\/g, '/')}/${fileName}`,
+        const bytes = new Uint8Array(arrayBuffer);
+        photo = await storeCrmTimelinePhoto({
+          bytes,
           fileName,
           mimeType: mime,
           sizeBytes: blob.size,
-        };
+        });
       }
     } else {
       let body: unknown;
