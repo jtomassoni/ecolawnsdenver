@@ -4,8 +4,9 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
-import { FaSeedling, FaSnowflake, FaLeaf, FaCheck } from 'react-icons/fa';
+import { FaCheck } from 'react-icons/fa';
 import { trackEvent, trackConversion } from '@/components/GoogleAnalytics';
+import BookVisitMenu from '@/components/BookVisitMenu';
 
 const services = [
   {
@@ -194,15 +195,54 @@ export default function Services() {
       />
       <div className="w-full min-h-full bg-gradient-to-br from-green-50 via-primary-light/30 to-green-100 py-6 sm:py-8 px-4 sm:px-6" style={{ paddingLeft: "max(1rem, env(safe-area-inset-left))", paddingRight: "max(1rem, env(safe-area-inset-right))" }}>
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary text-center mb-3 sm:mb-4">Services & Pricing</h1>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary text-center mb-3 sm:mb-4">Book lawn care in Denver</h1>
         <p className="text-center text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-          Professional, eco-friendly lawn care services in Denver. All equipment is electric by design - quiet, emission-free, and reliable.
+          We&apos;re mowing now. Pick a service below for a free quote: quiet electric equipment, pay per visit or save with a season pass.
         </p>
 
-        {/* Pricing Section */}
-        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-primary-light/50">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-4 sm:mb-6 text-center">Lawn Mowing Pricing</h2>
-          
+        <BookVisitMenu showSeasonPassLink />
+
+        {/* Service detail cards */}
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 border border-primary-light/50 mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-2 sm:mb-3 text-center">Service details</h2>
+          <p className="text-center text-sm text-gray-600 max-w-2xl mx-auto mb-4 sm:mb-6">
+            More about what we offer: electric equipment on every job.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            {services.map((service, idx) => (
+              <div key={idx} className="bg-white rounded-xl shadow-md border border-primary/20 overflow-hidden flex flex-col">
+                <div className="relative w-full h-40 sm:h-48">
+                  <Image src={service.image} alt={service.title} fill className="object-cover" />
+                </div>
+                <div className="p-4 sm:p-5 flex-1 flex flex-col">
+                  <h2 className="text-lg sm:text-xl font-semibold text-primary mb-2 sm:mb-3">{service.title}</h2>
+                  <p className="text-xs sm:text-sm text-gray-700 mb-3 sm:mb-4 flex-1 leading-relaxed">{service.description}</p>
+                  {service.isSnowRemoval && (
+                    <p className="text-xs text-gray-600 mb-2 sm:mb-3 italic">Pricing based on driveway length and property size</p>
+                  )}
+                  <button
+                    onClick={() => handleQuoteClick(service)}
+                    className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-all min-h-[48px] shadow-md hover:shadow-lg text-sm sm:text-base"
+                  >
+                    Get Quote
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Season pass pricing */}
+        <div
+          id="season-plans"
+          className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-primary-light/50 scroll-mt-24"
+        >
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-2 sm:mb-3 text-center">Save with a season pass</h2>
+          <p className="text-center text-sm text-gray-600 max-w-2xl mx-auto mb-4 sm:mb-6">
+            Mowing all season? Lock in a rate and save 25%, optional if you prefer pay-as-you-go above.
+          </p>
+          <h3 className="sr-only">Lawn mowing pricing</h3>
           <div className="grid md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mb-6 sm:mb-8">
             {/* Season Pass */}
             <div className="bg-gradient-to-br from-primary-light/20 to-primary-light/10 rounded-xl p-6 border-2 border-primary">
@@ -273,69 +313,6 @@ export default function Services() {
               <p className="text-center">
                 <strong>All payments can be made digitally or collected at the time of service.</strong> Payments are considered late 24 hours after service completion.
               </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Services Section */}
-        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 border border-primary-light/50 mb-6 sm:mb-8">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-4 sm:mb-6 text-center">Our Services</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            {services.map((service, idx) => (
-              <div key={idx} className="bg-white rounded-xl shadow-md border border-primary/20 overflow-hidden flex flex-col">
-                <div className="relative w-full h-40 sm:h-48">
-                  <Image src={service.image} alt={service.title} fill className="object-cover" />
-                </div>
-                <div className="p-4 sm:p-5 flex-1 flex flex-col">
-                  <h2 className="text-lg sm:text-xl font-semibold text-primary mb-2 sm:mb-3">{service.title}</h2>
-                  <p className="text-xs sm:text-sm text-gray-700 mb-3 sm:mb-4 flex-1 leading-relaxed">{service.description}</p>
-                  {service.isSnowRemoval && (
-                    <p className="text-xs text-gray-600 mb-2 sm:mb-3 italic">Pricing based on driveway length and property size</p>
-                  )}
-                  <button
-                    onClick={() => handleQuoteClick(service)}
-                    className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-all min-h-[48px] shadow-md hover:shadow-lg text-sm sm:text-base"
-                  >
-                    Get Quote
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Additional Services Pricing */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-primary-light/50">
-          <h2 className="text-2xl md:text-3xl font-bold text-primary mb-6 text-center">Additional Services</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-primary-light/10 rounded-xl p-6 border border-primary-light">
-              <h3 className="text-lg font-semibold text-primary mb-3">Spring Cleanup & Aeration</h3>
-              <p className="text-sm text-gray-700 mb-4">
-                Comprehensive cleanup, dethatching, core aeration, and overseeding. Pricing varies by lawn size.
-              </p>
-              <p className="text-sm font-semibold text-primary">Standard cost for most Denver lawns: ~$150-200</p>
-            </div>
-            <div className="bg-primary-light/10 rounded-xl p-6 border border-primary-light">
-              <h3 className="text-lg font-semibold text-primary mb-3">Fall Cleanup & Winter Prep</h3>
-              <p className="text-sm text-gray-700 mb-4">
-                Leaf removal, winter fertilization, and lawn preparation. Pricing varies by lawn size.
-              </p>
-              <p className="text-sm font-semibold text-primary">Standard cost for most Denver lawns: ~$150-200</p>
-            </div>
-            <div className="bg-primary-light/10 rounded-xl p-6 border border-primary-light">
-              <h3 className="text-lg font-semibold text-primary mb-3">Snow Removal</h3>
-              <p className="text-sm text-gray-700 mb-4">
-                Professional snow removal for driveways, walkways, and sidewalks. Available for ad-hoc service.
-              </p>
-              <p className="text-sm font-semibold text-primary">Custom pricing based on property</p>
-            </div>
-            <div className="bg-primary-light/10 rounded-xl p-6 border border-primary-light">
-              <h3 className="text-lg font-semibold text-primary mb-3">Additional Cuts</h3>
-              <p className="text-sm text-gray-700 mb-4">
-                Need extra cuts beyond your schedule? Season Pass customers get 25% off. Pay-per-visit customers pay standard rate.
-              </p>
-              <p className="text-sm font-semibold text-primary">Pricing provided with your quote</p>
             </div>
           </div>
         </div>
@@ -724,4 +701,3 @@ export default function Services() {
     </>
   );
 }
-

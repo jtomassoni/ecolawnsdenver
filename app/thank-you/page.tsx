@@ -37,6 +37,11 @@ function ThankYouContent() {
         return 'Spring Cleanup Service';
       case 'fall':
         return 'Fall Cleanup Service';
+      case 'realtor':
+        return 'Realtor Listing Request';
+      case 'book':
+      case 'alacarte':
+        return 'Lawn Care Visit';
       default:
         return 'Service';
     }
