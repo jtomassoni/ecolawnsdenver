@@ -19,14 +19,11 @@ export default function Navigation({
     setMobileMenuOpen(false);
   };
 
-  const goToQuoteForm = () => {
+  const goToBookSection = () => {
     if (pathname === '/') {
-      window.dispatchEvent(new Event('emphasize-quote-form'));
+      document.getElementById('book')?.scrollIntoView({ behavior: 'smooth' });
     } else {
-      router.push('/');
-      setTimeout(() => {
-        window.dispatchEvent(new Event('emphasize-quote-form'));
-      }, 350);
+      router.push('/#book');
     }
     closeMobileMenu();
   };
@@ -84,6 +81,14 @@ export default function Navigation({
             Services
           </Link>
           <Link
+            href="/realtors"
+            className={`text-primary no-underline px-4 py-2 rounded transition-all min-h-[44px] flex items-center ${pathname === '/realtors' ? 'text-primary-dark font-bold bg-primary-light/10' : 'hover:bg-primary-light/10'}`}
+            aria-label="Realtors and listing lawn care"
+            onClick={closeMobileMenu}
+          >
+            Realtors
+          </Link>
+          <Link
             href="/about"
             className={`text-primary no-underline px-4 py-2 rounded transition-all min-h-[44px] flex items-center ${pathname === '/about' ? 'text-primary-dark font-bold bg-primary-light/10' : 'hover:bg-primary-light/10'}`}
             aria-label="About page"
@@ -93,13 +98,13 @@ export default function Navigation({
           </Link>
           <button
             onClick={() => {
-              trackEvent('click', 'CTA', 'Get Free Quote - Navigation');
-              goToQuoteForm();
+              trackEvent('click', 'CTA', 'Book a Visit - Navigation');
+              goToBookSection();
             }}
-            aria-label="Get a free quote for lawn care services"
+            aria-label="Book a lawn care visit"
             className="bg-primary text-white border-none px-4 py-2 rounded-lg font-semibold cursor-pointer transition-all min-h-[44px] hover:bg-primary-dark"
           >
-            Get Free Quote
+            Book a Visit
           </button>
         </div>
       </div>

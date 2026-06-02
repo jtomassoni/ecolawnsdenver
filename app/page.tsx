@@ -12,9 +12,10 @@ import {
   DENVER_NEIGHBORHOODS,
   ADDRESS_PLACEHOLDER,
 } from '@/lib/structured-data';
-import { FaSnowflake, FaSeedling, FaShieldAlt, FaCheckCircle, FaSolarPanel } from 'react-icons/fa';
+import { FaSeedling, FaShieldAlt, FaCheckCircle, FaCut, FaSolarPanel } from 'react-icons/fa';
 import { trackEvent, trackConversion } from '@/components/GoogleAnalytics';
 import EmailPreviewModal, { type EmailPreviewData } from '@/components/EmailPreviewModal';
+import BookVisitMenu from '@/components/BookVisitMenu';
 
 const testimonials = [
   {
@@ -86,6 +87,11 @@ export default function Home() {
   const [emailPreview, setEmailPreview] = useState<EmailPreviewData | null>(null);
   const [emailPreviewLoading, setEmailPreviewLoading] = useState(false);
   const avgCutsPerSeason = frequency === 'weekly' ? 28 : 14;
+
+  const scrollToBook = () => {
+    trackEvent('click', 'CTA', 'Book a Visit - scroll');
+    document.getElementById('book')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const openQuoteModal = () => {
     trackEvent('click', 'Modal', 'Open Quote Modal');
@@ -250,6 +256,15 @@ export default function Home() {
       setEmailPreviewLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash === '#book') {
+      const t = window.setTimeout(() => {
+        document.getElementById('book')?.scrollIntoView({ behavior: 'smooth' });
+      }, 150);
+      return () => window.clearTimeout(t);
+    }
+  }, []);
 
   useEffect(() => {
     const handleEmphasize = () => {
@@ -488,36 +503,42 @@ export default function Home() {
           <div className="relative z-10 text-center max-w-5xl mx-auto w-full">
             <div className="mb-6 sm:mb-8">
               <h1 className="text-white text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-3 sm:mb-4 drop-shadow-lg leading-tight px-2">
-                Professional Lawn Care in Denver
+                Denver Lawn Care - We&apos;re Mowing Now
               </h1>
               <p className="text-white text-xl sm:text-2xl md:text-3xl font-medium mb-4 sm:mb-6 drop-shadow-md">
-                Starting at $40/visit
+                Book a visit from $40
               </p>
               <p className="text-white text-base sm:text-lg md:text-xl lg:text-2xl mb-4 sm:mb-6 drop-shadow-md max-w-3xl mx-auto leading-relaxed px-2">
-                Get your weekends back with reliable, eco-friendly lawn care. <strong>All our equipment is electric by design</strong> - half of our mission is reducing noise and neighborhood emissions. <strong>Book your spring service now</strong>, or get snow removal for the rest of winter!
+                Need a mow this week, or want someone every week or two? <strong>Quiet electric equipment</strong>, no gas noise or fumes. Pick a service below and we&apos;ll quote your yard.
               </p>
+              <div className="bg-primary/90 text-white px-4 py-2 rounded-lg font-semibold text-sm sm:text-base mb-4 sm:mb-6 inline-block shadow-lg">
+                Now booking for May &amp; June: same-week visits when routes allow
+              </div>
             </div>
           
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-6 sm:mb-8 px-2">
             <button
-              onClick={() => {
-                trackEvent('click', 'CTA', 'Get Free Lawn Quote - Hero');
-                openQuoteModal();
-              }}
+              onClick={scrollToBook}
               className="bg-primary text-white px-8 sm:px-10 py-4 sm:py-5 rounded-xl font-bold text-lg sm:text-xl shadow-2xl hover:bg-primary-dark transform hover:-translate-y-1 transition-all min-h-[56px] w-full sm:w-auto"
             >
-              Get Free Lawn Quote
+              Book a visit
             </button>
             <button
               onClick={() => {
-                trackEvent('click', 'CTA', 'Snow Removal - Hero');
-                setShowSnowRemovalModal(true);
+                trackEvent('click', 'CTA', 'Season pass pricing - Hero');
+                openQuoteModal();
               }}
-              className="bg-white/10 backdrop-blur-sm text-white/90 border border-white/40 px-5 sm:px-6 py-3 rounded-lg font-medium text-sm sm:text-base hover:bg-white/20 hover:text-white transition-all min-h-[48px] w-full sm:w-auto flex items-center justify-center gap-2"
+              className="bg-white/10 backdrop-blur-sm text-white/90 border border-white/40 px-5 sm:px-6 py-3 rounded-lg font-medium text-sm sm:text-base hover:bg-white/20 hover:text-white transition-all min-h-[48px] w-full sm:w-auto"
             >
-              <FaSnowflake className="text-white" />
-              <span>Snow Removal</span>
+              Season pass pricing
             </button>
+            <Link
+              href="/services#season-plans"
+              onClick={() => trackEvent('click', 'CTA', 'All services - Hero')}
+              className="bg-white/10 backdrop-blur-sm text-white/90 border border-white/40 px-5 sm:px-6 py-3 rounded-lg font-medium text-sm sm:text-base hover:bg-white/20 hover:text-white transition-all min-h-[48px] w-full sm:w-auto flex items-center justify-center"
+            >
+              All services
+            </Link>
           </div>
 
           {/* Trust badges — quotes via the form keep your request in one place */}
@@ -538,23 +559,25 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto mt-8 sm:mt-12 px-2">
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20">
               <h3 className="text-white text-lg sm:text-xl font-semibold mb-2 flex items-center gap-2">
-                <FaSnowflake className="text-white flex-shrink-0" /> <span>Winter Services</span>
+                <FaCut className="text-white flex-shrink-0" /> <span>One-time mows</span>
               </h3>
               <p className="text-white/90 text-sm sm:text-base leading-relaxed">
-                Professional snow removal for driveways, walkways, and sidewalks. Available now through the end of winter season.
+                Lawn got away from you? Book a single full-service cut: mow, edge, trim, and cleanup.
               </p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20">
               <h3 className="text-white text-lg sm:text-xl font-semibold mb-2 flex items-center gap-2">
-                <FaSeedling className="text-white flex-shrink-0" /> <span>Spring Services</span>
+                <FaSeedling className="text-white flex-shrink-0" /> <span>Regular mowing</span>
               </h3>
               <p className="text-white/90 text-sm sm:text-base leading-relaxed">
-                Book your lawn care now for April start. Weekly or bi-weekly mowing, spring cleanup, and aeration included. All services use quiet electric equipment.
+                Weekly or every two weeks through the season. Pay per visit or save with a season pass.
               </p>
             </div>
             </div>
           </div>
         </header>
+
+      <BookVisitMenu compact />
 
       {/* Testimonials */}
       <section className="bg-gradient-to-br from-green-50 via-primary-light/20 to-green-100 py-8 sm:py-12 px-4 sm:px-6" aria-label="Customer testimonials" style={{ paddingLeft: "max(1rem, env(safe-area-inset-left))", paddingRight: "max(1rem, env(safe-area-inset-right))" }}>

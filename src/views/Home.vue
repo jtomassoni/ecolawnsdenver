@@ -45,7 +45,7 @@
         <div class="testimonials-grid">
           <div v-for="testimonial in testimonials" :key="testimonial.author" class="testimonial-card">
             <p class="testimonial-quote">"{{ testimonial.quote }}"</p>
-            <span class="testimonial-author">— {{ testimonial.author }}</span>
+            <span class="testimonial-author">- {{ testimonial.author }}</span>
           </div>
         </div>
       </div>
@@ -266,7 +266,7 @@
                   <strong>Thank you for trusting EcoLawns Denver with your lawn care!</strong>
                 </div>
                 <div style="margin-top: 0.7rem;">
-                  After you book, our team will review your info and reach out to confirm your service details and schedule your first visit. You'll get a welcome email and a reminder before each mowing. We handle everything—just sit back and enjoy your weekends!
+                  After you book, our team will review your info and reach out to confirm your service details and schedule your first visit. You'll get a welcome email and a reminder before each mowing. We handle everything. Just sit back and enjoy your weekends!
                 </div>
                 <div class="auto-close-message">
                   <em>This window will close automatically in {{ autoCloseCountdown }} seconds.</em>

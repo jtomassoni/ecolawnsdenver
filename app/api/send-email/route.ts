@@ -6,7 +6,22 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const previewOnly = body.previewOnly === true;
-    const { name, email, phone, address, lawnSize, subscriptionOption, frequency, type, drivewayLength, notes } = body;
+    const {
+      name,
+      email,
+      phone,
+      address,
+      lawnSize,
+      subscriptionOption,
+      frequency,
+      type,
+      drivewayLength,
+      notes,
+      bookableServices,
+      brokerage,
+      listingStatus,
+      realtorService,
+    } = body;
 
     // Validate required fields
     if (!email) {
@@ -27,9 +42,26 @@ export async function POST(request: NextRequest) {
     const sanitizedPhone = sanitizeString(phone, 20).replace(/\D/g, '');
     const sanitizedAddress = sanitizeString(address, 200);
     const sanitizedLawnSize = sanitizeString(lawnSize, 10).replace(/\D/g, '');
-    const sanitizedType = sanitizeString(type, 50);
+    const sanitizedType = sanitizeString(type, 80);
     const sanitizedDrivewayLength = sanitizeString(drivewayLength, 10);
     const sanitizedNotes = sanitizeString(notes, 500);
+    const sanitizedBrokerage = sanitizeString(brokerage, 120);
+    const sanitizedListingStatus = sanitizeString(listingStatus, 80);
+    const sanitizedRealtorService = sanitizeString(realtorService, 120);
+    const sanitizedBookable = Array.isArray(bookableServices)
+      ? bookableServices
+          .slice(0, 10)
+          .map((s: unknown) => sanitizeString(typeof s === 'string' ? s : String(s), 120))
+          .filter(Boolean)
+      : [];
+    // Legacy field name from earlier deploys
+    const legacyAlacarte = Array.isArray(body.alacarteServices)
+      ? body.alacarteServices
+          .slice(0, 10)
+          .map((s: unknown) => sanitizeString(typeof s === 'string' ? s : String(s), 120))
+          .filter(Boolean)
+      : [];
+    const serviceList = sanitizedBookable.length ? sanitizedBookable : legacyAlacarte;
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -60,6 +92,14 @@ export async function POST(request: NextRequest) {
         ${frequency ? `<p><strong>Frequency:</strong> ${frequency === 'weekly' ? 'Weekly' : 'Bi-Weekly'}</p>` : ''}
         ${sanitizedDrivewayLength ? `<p><strong>Driveway Length:</strong> ${sanitizedDrivewayLength} feet</p>` : ''}
         ${sanitizedNotes ? `<p><strong>Notes:</strong> ${sanitizedNotes}</p>` : ''}
+        ${
+          serviceList.length
+            ? `<p><strong>Services requested:</strong> ${serviceList.join(', ')}</p>`
+            : ''
+        }
+        ${sanitizedBrokerage ? `<p><strong>Brokerage:</strong> ${sanitizedBrokerage}</p>` : ''}
+        ${sanitizedListingStatus ? `<p><strong>Listing status:</strong> ${sanitizedListingStatus}</p>` : ''}
+        ${sanitizedRealtorService ? `<p><strong>Service needed:</strong> ${sanitizedRealtorService}</p>` : ''}
       `;
 
     const textBody = [
@@ -80,6 +120,10 @@ export async function POST(request: NextRequest) {
         : []),
       ...(sanitizedDrivewayLength ? [`Driveway Length: ${sanitizedDrivewayLength} feet`] : []),
       ...(sanitizedNotes ? [`Notes: ${sanitizedNotes}`] : []),
+      ...(serviceList.length ? [`Services requested: ${serviceList.join(', ')}`] : []),
+      ...(sanitizedBrokerage ? [`Brokerage: ${sanitizedBrokerage}`] : []),
+      ...(sanitizedListingStatus ? [`Listing status: ${sanitizedListingStatus}`] : []),
+      ...(sanitizedRealtorService ? [`Service needed: ${sanitizedRealtorService}`] : []),
     ].join('\n');
 
     const notifyUser = process.env.EMAIL_USER?.trim() ?? '';

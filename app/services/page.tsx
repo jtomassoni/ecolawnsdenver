@@ -14,29 +14,31 @@ import {
 import { FaCheck } from 'react-icons/fa';
 import { trackEvent, trackConversion } from '@/components/GoogleAnalytics';
 import EmailPreviewModal, { type EmailPreviewData } from '@/components/EmailPreviewModal';
+import BookVisitMenu from '@/components/BookVisitMenu';
 
 const services = [
   {
     title: 'Weekly & Bi-Weekly Lawn Mowing',
-    description: `Professional mowing with quiet, battery-powered electric equipment—edging, trim, and clippings cleanup included.`,
+    description: `Professional mowing with quiet, battery-powered electric equipment: edging, trim, and clippings cleanup included.`,
     image: '/images/lawn-being-cut.png',
     priceHint: 'Use the season pass and pay-per-visit rates in the section above.',
   },
   {
     title: 'Spring Cleanup & Aeration',
-    description: `Cleanup, dethatching, core aeration, and overseeding to kick off the growing season—all electric.`,
+    description: `Cleanup, dethatching, core aeration, and overseeding to kick off the growing season, all electric.`,
     image: '/images/lawn-cut-shot.png',
     priceHint: 'Typical range: ~$150–200 for most south-metro lawns (quote confirms for your property).',
   },
   {
     title: 'Snow Removal Service',
-    description: `Driveways, walkways, and sidewalks—electric equipment, quiet and reliable. Book ad hoc as needed.`,
+    description: `Driveways, walkways, and sidewalks with electric equipment, quiet and reliable. Book ad hoc as needed.`,
     image: '/images/snowblow-being-pushed.png',
     priceHint: 'Custom pricing from driveway length and lot layout.',
+    isSnowRemoval: true,
   },
   {
     title: 'Fall Cleanup & Winter Prep',
-    description: `Leaf and debris removal, winter fertilizer, and prep for cold months—all electric.`,
+    description: `Leaf and debris removal, winter fertilizer, and prep for cold months, all electric.`,
     image: '/images/leaf-raking.png',
     priceHint: 'Typical range: ~$150–200 for most south-metro lawns (quote confirms for your property).',
   },
@@ -275,19 +277,58 @@ export default function Services() {
       />
       <div className="w-full min-h-full bg-gradient-to-br from-green-50 via-primary-light/30 to-green-100 py-6 sm:py-8 px-4 sm:px-6" style={{ paddingLeft: "max(1rem, env(safe-area-inset-left))", paddingRight: "max(1rem, env(safe-area-inset-right))" }}>
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary text-center mb-3 sm:mb-4">Services & Pricing</h1>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary text-center mb-3 sm:mb-4">Book lawn care in Denver</h1>
         <p className="text-center text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-          Professional, eco-friendly lawn care in Denver. All equipment is electric—quiet and emission-free on your property—with batteries charged in part from{' '}
+          We&apos;re mowing now. Pick a service below for a free quote: quiet electric equipment, pay per visit or save with a season pass. Batteries are charged in part from{' '}
           <Link href="/about#solar-charging" className="text-primary font-semibold underline underline-offset-2 hover:text-primary-dark">
             home solar and portable power on site
           </Link>
-          . Request a quote on any service below.
+          .
         </p>
 
-        {/* Pricing Section */}
-        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-primary-light/50">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-4 sm:mb-6 text-center">Lawn Mowing Pricing</h2>
-          
+        <BookVisitMenu showSeasonPassLink />
+
+        {/* Service detail cards */}
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 border border-primary-light/50 mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-2 sm:mb-3 text-center">Service details</h2>
+          <p className="text-center text-sm text-gray-600 max-w-2xl mx-auto mb-4 sm:mb-6">
+            More about what we offer: electric equipment on every job.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            {services.map((service, idx) => (
+              <div key={idx} className="bg-white rounded-xl shadow-md border border-primary/20 overflow-hidden flex flex-col">
+                <div className="relative w-full h-40 sm:h-48">
+                  <Image src={service.image} alt={service.title} fill className="object-cover" />
+                </div>
+                <div className="p-4 sm:p-5 flex-1 flex flex-col">
+                  <h2 className="text-lg sm:text-xl font-semibold text-primary mb-2 sm:mb-3">{service.title}</h2>
+                  <p className="text-xs sm:text-sm text-gray-700 mb-3 sm:mb-4 flex-1 leading-relaxed">{service.description}</p>
+                  {service.isSnowRemoval && (
+                    <p className="text-xs text-gray-600 mb-2 sm:mb-3 italic">Pricing based on driveway length and property size</p>
+                  )}
+                  <button
+                    onClick={() => handleQuoteClick(service)}
+                    className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-all min-h-[48px] shadow-md hover:shadow-lg text-sm sm:text-base"
+                  >
+                    Get Quote
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Season pass pricing */}
+        <div
+          id="season-plans"
+          className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-primary-light/50 scroll-mt-24"
+        >
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-2 sm:mb-3 text-center">Save with a season pass</h2>
+          <p className="text-center text-sm text-gray-600 max-w-2xl mx-auto mb-4 sm:mb-6">
+            Mowing all season? Lock in a rate and save 25%, optional if you prefer pay-as-you-go above.
+          </p>
+          <h3 className="sr-only">Lawn mowing pricing</h3>
           <div className="grid md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mb-6 sm:mb-8">
             {/* Season Pass */}
             <div className="bg-gradient-to-br from-primary-light/20 to-primary-light/10 rounded-xl p-6 border-2 border-primary">
@@ -365,42 +406,6 @@ export default function Services() {
           </div>
         </div>
 
-        {/* Services Section */}
-        <div
-          id="request-quote"
-          className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 border border-primary-light/50 scroll-mt-24"
-        >
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-2 sm:mb-3 text-center">Our Services</h2>
-          <p className="text-center text-sm text-gray-600 max-w-2xl mx-auto mb-4 sm:mb-6">
-            What we offer and ballpark pricing. Request a quote on any service—we&apos;ll confirm details for your address.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            {services.map((service, idx) => (
-              <div key={idx} className="bg-white rounded-xl shadow-md border border-primary/20 overflow-hidden flex flex-col">
-                <div className="relative w-full h-40 sm:h-48">
-                  <Image
-                    src={service.image}
-                    alt={`${service.title} — EcoLawns Denver, electric lawn care in Denver, Colorado`}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="p-4 sm:p-5 flex-1 flex flex-col">
-                  <h2 className="text-lg sm:text-xl font-semibold text-primary mb-2 sm:mb-3">{service.title}</h2>
-                  <p className="text-xs sm:text-sm text-gray-700 mb-2 sm:mb-3 flex-1 leading-relaxed">{service.description}</p>
-                  <p className="text-xs sm:text-sm font-medium text-primary mb-3 sm:mb-4">{service.priceHint}</p>
-                  <button
-                    onClick={() => handleQuoteClick(service)}
-                    className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-all min-h-[48px] shadow-md hover:shadow-lg text-sm sm:text-base mt-auto"
-                  >
-                    Get Quote
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         <section
           className="mt-8 sm:mt-10 bg-gradient-to-r from-primary to-primary-dark text-white rounded-2xl p-6 sm:p-8 shadow-lg text-center"
           aria-label="Get a quote"
@@ -411,7 +416,7 @@ export default function Services() {
             <Link href="/" className="font-semibold underline underline-offset-2 hover:text-white">
               Use the home page quote tool
             </Link>
-            . Serving Littleton, Englewood, Harvey Park, Bear Valley, and nearby—{' '}
+            . Serving Littleton, Englewood, Harvey Park, Bear Valley, and nearby:{' '}
             <Link href="/about#service-areas" className="font-semibold underline underline-offset-2 hover:text-white">
               see neighborhoods
             </Link>
@@ -426,11 +431,11 @@ export default function Services() {
               Instant quote on home
             </Link>
             <Link
-              href="#request-quote"
+              href="#season-plans"
               className="inline-flex items-center justify-center border-2 border-white/85 px-8 py-3 rounded-lg font-semibold hover:bg-white/10 transition-all min-h-[48px]"
-              onClick={() => trackEvent('click', 'CTA', 'Scroll to service quotes - Services footer')}
+              onClick={() => trackEvent('click', 'CTA', 'Season pass pricing - Services footer')}
             >
-              Request a quote on a service
+              Season pass pricing
             </Link>
           </div>
         </section>
@@ -850,4 +855,3 @@ export default function Services() {
     </>
   );
 }
-
