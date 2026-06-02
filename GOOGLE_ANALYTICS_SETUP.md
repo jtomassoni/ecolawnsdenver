@@ -31,7 +31,7 @@ After creating the stream, you'll see a page with:
 
 ### Step 3: Add Measurement ID to Your Project
 
-1. **Create or edit your `.env.local` file** in the root of your project:
+1. **Create or edit your `.env` file** in the root of your project:
    ```bash
    NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
    ```
@@ -99,7 +99,7 @@ Alternatively, the code I added already sends events with `event_category: 'conv
 ## Troubleshooting
 
 **If you don't see data:**
-- Make sure `NEXT_PUBLIC_GA_MEASUREMENT_ID` is set correctly in `.env.local`
+- Make sure `NEXT_PUBLIC_GA_MEASUREMENT_ID` is set correctly in `.env`
 - Restart your dev server after adding the env variable
 - Check browser console for errors
 - Make sure ad blockers aren't blocking Google Analytics
@@ -128,7 +128,7 @@ Alternatively, the code I added already sends events with `event_category: 'conv
 
 1. ✅ Create the new property in Google Analytics
 2. ✅ Get your Measurement ID
-3. ✅ Add it to `.env.local` file
+3. ✅ Add it to `.env` file
 4. ✅ Deploy and test
 5. ✅ Set up conversion events (Key Events)
 6. ✅ Monitor your analytics after 24-48 hours

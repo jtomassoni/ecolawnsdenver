@@ -133,7 +133,7 @@
                     <p class="price">${{ price }}/visit</p>
                     <p class="price-note">
                       Pay only for each visit.<br>
-                      About {{ avgCutsPerSeason }} visits per season (April–October).
+                      Bi-weekly or weekly service, billed per mow—no seasonal package.
                     </p>
                     <div class="terms-blurb">
                       <div class="terms-main">

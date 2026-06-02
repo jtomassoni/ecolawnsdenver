@@ -1,18 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
-
-// Create nodemailer transporter
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_APP_PASSWORD,
-  },
-});
+import { upsertLeadFromWebsiteBooking } from '@/lib/crm-store';
+import { getMailTransporter } from '@/lib/crm-mail';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const previewOnly = body.previewOnly === true;
     const {
       name,
       email,
@@ -87,20 +80,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if email configuration is set up
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASSWORD) {
-      return NextResponse.json(
-        { success: false, message: 'Email service not configured properly' },
-        { status: 500 }
-      );
-    }
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER,
-      subject: `New ${sanitizedType || 'Lawn Service Booking'} from ${sanitizedName || 'No Name'}`,
-      html: `
-        <h2>New ${sanitizedType || 'Lawn Service Booking'} Submission</h2>
+    const bookingLabel = sanitizedType || 'Lawn Service Booking';
+    const htmlBody = `
+        <h2>New ${bookingLabel} Submission</h2>
         <p><strong>Name:</strong> ${sanitizedName || 'Not provided'}</p>
         <p><strong>Email:</strong> ${sanitizedEmail}</p>
         <p><strong>Phone:</strong> ${sanitizedPhone || 'Not provided'}</p>
@@ -118,10 +100,86 @@ export async function POST(request: NextRequest) {
         ${sanitizedBrokerage ? `<p><strong>Brokerage:</strong> ${sanitizedBrokerage}</p>` : ''}
         ${sanitizedListingStatus ? `<p><strong>Listing status:</strong> ${sanitizedListingStatus}</p>` : ''}
         ${sanitizedRealtorService ? `<p><strong>Service needed:</strong> ${sanitizedRealtorService}</p>` : ''}
-      `,
+      `;
+
+    const textBody = [
+      `New ${bookingLabel} Submission`,
+      '',
+      `Name: ${sanitizedName || 'Not provided'}`,
+      `Email: ${sanitizedEmail}`,
+      `Phone: ${sanitizedPhone || 'Not provided'}`,
+      `Property Address: ${sanitizedAddress || 'Not provided'}`,
+      ...(sanitizedLawnSize ? [`Lawn Size: ${sanitizedLawnSize} sq ft`] : []),
+      ...(subscriptionOption
+        ? [
+            `Package: ${subscriptionOption === 'seasonPass' ? 'Season Pass' : subscriptionOption === 'biweekly' ? 'Bi-Weekly' : subscriptionOption}`,
+          ]
+        : []),
+      ...(frequency
+        ? [`Frequency: ${frequency === 'weekly' ? 'Weekly' : 'Bi-Weekly'}`]
+        : []),
+      ...(sanitizedDrivewayLength ? [`Driveway Length: ${sanitizedDrivewayLength} feet`] : []),
+      ...(sanitizedNotes ? [`Notes: ${sanitizedNotes}`] : []),
+      ...(serviceList.length ? [`Services requested: ${serviceList.join(', ')}`] : []),
+      ...(sanitizedBrokerage ? [`Brokerage: ${sanitizedBrokerage}`] : []),
+      ...(sanitizedListingStatus ? [`Listing status: ${sanitizedListingStatus}`] : []),
+      ...(sanitizedRealtorService ? [`Service needed: ${sanitizedRealtorService}`] : []),
+    ].join('\n');
+
+    const notifyUser = process.env.EMAIL_USER?.trim() ?? '';
+    const mailOptions = {
+      from: notifyUser,
+      to: notifyUser,
+      subject: `New ${bookingLabel} from ${sanitizedName || 'No Name'}`,
+      text: textBody,
+      html: htmlBody,
     };
 
+    if (previewOnly) {
+      if (!notifyUser) {
+        return NextResponse.json(
+          { success: false, message: 'Email service not configured properly' },
+          { status: 500 }
+        );
+      }
+      return NextResponse.json({
+        success: true,
+        preview: {
+          to: notifyUser,
+          subject: mailOptions.subject,
+          html: htmlBody,
+          text: textBody,
+        },
+      });
+    }
+
+    const transporter = getMailTransporter();
+    if (!transporter || !notifyUser) {
+      return NextResponse.json(
+        { success: false, message: 'Email service not configured properly' },
+        { status: 500 }
+      );
+    }
+
     await transporter.sendMail(mailOptions);
+
+    const notifyTo = notifyUser;
+    if (notifyTo) {
+      try {
+        await upsertLeadFromWebsiteBooking({
+          name: sanitizedName,
+          email: sanitizedEmail,
+          phone: sanitizedPhone,
+          physicalAddress: sanitizedAddress,
+          subject: mailOptions.subject,
+          bodyText: textBody,
+          bodyHtml: htmlBody,
+          toAddress: notifyTo,
+        });
+      } catch (crmErr) {
+        console.error('CRM upsert from booking form failed:', crmErr);
+      }
+    }
 
     return NextResponse.json({ success: true, message: 'Email sent successfully' });
   } catch (error: any) {

@@ -1,14 +1,47 @@
 'use client';
 
 import Script from 'next/script';
-import { FaSeedling, FaSnowflake, FaLeaf, FaMapMarkerAlt, FaDollarSign, FaShieldAlt, FaUsers, FaPlug } from 'react-icons/fa';
+import type { ReactNode } from 'react';
+import { FaSeedling, FaSnowflake, FaLeaf, FaMapMarkerAlt, FaDollarSign, FaShieldAlt, FaUsers, FaPlug, FaSolarPanel, FaTruck, FaChevronDown } from 'react-icons/fa';
+import { DENVER_NEIGHBORHOODS } from '@/lib/structured-data';
+
+function AboutExpandable({
+  id,
+  title,
+  hint,
+  children,
+}: {
+  id?: string;
+  title: string;
+  hint?: string;
+  children: ReactNode;
+}) {
+  return (
+    <details
+      id={id}
+      className="group border-t border-primary/20 pt-5 scroll-mt-4 first:border-t-0 first:pt-0"
+    >
+      <summary className="cursor-pointer list-none flex items-start justify-between gap-3 gap-y-2 [&::-webkit-details-marker]:hidden">
+        <div className="min-w-0 flex-1 text-center sm:text-left px-1">
+          <h2 className="text-xl sm:text-2xl font-bold text-primary">{title}</h2>
+          {hint ? <p className="text-sm text-gray-600 mt-1.5 leading-relaxed">{hint}</p> : null}
+        </div>
+        <FaChevronDown
+          className="text-primary w-5 h-5 flex-shrink-0 mt-1 transition-transform duration-200 group-open:rotate-180"
+          aria-hidden
+        />
+      </summary>
+      <div className="pt-4 mt-1">{children}</div>
+    </details>
+  );
+}
 
 export default function About() {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "name": "EcoLawns Denver",
-    "description": "Local lawn care service serving Denver homeowners with 100% battery-powered electric equipment. Licensed, insured, and committed to reducing noise and emissions.",
+    "description": "Local electric lawn care focused on south Denver, Littleton, Englewood, and nearby—with 100% battery-powered equipment, batteries charged in part from home solar and portable power on job sites. Licensed, insured, and committed to reducing noise and emissions.",
     "image": "https://ecolawnsdenver.com/images/hero.jpg",
     "@id": "https://ecolawnsdenver.com/about",
     "url": "https://ecolawnsdenver.com",
@@ -27,22 +60,7 @@ export default function About() {
       "latitude": 39.7392,
       "longitude": -104.9903
     },
-    "areaServed": [
-      "Cherry Creek",
-      "Washington Park",
-      "Congress Park",
-      "Capitol Hill",
-      "Highland",
-      "LoHi",
-      "Sloan's Lake",
-      "Berkeley",
-      "Sunnyside",
-      "Bear Valley",
-      "Harvey Park",
-      "Ruby Hill",
-      "Marston",
-      "Denver"
-    ],
+    "areaServed": [...DENVER_NEIGHBORHOODS],
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
       "name": "Lawn Care Services",
@@ -87,7 +105,7 @@ export default function About() {
         <div className="text-center mb-4 sm:mb-5 pb-3 sm:pb-4 border-b-2 border-primary/20">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-2 sm:mb-3">About EcoLawns Denver</h1>
           <p className="text-xs sm:text-sm md:text-base text-gray-700 max-w-2xl mx-auto px-2 leading-relaxed">
-            We're a local lawn care service serving Denver homeowners. We mow lawns, handle seasonal cleanups, and clear snow in the winter. <strong>All our equipment is electric by design</strong> - half of our mission is reducing noise and neighborhood emissions while keeping your property beautiful.
+            We're a local lawn care team based in Bear Valley, focused on south Denver, Littleton, Englewood, and nearby neighborhoods. We mow lawns, handle seasonal cleanups, and clear snow in the winter. <strong>All our equipment is electric by design</strong>—half of our mission is reducing noise and neighborhood emissions while keeping your property beautiful. We also charge much of that battery power from solar at home and a portable station on site—see below for how that works (and an honest note about our truck).
           </p>
         </div>
 
@@ -126,8 +144,8 @@ export default function About() {
             <div className="grid grid-cols-2 gap-2">
               <div className="bg-gradient-to-br from-primary-light/50 to-primary-light/30 p-2.5 rounded-lg text-center border border-primary/20">
                 <FaMapMarkerAlt className="text-primary text-xl mx-auto mb-1" />
-                <h3 className="font-semibold text-primary text-xs mb-0.5">Local to Denver</h3>
-                <p className="text-xs text-gray-700 leading-tight">We know Denver's climate and water restrictions.</p>
+                <h3 className="font-semibold text-primary text-xs mb-0.5">South Denver & suburbs</h3>
+                <p className="text-xs text-gray-700 leading-tight">We know Front Range seasons and local water guidance.</p>
               </div>
               <div className="bg-gradient-to-br from-primary-light/50 to-primary-light/30 p-2.5 rounded-lg text-center border border-primary/20">
                 <FaDollarSign className="text-primary text-xl mx-auto mb-1" />
@@ -161,10 +179,38 @@ export default function About() {
           </div>
         </div>
 
-        {/* Our Mission & Values */}
-        <div className="pt-6 border-t-2 border-primary/20 mt-6">
-          <h2 className="text-2xl font-bold text-primary mb-4 text-center">Our Mission & Values</h2>
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
+        {/* Solar charging & honest footprint */}
+        <div id="solar-charging" className="pt-4 sm:pt-5 border-t-2 border-primary/20 scroll-mt-4">
+          <div className="flex gap-3 items-start bg-gradient-to-r from-amber-50/90 via-primary-light/20 to-green-50/80 p-4 rounded-lg border border-amber-200/60">
+            <FaSolarPanel className="text-amber-600 text-2xl flex-shrink-0 mt-0.5" aria-hidden />
+            <div>
+              <h2 className="text-xl font-semibold text-primary mb-1.5">How we renewably power the work</h2>
+              <p className="text-sm text-gray-700 leading-relaxed mb-3">
+                At home we run a solar setup on the property: panels on the shed capture Colorado sunshine, and that energy charges a portable power station we take on the road. At your job site we plug our tool batteries into that bank so much of our day-to-day charging comes from the sun—not from burning fuel to run the mower.
+              </p>
+              <p className="text-sm text-gray-700 leading-relaxed mb-3">
+                It is a practical loop: sun → shed → portable battery → your yard. We are always looking for ways to stretch that renewable share as gear and vehicles improve.
+              </p>
+              <div className="flex gap-3 items-start bg-white/70 p-3 rounded-lg border border-primary/15">
+                <FaTruck className="text-primary text-lg flex-shrink-0 mt-0.5" aria-hidden />
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  <span className="font-semibold text-primary">Straight talk on the truck:</span> we still use a gas-powered truck to reach job sites—for now. Moving tools and crew efficiently matters, and we are not pretending the truck is electric. The equipment that actually runs on your lawn is battery-powered, and we are working to keep as much of that energy as possible coming from solar.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 border-t-2 border-primary/20 pt-5">
+          <p className="text-sm text-gray-600 text-center max-w-2xl mx-auto leading-relaxed mb-5 px-1">
+            Want the long version? Tap a section to expand—same in-depth info, just tucked away so this page is easier to scan.
+          </p>
+          <div>
+        <AboutExpandable
+          title="Our Mission & Values"
+          hint="Why we focus on electric equipment and how we think about service."
+        >
+          <div className="grid md:grid-cols-2 gap-4">
             <div className="bg-white p-4 rounded-lg border border-primary/20 shadow-sm">
               <h3 className="text-lg font-semibold text-primary mb-2">Environmental Stewardship</h3>
               <p className="text-sm text-gray-700 leading-relaxed">
@@ -178,11 +224,12 @@ export default function About() {
               </p>
             </div>
           </div>
-        </div>
+        </AboutExpandable>
 
-        {/* Our Services in Detail */}
-        <div className="pt-6 border-t-2 border-primary/20 mt-6">
-          <h2 className="text-2xl font-bold text-primary mb-4 text-center">Our Services in Detail</h2>
+        <AboutExpandable
+          title="Our Services in Detail"
+          hint="Mowing, spring and fall work, and electric snow removal—what each visit includes."
+        >
           <div className="space-y-4">
             <div className="bg-white p-5 rounded-lg border border-primary/20 shadow-sm">
               <h3 className="text-xl font-semibold text-primary mb-3 flex items-center gap-2">
@@ -264,53 +311,56 @@ export default function About() {
               </p>
             </div>
           </div>
-        </div>
+        </AboutExpandable>
 
-        {/* Service Areas */}
-        <div className="pt-6 border-t-2 border-primary/20 mt-6">
-          <h2 className="text-2xl font-bold text-primary mb-4 text-center">Serving Denver & Surrounding Areas</h2>
+        <AboutExpandable
+          id="service-areas"
+          title="South Denver, Littleton, Englewood & nearby"
+          hint="Where we spend most of our routes—and how to ask about your address."
+        >
           <div className="bg-white p-5 rounded-lg border border-primary/20 shadow-sm">
             <p className="text-sm text-gray-700 leading-relaxed mb-4">
-              EcoLawns Denver is locally owned and operated, serving homeowners throughout the Denver metro area. We're based in Bear Valley, Denver, and provide electric lawn care services to neighborhoods including:
+              EcoLawns Denver is locally owned and based in Bear Valley. Most of our work is in south Denver and the southwest corridor—quiet electric mowing and cleanups close to home. Typical service areas include:
             </p>
-            <div className="grid md:grid-cols-3 gap-3">
-              <div className="bg-primary-light/10 p-3 rounded-lg">
-                <h4 className="font-semibold text-primary text-sm mb-2">Central Denver</h4>
-                <ul className="text-xs text-gray-700 space-y-1">
-                  <li>• Cherry Creek</li>
-                  <li>• Washington Park</li>
-                  <li>• Congress Park</li>
-                  <li>• Capitol Hill</li>
-                </ul>
-              </div>
-              <div className="bg-primary-light/10 p-3 rounded-lg">
-                <h4 className="font-semibold text-primary text-sm mb-2">North Denver</h4>
-                <ul className="text-xs text-gray-700 space-y-1">
-                  <li>• Highland (LoHi)</li>
-                  <li>• Sloan's Lake</li>
-                  <li>• Berkeley</li>
-                  <li>• Sunnyside</li>
-                </ul>
-              </div>
-              <div className="bg-primary-light/10 p-3 rounded-lg">
-                <h4 className="font-semibold text-primary text-sm mb-2">South Denver</h4>
-                <ul className="text-xs text-gray-700 space-y-1">
-                  <li>• Bear Valley</li>
+            <div className="grid md:grid-cols-2 gap-3">
+              <div className="bg-primary-light/15 p-4 rounded-lg border border-primary/25">
+                <h4 className="font-semibold text-primary text-sm mb-2">Southwest Denver & inner suburbs</h4>
+                <ul className="text-xs text-gray-700 space-y-1 columns-1 sm:columns-2 gap-x-4">
+                  <li>• Littleton</li>
+                  <li>• Englewood</li>
                   <li>• Harvey Park</li>
-                  <li>• Ruby Hill</li>
+                  <li>• Bear Valley</li>
                   <li>• Marston</li>
+                  <li>• Ruby Hill</li>
+                  <li>• Sheridan</li>
+                  <li>• Fort Logan</li>
+                  <li>• Southmoor Park</li>
+                  <li>• University Hills</li>
+                  <li>• Hampden South</li>
                 </ul>
+              </div>
+              <div className="bg-primary-light/10 p-4 rounded-lg">
+                <h4 className="font-semibold text-primary text-sm mb-2">South metro & foothills edge</h4>
+                <ul className="text-xs text-gray-700 space-y-1">
+                  <li>• Ken Caryl</li>
+                  <li>• Highlands Ranch</li>
+                  <li>• Other south-side Denver addresses by arrangement</li>
+                </ul>
+                <p className="text-xs text-gray-600 mt-3 leading-relaxed">
+                  Not sure if you&apos;re in range? Send your street address with a quote request—we&apos;ll tell you quickly.
+                </p>
               </div>
             </div>
             <p className="text-sm text-gray-700 leading-relaxed mt-4">
-              Don't see your neighborhood? We serve many areas throughout Denver and surrounding communities. Contact us to see if we service your area. Our electric lawn care services are perfect for any Denver neighborhood that values quiet, clean, and sustainable property maintenance.
+              We sometimes take jobs elsewhere in the metro when scheduling allows. If you value quiet, electric equipment and sustainable lawn care, ask—we&apos;re happy to check your neighborhood.
             </p>
           </div>
-        </div>
+        </AboutExpandable>
 
-        {/* Equipment & Technology */}
-        <div className="pt-6 border-t-2 border-primary/20 mt-6">
-          <h2 className="text-2xl font-bold text-primary mb-4 text-center">Our Battery-Powered Equipment</h2>
+        <AboutExpandable
+          title="Our Battery-Powered Equipment"
+          hint="Mowers, blowers, trimmers, and snow gear—still all electric on your property."
+        >
           <div className="space-y-4">
             <div className="bg-white p-4 rounded-lg border border-primary/20 shadow-sm">
               <h3 className="text-lg font-semibold text-primary mb-2">Electric Lawn Mowers</h3>
@@ -331,11 +381,12 @@ export default function About() {
               </p>
             </div>
           </div>
-        </div>
+        </AboutExpandable>
 
-        {/* Pricing & Transparency */}
-        <div className="pt-6 border-t-2 border-primary/20 mt-6">
-          <h2 className="text-2xl font-bold text-primary mb-4 text-center">Transparent Pricing for Electric Lawn Care</h2>
+        <AboutExpandable
+          title="Transparent Pricing for Electric Lawn Care"
+          hint="Starting rates, season pass vs pay-per-visit, and how lawn size affects quotes."
+        >
           <div className="bg-white p-5 rounded-lg border border-primary/20 shadow-sm">
             <p className="text-sm text-gray-700 leading-relaxed mb-4">
               We believe in complete pricing transparency. Our electric lawn care services start at $40 per visit, with pricing based on your lawn's square footage. We offer two payment options:
@@ -357,6 +408,8 @@ export default function About() {
             <p className="text-sm text-gray-700 leading-relaxed">
               All pricing is calculated based on your lawn size, which you can measure using our free measurement guide. No hidden fees, no surprises - just transparent pricing for premium electric lawn care in Denver.
             </p>
+          </div>
+        </AboutExpandable>
           </div>
         </div>
 

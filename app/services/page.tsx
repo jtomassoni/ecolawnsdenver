@@ -2,34 +2,46 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
+import {
+  SITE_URL,
+  BUSINESS_NAME,
+  TELEPHONE_E164,
+  ADDRESS_PLACEHOLDER,
+} from '@/lib/structured-data';
 import { FaCheck } from 'react-icons/fa';
 import { trackEvent, trackConversion } from '@/components/GoogleAnalytics';
+import EmailPreviewModal, { type EmailPreviewData } from '@/components/EmailPreviewModal';
 import BookVisitMenu from '@/components/BookVisitMenu';
 
 const services = [
   {
     title: 'Weekly & Bi-Weekly Lawn Mowing',
-    description: `Professional mowing service with quiet, battery-powered electric mowers. We trim edges, blow clippings, and keep your property spotless - all while reducing noise and emissions in your neighborhood.`,
-    image: '/images/lawn-being-cut.png'
+    description: `Professional mowing with quiet, battery-powered electric equipment: edging, trim, and clippings cleanup included.`,
+    image: '/images/lawn-being-cut.png',
+    priceHint: 'Use the season pass and pay-per-visit rates in the section above.',
   },
   {
     title: 'Spring Cleanup & Aeration',
-    description: `Thorough cleanup, dethatching, core aeration, and overseeding to get your lawn ready for the growing season. All equipment is electric, keeping your neighborhood quiet and clean.`,
-    image: '/images/lawn-cut-shot.png'
+    description: `Cleanup, dethatching, core aeration, and overseeding to kick off the growing season, all electric.`,
+    image: '/images/lawn-cut-shot.png',
+    priceHint: 'Typical range: ~$150–200 for most south-metro lawns (quote confirms for your property).',
   },
   {
     title: 'Snow Removal Service',
-    description: `Professional snow removal for driveways, walkways, and sidewalks using electric equipment. Available now for winter service - quiet, emission-free, and reliable.`,
+    description: `Driveways, walkways, and sidewalks with electric equipment, quiet and reliable. Book ad hoc as needed.`,
     image: '/images/snowblow-being-pushed.png',
-    isSnowRemoval: true
+    priceHint: 'Custom pricing from driveway length and lot layout.',
+    isSnowRemoval: true,
   },
   {
     title: 'Fall Cleanup & Winter Prep',
-    description: `Clear leaves and debris, apply winter fertilizer, and prepare your lawn for the cold months ahead. All done with electric equipment to minimize noise and emissions.`,
-    image: '/images/leaf-raking.png'
-  }
+    description: `Leaf and debris removal, winter fertilizer, and prep for cold months, all electric.`,
+    image: '/images/leaf-raking.png',
+    priceHint: 'Typical range: ~$150–200 for most south-metro lawns (quote confirms for your property).',
+  },
 ];
 
 export default function Services() {
@@ -38,38 +50,68 @@ export default function Services() {
 
   const structuredData = {
     "@context": "https://schema.org",
-    "@type": "Service",
-    "serviceType": "Lawn Care Services",
-    "provider": {
-      "@type": "LocalBusiness",
-      "name": "EcoLawns Denver",
-      "url": "https://ecolawnsdenver.com"
-    },
-    "areaServed": {
-      "@type": "City",
-      "name": "Denver",
-      "sameAs": "https://en.wikipedia.org/wiki/Denver"
-    },
-    "hasOfferCatalog": {
-      "@type": "OfferCatalog",
-      "name": "Lawn Care Services",
-      "itemListElement": services.map((service, index) => ({
-        "@type": "Offer",
-        "position": index + 1,
-        "itemOffered": {
-          "@type": "Service",
-          "name": service.title,
-          "description": service.description,
-          "image": `https://ecolawnsdenver.com${service.image}`
-        }
-      }))
-    }
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${SITE_URL}/services#breadcrumb`,
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": SITE_URL,
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Services & pricing",
+            "item": `${SITE_URL}/services`,
+          },
+        ],
+      },
+      {
+        "@type": "Service",
+        "@id": `${SITE_URL}/services#lawn-care`,
+        "name": "Denver lawn care services",
+        "serviceType": "Lawn Care Services",
+        "description":
+          "Weekly and bi-weekly electric lawn mowing, spring and fall cleanup, aeration, and electric snow removal in Denver. Free quotes.",
+        "provider": {
+          "@type": "LocalBusiness",
+          "name": BUSINESS_NAME,
+          "url": SITE_URL,
+          "telephone": TELEPHONE_E164,
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Denver",
+          "sameAs": "https://en.wikipedia.org/wiki/Denver",
+        },
+        "hasOfferCatalog": {
+          "@type": "OfferCatalog",
+          "name": "Lawn Care Services",
+          "itemListElement": services.map((service, index) => ({
+            "@type": "Offer",
+            "position": index + 1,
+            "itemOffered": {
+              "@type": "Service",
+              "name": service.title,
+              "description": service.description,
+              "image": `${SITE_URL}${service.image}`,
+            },
+          })),
+        },
+      },
+    ],
   };
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', address: '', lawnSize: 'medium', drivewayLength: '', notes: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [emailPreviewOpen, setEmailPreviewOpen] = useState(false);
+  const [emailPreview, setEmailPreview] = useState<EmailPreviewData | null>(null);
+  const [isPreviewing, setIsPreviewing] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [lawnSizeSqFt, setLawnSizeSqFt] = useState<number | null>(null);
   const [mowingFrequency, setMowingFrequency] = useState<'weekly' | 'bi-weekly'>('weekly');
@@ -88,41 +130,81 @@ export default function Services() {
   const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isValidPhone = (phone: string) => phone.replace(/\D/g, '').length >= 10;
 
-  const submitForm = async (type: string) => {
-    setIsSubmitting(true);
-    setSubmitError('');
-    setSubmitSuccess(false);
-
-    if (!formData.name.trim() || !isValidEmail(formData.email) || 
-        !isValidPhone(formData.phone) || !formData.address.trim()) {
-      setSubmitError('Please fill in all required fields correctly.');
-      setIsSubmitting(false);
-      return;
+  function validateServiceForm(): string | null {
+    if (
+      !formData.name.trim() ||
+      !isValidEmail(formData.email) ||
+      !isValidPhone(formData.phone) ||
+      !formData.address.trim()
+    ) {
+      return 'Please fill in all required fields correctly.';
     }
-
     if (selectedService?.includes('Lawn') && !formData.lawnSize) {
-      setSubmitError('Please select a lawn size.');
-      setIsSubmitting(false);
-      return;
+      return 'Please select a lawn size.';
     }
-
     if (selectedService?.includes('Snow') && !formData.drivewayLength.trim()) {
-      setSubmitError('Please enter driveway length.');
-      setIsSubmitting(false);
+      return 'Please enter driveway length.';
+    }
+    return null;
+  }
+
+  function buildServiceEmailPayload(type: string) {
+    return {
+      ...formData,
+      type,
+      lawnSizeSqFt: lawnSizeSqFt,
+      mowingFrequency: mowingFrequency,
+      paymentOption: paymentOption,
+    };
+  }
+
+  const previewServiceForm = async (type: string) => {
+    const err = validateServiceForm();
+    if (err) {
+      setSubmitError(err);
       return;
     }
-
+    setIsPreviewing(true);
+    setSubmitError('');
     try {
       const response = await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
-          type: type,
-          lawnSizeSqFt: lawnSizeSqFt,
-          mowingFrequency: mowingFrequency,
-          paymentOption: paymentOption
-        })
+          ...buildServiceEmailPayload(type),
+          previewOnly: true,
+        }),
+      });
+      const data = await response.json();
+      if (data.success && data.preview) {
+        setEmailPreview(data.preview);
+        setEmailPreviewOpen(true);
+      } else {
+        setSubmitError(data.message || 'Could not load preview.');
+      }
+    } catch {
+      setSubmitError('An error occurred. Please try again or contact us directly.');
+    } finally {
+      setIsPreviewing(false);
+    }
+  };
+
+  const submitForm = async (type: string) => {
+    const err = validateServiceForm();
+    if (err) {
+      setSubmitError(err);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError('');
+    setSubmitSuccess(false);
+
+    try {
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildServiceEmailPayload(type)),
       });
 
       const data = await response.json();
@@ -197,7 +279,11 @@ export default function Services() {
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary text-center mb-3 sm:mb-4">Book lawn care in Denver</h1>
         <p className="text-center text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-          We&apos;re mowing now. Pick a service below for a free quote: quiet electric equipment, pay per visit or save with a season pass.
+          We&apos;re mowing now. Pick a service below for a free quote: quiet electric equipment, pay per visit or save with a season pass. Batteries are charged in part from{' '}
+          <Link href="/about#solar-charging" className="text-primary font-semibold underline underline-offset-2 hover:text-primary-dark">
+            home solar and portable power on site
+          </Link>
+          .
         </p>
 
         <BookVisitMenu showSeasonPassLink />
@@ -271,14 +357,14 @@ export default function Services() {
                   <span>Lock in your rate for the season</span>
                 </div>
               </div>
-              <p className="text-xs text-gray-600 italic">Standard cost for most Denver lawns: ~$300-350 per payment (2 payments)</p>
+              <p className="text-xs text-gray-600 italic">Standard cost for most south-metro lawns: ~$300-350 per payment (2 payments)</p>
             </div>
 
             {/* Pay Per Visit */}
             <div className="bg-gray-50 rounded-xl p-6 border-2 border-gray-200">
               <h3 className="text-xl font-bold text-primary mb-4">Pay Per Visit</h3>
               <p className="text-gray-700 mb-4 text-sm">
-                Pay only for each visit. Bi-weekly schedule: 14 visits per season (April–October, ~28 weeks).
+                Pay only for each visit. Weekly or bi-weekly service available—you&apos;re charged per mow with no season bundle.
               </p>
               <div className="space-y-2 mb-4">
                 <div className="flex items-center text-sm text-gray-700">
@@ -294,15 +380,18 @@ export default function Services() {
                   <span>Pay as you go</span>
                 </div>
               </div>
-              <p className="text-xs text-gray-600 italic">Standard cost for most Denver lawns: ~$50-60 per visit</p>
+              <p className="text-xs text-gray-600 italic">Standard cost for most south-metro lawns: ~$50-60 per visit</p>
             </div>
           </div>
 
           {/* Pricing Note */}
-          <div className="bg-primary-light/10 rounded-xl p-6 border border-primary-light mb-6">
+          <div className="bg-primary-light/10 rounded-xl p-6 border border-primary-light mb-6 space-y-3">
             <p className="text-center text-gray-700">
-              <span className="font-semibold text-primary">We'll contact you with specific pricing</span> based on your property size and needs. 
-              The costs above represent standard pricing for most Denver lawns. Final pricing will be provided after we review your address.
+              <span className="font-semibold text-primary">We&apos;ll contact you with specific pricing</span> based on your property size and needs.
+              {' '}The costs above represent standard pricing for most properties we serve around south Denver and nearby suburbs. Final pricing will be provided after we review your address.
+            </p>
+            <p className="text-center text-sm text-gray-600 max-w-xl mx-auto">
+              <span className="font-medium text-primary">Extra mowing visits</span> beyond your usual schedule: Season Pass customers get 25% off those cuts; pay-per-visit customers pay the standard per-visit rate.
             </p>
           </div>
 
@@ -316,6 +405,40 @@ export default function Services() {
             </div>
           </div>
         </div>
+
+        <section
+          className="mt-8 sm:mt-10 bg-gradient-to-r from-primary to-primary-dark text-white rounded-2xl p-6 sm:p-8 shadow-lg text-center"
+          aria-label="Get a quote"
+        >
+          <h2 className="text-xl sm:text-2xl font-bold mb-2">Book Denver lawn care</h2>
+          <p className="text-white/90 text-sm sm:text-base mb-5 max-w-xl mx-auto leading-relaxed">
+            Prefer the full pricing wizard?{' '}
+            <Link href="/" className="font-semibold underline underline-offset-2 hover:text-white">
+              Use the home page quote tool
+            </Link>
+            . Serving Littleton, Englewood, Harvey Park, Bear Valley, and nearby:{' '}
+            <Link href="/about#service-areas" className="font-semibold underline underline-offset-2 hover:text-white">
+              see neighborhoods
+            </Link>
+            .
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center max-w-md sm:max-w-none mx-auto">
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-primary-light transition-all min-h-[48px] shadow-md"
+              onClick={() => trackEvent('click', 'CTA', 'Home quote tool - Services footer')}
+            >
+              Instant quote on home
+            </Link>
+            <Link
+              href="#season-plans"
+              className="inline-flex items-center justify-center border-2 border-white/85 px-8 py-3 rounded-lg font-semibold hover:bg-white/10 transition-all min-h-[48px]"
+              onClick={() => trackEvent('click', 'CTA', 'Season pass pricing - Services footer')}
+            >
+              Season pass pricing
+            </Link>
+          </div>
+        </section>
       </div>
 
       {/* Service Modal */}
@@ -538,7 +661,7 @@ export default function Services() {
                       type="text"
                       value={formData.address}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      placeholder="123 Main St, Denver, CO 80202"
+                      placeholder={ADDRESS_PLACEHOLDER}
                       required
                       className="w-full px-3 py-2 border border-primary-light rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
                     />
@@ -553,21 +676,31 @@ export default function Services() {
                       className="w-full px-3 py-2 border border-primary-light rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                     />
                   </div>
-                  <div className="flex gap-3">
+                  <div className="space-y-2">
                     <button
                       type="button"
-                      onClick={() => setCurrentStep(2)}
-                      className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-all min-h-[48px]"
+                      disabled={isPreviewing || isSubmitting}
+                      onClick={() => void previewServiceForm(selectedService || 'Service Request')}
+                      className="w-full bg-white text-primary border-2 border-primary py-3 rounded-lg font-semibold hover:bg-primary-light/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]"
                     >
-                      Back
+                      {isPreviewing ? 'Preview…' : 'Preview email'}
                     </button>
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="flex-1 bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-all disabled:bg-primary-light disabled:cursor-not-allowed min-h-[48px]"
-                    >
-                      {isSubmitting ? 'Submitting...' : 'Complete Booking'}
-                    </button>
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setCurrentStep(2)}
+                        className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-all min-h-[48px]"
+                      >
+                        Back
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="flex-1 bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-all disabled:bg-primary-light disabled:cursor-not-allowed min-h-[48px]"
+                      >
+                        {isSubmitting ? 'Submitting...' : 'Complete Booking'}
+                      </button>
+                    </div>
                   </div>
                 </form>
                 {submitSuccess && (
@@ -641,7 +774,7 @@ export default function Services() {
                   type="text"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  placeholder="123 Main St, Denver, CO 80202"
+                  placeholder={ADDRESS_PLACEHOLDER}
                   required
                   className="w-full px-3 py-2 border border-primary-light rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
                 />
@@ -676,13 +809,23 @@ export default function Services() {
                   className="w-full px-3 py-2 border border-primary-light rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-all disabled:bg-primary-light disabled:cursor-not-allowed min-h-[48px]"
-              >
-                {isSubmitting ? 'Submitting...' : 'Get Quote'}
-              </button>
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  disabled={isPreviewing || isSubmitting}
+                  onClick={() => void previewServiceForm(selectedService || 'Service Request')}
+                  className="w-full bg-white text-primary border-2 border-primary py-3 rounded-lg font-semibold hover:bg-primary-light/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]"
+                >
+                  {isPreviewing ? 'Preview…' : 'Preview email'}
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-all disabled:bg-primary-light disabled:cursor-not-allowed min-h-[48px]"
+                >
+                  {isSubmitting ? 'Submitting...' : 'Get Quote'}
+                </button>
+              </div>
             </form>
             {submitSuccess && (
               <div className="mt-4 p-3 bg-primary-light/20 text-primary rounded-lg text-center">
@@ -697,6 +840,17 @@ export default function Services() {
           </div>
         </div>
       )}
+
+      <EmailPreviewModal
+        open={emailPreviewOpen}
+        onClose={() => {
+          setEmailPreviewOpen(false);
+          setEmailPreview(null);
+        }}
+        preview={emailPreview}
+        title="Notification email preview"
+      />
+
       </div>
     </>
   );
