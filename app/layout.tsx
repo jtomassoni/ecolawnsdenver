@@ -33,21 +33,12 @@ export const metadata: Metadata = {
     title: 'EcoLawns Denver | Permanently Closed',
     description:
       'EcoLawns Denver is permanently closed and no longer in operation. We are not accepting new customers or bookings.',
-    images: [
-      {
-        url: '/images/hero.jpg',
-        width: 2000,
-        height: 1200,
-        alt: 'Professional lawn care service in Denver',
-      },
-    ],
   },
   twitter: {
-    card: 'summary_large_image',
+    card: 'summary',
     title: 'EcoLawns Denver | Permanently Closed',
     description:
       'EcoLawns Denver is permanently closed and no longer in operation.',
-    images: ['/images/hero.jpg'],
   },
   robots: {
     index: true,

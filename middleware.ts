@@ -4,6 +4,15 @@ import { jwtVerify } from 'jose';
 
 const PATHNAME_HEADER = 'x-pathname';
 
+function isInternalPath(pathname: string): boolean {
+  return (
+    pathname === '/login' ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/crm')
+  );
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const requestHeaders = new Headers(request.headers);
@@ -14,8 +23,7 @@ export async function middleware(request: NextRequest) {
       request: { headers: requestHeaders },
     });
 
-  const closedPublicPaths = ['/services', '/about', '/realtors', '/thank-you'];
-  if (closedPublicPaths.includes(pathname) || closedPublicPaths.some((p) => pathname.startsWith(`${p}/`))) {
+  if (!isInternalPath(pathname) && pathname !== '/') {
     return NextResponse.redirect(new URL('/', request.url));
   }
 

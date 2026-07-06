@@ -1,17 +1,13 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import Navigation from '@/components/Navigation';
-import Footer from '@/components/Footer';
 
 export default function SiteShell({
   children,
-  hasCrmSession = false,
   pathnameFromServer = '',
 }: {
   children: React.ReactNode;
   hasCrmSession?: boolean;
-  /** From middleware — avoids SSR/client `usePathname()` mismatches (e.g. mobile Safari). */
   pathnameFromServer?: string;
 }) {
   const pathname = usePathname();
@@ -30,10 +26,8 @@ export default function SiteShell({
   }
 
   return (
-    <>
-      <Navigation pathnameFromServer={pathnameFromServer} />
-      <main className="flex-1 relative min-h-0 overflow-y-auto overflow-x-hidden w-full">{children}</main>
-      {!hasCrmSession ? <Footer /> : null}
-    </>
+    <main className="flex-1 relative min-h-0 overflow-y-auto overflow-x-hidden w-full bg-white">
+      {children}
+    </main>
   );
 }
