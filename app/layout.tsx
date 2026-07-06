@@ -7,12 +7,25 @@ import { verifySession } from '@/lib/auth';
 
 export const metadata: Metadata = {
   title: {
-    default: 'EcoLawns Denver | Permanently Closed',
+    default: 'EcoLawns Denver | Professional Electric Lawn Care Services | Starting at $40/visit',
     template: '%s | EcoLawns Denver',
   },
   description:
-    'EcoLawns Denver is permanently closed and no longer in operation. We are not accepting new customers, quotes, or bookings.',
-  keywords: ['EcoLawns Denver', 'closed', 'Denver lawn care'],
+    'Free quotes. Electric lawn mowing in Denver—quiet, battery-powered equipment, with charging supported by home solar and portable power on job sites. Weekly & bi-weekly mowing, spring/fall cleanup, snow removal. Licensed & insured. From $40/visit.',
+  keywords: [
+    'lawn care Denver',
+    'electric lawn mowing Denver',
+    'battery-powered lawn service',
+    'eco-friendly lawn care Denver',
+    'Denver lawn maintenance',
+    'quiet lawn mowing',
+    'electric lawn mower service',
+    'snow removal Denver',
+    'spring cleanup Denver',
+    'lawn service Bear Valley',
+    'sustainable lawn care Denver',
+    'zero emission lawn service'
+  ],
   authors: [{ name: 'EcoLawns Denver' }],
   creator: 'EcoLawns Denver',
   publisher: 'EcoLawns Denver',
@@ -30,9 +43,9 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://ecolawnsdenver.com',
     siteName: 'EcoLawns Denver',
-    title: 'EcoLawns Denver | Permanently Closed',
+    title: 'EcoLawns Denver | Professional Electric Lawn Care Services',
     description:
-      'EcoLawns Denver is permanently closed and no longer in operation. We are not accepting new customers or bookings.',
+      'Free quotes for Denver lawn care. Quiet electric mowing, solar-backed battery charging, spring/fall cleanup & snow removal. From $40/visit.',
     images: [
       {
         url: '/images/hero.jpg',
@@ -44,9 +57,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'EcoLawns Denver | Permanently Closed',
+    title: 'EcoLawns Denver | Professional Electric Lawn Care',
     description:
-      'EcoLawns Denver is permanently closed and no longer in operation.',
+      'Denver electric lawn care—free quotes, quiet battery equipment, solar-assisted charging. Mowing, cleanups & snow removal.',
     images: ['/images/hero.jpg'],
   },
   robots: {
