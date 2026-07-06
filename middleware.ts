@@ -14,6 +14,11 @@ export async function middleware(request: NextRequest) {
       request: { headers: requestHeaders },
     });
 
+  const closedPublicPaths = ['/services', '/about', '/realtors', '/thank-you'];
+  if (closedPublicPaths.includes(pathname) || closedPublicPaths.some((p) => pathname.startsWith(`${p}/`))) {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
   if (pathname === '/crm' || pathname.startsWith('/crm/')) {
     const target = pathname.replace(/^\/crm/, '/admin') || '/admin';
     const url = new URL(target, request.url);
